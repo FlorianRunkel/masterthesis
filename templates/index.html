@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karriere-Prognose KI</title>
+    <link rel="stylesheet" href="static/css/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logos -->
+            <div class="logo-container">
+                <img src="static/images/logo.png" alt="Aurio Technology Logo" class="navbar-logo">
+                <img src="static/images/ur-logo.png" alt="UR Logo" class="navbar-logo">
+            </div>
+    
+            <!-- Checkbox für das Menü -->
+            <input type="checkbox" id="menu-checkbox" class="checkbox" />
+    
+            <!-- Hamburger Button -->
+            <label for="menu-checkbox" class="hamburger-lines">
+                <span class="line line1"></span>
+                <span class="line line2"></span>
+                <span class="line line3"></span>
+            </label>
+    
+            <!-- Menü -->
+            <ul class="menu-items">
+                <li><a href="/" onclick="closeMenu()">Karriere-Prognose</a></li>
+                <li><a href="/about" onclick="closeMenu()">Masterarbeit</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="carrer-explanation" id="carrer_exp">
+        <div class="text-container">
+          <h2>Karriere-Prognose</h2>
+          <p>Nutzen Sie unsere KI, um präzise Vorhersagen über Ihre Karrieremöglichkeiten und -chancen zu erhalten.</p>
+        </div>
+        <img src="static/images/hr_carrer.webp" alt="hr_carrer" class="hr_carrer">
+      </div>
+
+    <div class="pers-form">
+        <div class="form-group">
+            <h3>Persönliche Informationen</h3>
+            <div class="personal-info">
+                <div class="name-fields">
+                    <div class="input-group">
+                        <label for="firstName">Vorname</label>
+                        <input type="text" id="firstName" placeholder="Vorname">
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Nachname</label>
+                        <input type="text" id="lastName" placeholder="Nachname">
+                    </div>
+                    <div class="input-group">
+                        <label for="location">Wohnort</label>
+                        <input type="text" id="location" placeholder="Wohnort">
+                    </div>
+                </div>
+        
+                <div class="education-fields">
+                    <div class="input-group">
+                        <label for="education">Ausbildung</label>
+                        <div id="educationFields">
+                            <div class="education-entry">
+                                <input type="text" placeholder="Schule" id="school1">
+                                <input type="text" placeholder="Abschluss" id="degree1">
+                            </div>
+                        </div>
+                        <button type="button" id="addEducation" class="btn-secondary">Weitere Ausbildung hinzufügen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="careerForm">
+            <div class="form-group">
+                <h3>Berufserfahrung</h3>
+                <div id="experiences">
+                    <div class="experience-entry">
+                        <input type="text" placeholder="Firma" required>
+                        <input type="text" placeholder="Position" required>
+                        <input type="date" placeholder="Start-Datum" required>
+                        <input type="date" placeholder="End-Datum">
+                    </div>
+                </div>
+                <button type="button" id="addExperience" class="btn-secondary">Weitere Position hinzufügen</button>
+            </div>
+        
+            <div class="form-group">
+                <h3>KI-Modell</h3>
+                <div class="model-selection">
+                    <select id="modelType">
+                        <option value="groq">groq</option>
+                        <option value="customLLM">LLM</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Prognose erstellen</button>
+            </div>
+        </form>
+        
+        <div class="prediction-result" id="predictionResult" style="display: none;">
+            <div class="prediction-container">
+                <h3>Ihre Karriere-Prognose</h3>
+                <p id="prediction"></p> 
+            </div>
+        </div>
+    </div>
+
+    <div class="contact-section">
+        <h2>Kontakt</h2>
+        <div class="contact-info">
+            <div class="contact-item">
+                <img src="static/images/profile.jpeg" alt="Florian Runkel" class="contact-img"> <!-- Profilbild -->
+                <p>Florian Runkel</p>
+            </div>
+            <div class="contact-item">
+                <img src="static/images/email.jpeg" alt="Email Icon" class="contact-img"> <!-- Email Icon -->
+                <p>florian.runkel@stud-regensburg.de</p>
+            </div>
+            <div class="contact-item">
+                <a href="https://www.linkedin.com/in/florian-runkel-82b521228/" class="contact-link" target="_blank">
+                    <img src="static/images/linkedin.jpeg" alt="LinkedIn Icon" class="contact-img"> 
+                    <p>LinkedIn</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="contact-media" id="contact">
+        <div class="copyright">
+            <p>&copy; 2025 Florian Runkel</p>
+        </div>
+    </div>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>
