@@ -1,15 +1,22 @@
-version: '3'
+version: '3.8'
+
 services:
   web:
     build: .
     ports:
       - "5001:5001"
     volumes:
-      - .:/app
+      - ./dashboard:/app/dashboard
+      - linkedin_data:/app/ml_pipe/data/database
     environment:
+      - FLASK_APP=app.py
       - FLASK_ENV=development
+    command: flask run --host=0.0.0.0 --port=5001
     networks:
       - flask-network
+
+volumes:
+  linkedin_data:
 
 networks:
   flask-network:

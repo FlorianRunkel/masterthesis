@@ -1,22 +1,31 @@
-FROM python:3.8-slim
+FROM python:3.9-slim
 
-# Installiere Systemabhängigkeiten
-RUN apt-get update && apt-get install -y libomp-dev
-
-# Arbeitsverzeichnis festlegen
 WORKDIR /app
 
-# Kopiere die Anforderungen in das Arbeitsverzeichnis
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    libatlas-base-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Installiere Python-Abhängigkeiten
-RUN pip install --no-cache-dir -r requirements.txt
+# Erstelle die notwendigen Verzeichnisse
+RUN mkdir -p /app/dashboard/templates /app/dashboard/static
 
-# Kopiere den Rest des Projekts in das Arbeitsverzeichnis
+# Kopiere die Anwendungscode
 COPY . .
 
-# Port setzen, wenn erforderlich (z.B. 5000 für Flask)
-EXPOSE 5000
+# Setze die Berechtigungen
+RUN chmod -R 755 /app
 
-# Starte den Flask-Server
-CMD ["python", "app.py"]
+EXPOSE 5001
+
+ENV PYTHONPATH=/app
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]

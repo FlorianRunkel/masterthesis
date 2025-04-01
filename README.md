@@ -1,76 +1,128 @@
-# masterthesis
+# LinkedIn Karriere-Prognose KI
 
-Diese Anwendung ist Teil der Masterarbeit "Predictive Talent Analytics: Leveraging AI to Anticipate Career Shifts". Ziel der Forschung ist es, mit Hilfe künstlicher Intelligenz den optimalen Zeitpunkt für den nächsten Karriereschritt vorherzusagen. Dazu wird ein innovatives KI-Modell entwickelt, das Karrieredaten analysiert und präzise Prognosen ermöglicht.
+Ein KI-basiertes System zur Vorhersage des optimalen Zeitpunkts für den nächsten Karriereschritt basierend auf LinkedIn-Daten.
 
-## Ausgangslage der Masterarbeit
+## Projektstruktur
 
-Die Herausforderung, die Wechselbereitschaft von Talenten frühzeitig zu erkennen, ist ein zentraler Bestandteil der Forschung. Im Rahmen dieser Arbeit werden folgende Forschungsfragen untersucht:
+```
+.
+├── app.py                 # Flask-Anwendung
+├── ml_pipe/              # Machine Learning Pipeline
+│   ├── data/            # Datenverarbeitung
+│   │   ├── dummy_data.py
+│   │   ├── datamodule.py
+│   │   └── data_processor.py
+│   ├── models/          # KI-Modelle
+│   │   └── model.py
+│   └── predict.py       # Vorhersage-Logik
+├── dashboard/           # Frontend
+│   ├── static/
+│   │   ├── css/
+│   │   └── js/
+│   └── templates/
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
+```
 
-1. **Datengrundlage:** Welche Daten basierend auf LinkedIn-Profilen sind erforderlich, um KI-Modelle zu entwickeln?
-2. **Analyse der Modellperformance:** Welche Methoden eignen sich zur Verbesserung der Performance?
-3. **Active-Sourcing:** Wie können die Ergebnisse auf das Active-Sourcing angewendet werden?
+## Features
 
-Diese Admin-App dient als Testumgebung für verschiedene Modelle, darunter Groq und ein Custom LLM.
+- Vorhersage des nächsten Karriereschritts
+- Konfidenz-Score für Vorhersagen
+- Personalisierte Empfehlungen
+- Interaktives Dashboard
+- Dummy-Daten für Tests und Entwicklung
 
-## Installation & Setup
+## Installation
 
-### Voraussetzungen
-- Docker
-- Python 3.x
-- Flask
-- Docker Compose 
+### Option 1: Lokale Installation
 
-### Installation
 1. Repository klonen:
-   ```bash
-   git clone <repository-url>
-   cd admin-app
-   ```
-2. Virtuelle Umgebung erstellen (optional):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # macOS/Linux
-   venv\Scripts\activate  # Windows
-   ```
+```bash
+git clone [repository-url]
+cd [repository-name]
+```
+
+2. Virtuelle Umgebung erstellen und aktivieren:
+```bash
+python -m venv venv
+source venv/bin/activate  # Unter Windows: venv\Scripts\activate
+```
+
 3. Abhängigkeiten installieren:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+pip install -r requirements.txt
+```
+
 4. Anwendung starten:
-   ```bash
-   python app.py
-   ```
-
-## Nutzung
-
-### Endpunkte
-- `/` - Index-Seite für die Admin-App
-- `/about` - About-Seite
-- `/models` (GET) - Gibt eine Liste der verfügbaren Modelle zurück
-- `/run_model` (POST) - Führt ein Modell mit einem gegebenen Input aus
-
-### Beispiel für eine API-Anfrage
 ```bash
-curl -X POST http://127.0.0.1:5000/run_model \
-     -H "Content-Type: application/json" \
-     -d '{"model": "Groq", "input": "Karriereprognose"}'
+python app.py
 ```
 
-## Docker
-### Anwendung mit Docker starten
-1. Docker-Container bauen:
-   ```bash
-   docker build -t admin-app .
-   ```
-2. Container starten:
-   ```bash
-   docker run -p 5000:5000 admin-app
-   ```
+### Option 2: Docker Installation
 
-### Docker Compose
-Falls eine `docker-compose.yml` vorhanden ist, kann die Anwendung mit folgendem Befehl gestartet werden:
+1. Docker und Docker Compose installieren
+
+2. Repository klonen:
 ```bash
-docker-compose up
+git clone [repository-url]
+cd [repository-name]
 ```
+
+3. Container starten:
+```bash
+docker-compose up --build
+```
+
+## Verwendung
+
+1. Öffnen Sie die Anwendung im Browser: `http://localhost:5001`
+
+2. Geben Sie Ihre persönlichen Informationen ein:
+   - Name
+   - Standort
+   - Berufserfahrung
+   - Ausbildung
+
+3. Wählen Sie das KI-Modell aus:
+   - LLM
+
+4. Klicken Sie auf "Prognose erstellen"
+
+5. Die Vorhersage wird mit Konfidenz-Score und Empfehlungen angezeigt
+
+## API-Endpunkte
+
+- `GET /api/profiles`: Alle Profile abrufen
+- `GET /api/experiences/<profile_id>`: Berufserfahrung eines Profils abrufen
+- `GET /api/education/<profile_id>`: Ausbildung eines Profils abrufen
+- `POST /predict`: Neue Vorhersage generieren
+
+## Entwicklung
+
+### Dummy-Daten generieren
+
+```bash
+python ml_pipe/data/dummy_data.py
+```
+
+### Tests ausführen
+
+```bash
+python -m pytest tests/
+```
+
+## Technologien
+
+- Python 3.9
+- Flask
+- PyTorch
+- SQLite
+- Docker
+- HTML/CSS/JavaScript
+
+## Autor
+
+Florian Runkel
 
 

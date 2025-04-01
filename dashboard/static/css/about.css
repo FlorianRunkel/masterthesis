@@ -303,12 +303,12 @@ section {
     width: 550px;
     height: 550px;
     margin-right: 35px;  /* Negative margin für Überlappung */
-    padding: 40px;
+    padding: 50px;
 }
 
 .profile-img {
-    width: 120%;
-    height: 120%;
+    width: 140%;
+    height: 140%;
     border-radius: 12px;
     object-fit: cover;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);

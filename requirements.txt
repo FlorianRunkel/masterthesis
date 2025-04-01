@@ -1,5 +1,12 @@
-Flask
-requests
+flask
+werkzeug
+pandas
+numpy
+scikit-learn
 torch
-transformers
-datasets
+pytorch-lightning
+python-dotenv
+gunicorn
+plotly
+dash
+dash-bootstrap-components

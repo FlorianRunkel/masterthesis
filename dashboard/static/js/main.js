@@ -11,17 +11,15 @@ document.addEventListener("DOMContentLoaded", function() {
             <input type="text" placeholder="Position" required>
             <input type="date" placeholder="Start-Datum" required>
             <input type="date" placeholder="End-Datum">
-            <button type="button" class="removeExperience">🗑️</button> <!-- Mülleimer Emoji -->
+            <button type="button" class="removeExperience">🗑️</button>
         `;
 
-        // Füge die neue Erfahrung hinzu
         experiencesContainer.appendChild(newExperience);
     });
 
     // Funktion, um ein "Remove"-Button zu behandeln
     document.getElementById("experiences").addEventListener("click", function(event) {
         if (event.target && event.target.classList.contains("removeExperience")) {
-            // Entferne das übergeordnete .experience-entry
             const experienceEntry = event.target.closest(".experience-entry");
             if (experienceEntry) {
                 experienceEntry.remove();
@@ -33,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const addEducationButton = document.getElementById('addEducation');
     const educationFieldsContainer = document.getElementById('educationFields');
 
-    // Funktion zum Hinzufügen eines neuen Ausbildungsfeldes
     addEducationButton.addEventListener('click', function () {
         const educationEntry = document.createElement('div');
         educationEntry.classList.add('education-entry');
@@ -50,14 +47,12 @@ document.addEventListener("DOMContentLoaded", function() {
         removeButton.classList.add('remove-education');
         removeButton.textContent = 'Delete';
         
-        // Anfügen der neuen Inputs und des Buttons zum Container
         educationEntry.appendChild(schoolInput);
         educationEntry.appendChild(degreeInput);
         educationEntry.appendChild(removeButton);
         
         educationFieldsContainer.appendChild(educationEntry);
 
-        // Event Listener für den Entfernen-Button
         removeButton.addEventListener('click', function () {
             educationFieldsContainer.removeChild(educationEntry);
         });
@@ -79,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Formulardaten absenden
 document.getElementById('careerForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Verhindert das standardmäßige Absenden des Formulars
+    event.preventDefault();
 
     // Sammeln der Formulardaten
     const formData = new FormData(event.target);
@@ -98,27 +93,57 @@ document.getElementById('careerForm').addEventListener('submit', async function(
     });
 
     formObj.experiences = experiences;
+    formObj.modelType = document.getElementById('modelType').value;
 
-    // Auswahl des Modells
-    formObj.modelType = document.getElementById('modelType').value; // Das Modell wird ausgelesen
+    try {
+        // Senden der Daten an das Backend
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formObj)
+        });
 
-    // Senden der Daten an das Backend
-    const response = await fetch('/predict', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formObj)
-    });
+        const result = await response.json();
 
-    const result = await response.json();
+        if (result.error) {
+            throw new Error(result.error);
+        }
 
-    // Vorhersagetext einfügen
-    const predictionText = result.prediction;
-    const predictionElement = document.getElementById('prediction');
-    predictionElement.textContent = predictionText;
+        // Vorhersagebox anzeigen
+        const predictionResult = document.getElementById('predictionResult');
+        predictionResult.style.display = 'block';
 
-    // Vorhersagebox anzeigen
-    const predictionResult = document.getElementById('predictionResult');
-    predictionResult.style.display = 'block';  // Box sichtbar machen
+        // Vorhersagetext einfügen
+        const predictionElement = document.getElementById('prediction');
+        predictionElement.innerHTML = `
+            <div class="prediction-content">
+                <h4>Nächster Karriereschritt</h4>
+                <p>${result.next_career_step}</p>
+                
+                <h4>Konfidenz</h4>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${result.confidence * 100}%"></div>
+                </div>
+                <p>${Math.round(result.confidence * 100)}%</p>
+                
+                <h4>Empfehlungen</h4>
+                <ul>
+                    ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Fehler bei der Vorhersage:', error);
+        const predictionResult = document.getElementById('predictionResult');
+        predictionResult.style.display = 'block';
+        const predictionElement = document.getElementById('prediction');
+        predictionElement.innerHTML = `
+            <div class="error-message">
+                <p>Es ist ein Fehler aufgetreten: ${error.message}</p>
+            </div>
+        `;
+    }
 });
