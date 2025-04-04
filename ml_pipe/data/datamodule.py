@@ -1,97 +1,134 @@
 import pytorch_lightning as pl
-from torch.utils.data import Dataset, DataLoader
-import pandas as pd
+from torch.utils.data import DataLoader, Dataset
 import numpy as np
-import torch
-from typing import Optional, Tuple
+import pandas as pd
+import sqlite3
+from datetime import datetime
+import logging
 
-class LinkedInDataset(Dataset):
-    def __init__(self, features: np.ndarray, targets: np.ndarray):
-        self.features = torch.FloatTensor(features)
-        self.targets = torch.FloatTensor(targets)
-        
+logger = logging.getLogger(__name__)
+
+class CareerDataset(Dataset):
+    def __init__(self, sequences, targets):
+        self.sequences = sequences
+        self.targets = targets
+    
     def __len__(self):
-        return len(self.features)
+        return len(self.sequences)
     
     def __getitem__(self, idx):
-        return self.features[idx], self.targets[idx]
+        return self.sequences[idx], self.targets[idx]
 
-class LinkedInDataModule(pl.LightningDataModule):
-    def __init__(self, 
-                 data_processor,
-                 batch_size: int = 32,
-                 num_workers: int = 4,
-                 train_split: float = 0.8,
-                 val_split: float = 0.1):
+class DataModule(pl.LightningDataModule):
+    def __init__(self, db_path='ml_pipe/data/database/career_data.db', batch_size=32, seq_len=5):
         super().__init__()
-        self.data_processor = data_processor
+        self.db_path = db_path
         self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.train_split = train_split
-        self.val_split = val_split
+        self.seq_len = seq_len
         
-        self.train_dataset = None
-        self.val_dataset = None
-        self.test_dataset = None
+    def prepare_data(self):
+        """
+        Lädt die Daten aus der SQLite-Datenbank
+        """
+        logger.info(f"Lade Daten aus {self.db_path}")
+        self.conn = sqlite3.connect(self.db_path)
         
-    def setup(self, stage: Optional[str] = None):
-        """Lädt und bereitet die Daten vor"""
-        # Hier müssen Sie Ihre Daten laden und verarbeiten
-        # Beispiel:
-        # raw_data = pd.read_csv("path/to/your/data.csv")
-        # processed_data = self.data_processor.process_raw_data(raw_data)
-        # features = self.data_processor.prepare_features(...)
-        
-        # Dummy-Daten für das Beispiel
-        n_samples = 1000
-        n_features = 10
-        features = np.random.randn(n_samples, n_features)
-        targets = np.random.randn(n_samples, 1)
-        
-        # Split der Daten
-        train_size = int(n_samples * self.train_split)
-        val_size = int(n_samples * self.val_split)
-        
-        # Train/Val/Test Split
-        indices = np.random.permutation(n_samples)
-        train_indices = indices[:train_size]
-        val_indices = indices[train_size:train_size + val_size]
-        test_indices = indices[train_size + val_size:]
-        
-        # Erstellen der Datasets
-        self.train_dataset = LinkedInDataset(
-            features[train_indices], 
-            targets[train_indices]
+        # Lade Karrierverläufe
+        self.career_data = pd.read_sql_query(
+            "SELECT * FROM career_history ORDER BY profile_id, start_date", 
+            self.conn
         )
-        self.val_dataset = LinkedInDataset(
-            features[val_indices], 
-            targets[val_indices]
+        
+        # Konvertiere Datumsspalten
+        self.career_data['start_date'] = pd.to_datetime(self.career_data['start_date'])
+        self.career_data['end_date'] = pd.to_datetime(self.career_data['end_date']).fillna(datetime.today())
+        
+        # Berechne Dauer in Monaten
+        self.career_data['duration_months'] = (self.career_data['end_date'] - self.career_data['start_date']).dt.days // 30
+        
+        # Kodiere Positionen und Unternehmen
+        self.career_data['position_level'] = self.career_data['position'].astype('category').cat.codes
+        self.career_data['company_encoded'] = self.career_data['company'].astype('category').cat.codes
+        
+        logger.info(f"Geladen: {len(self.career_data)} Karriereinträge von {self.career_data['profile_id'].nunique()} Profilen")
+        
+    def setup(self, stage=None):
+        """
+        Bereitet die Daten für das Training vor
+        """
+        if not hasattr(self, 'career_data'):
+            self.prepare_data()
+        
+        # Feature-Engineering
+        feature_cols = ['duration_months', 'position_level', 'company_encoded']
+        
+        # Erstelle Sequenzen für jedes Profil
+        sequences = []
+        targets = []
+        
+        for profile_id, group in self.career_data.groupby('profile_id'):
+            # Sortiere nach Startdatum
+            group = group.sort_values('start_date')
+            
+            # Extrahiere Features
+            features = group[feature_cols].values
+            
+            # Erstelle Sequenz der Länge seq_len
+            if len(features) < self.seq_len:
+                # Padding für zu kurze Sequenzen
+                pad = np.zeros((self.seq_len - len(features), len(feature_cols)))
+                features = np.vstack((pad, features))
+            else:
+                # Nimm die letzten seq_len Einträge
+                features = features[-self.seq_len:]
+            
+            sequences.append(features.astype(np.float32))
+            
+            # Zielvariable: Hat diese Person am Ende gewechselt?
+            # Wir betrachten einen Wechsel als Ziel, wenn es mehr als einen Eintrag gibt
+            target = 1.0 if len(group) > 1 else 0.0
+            targets.append([target])
+        
+        # Konvertiere zu NumPy-Arrays
+        self.sequences = np.array(sequences)
+        self.targets = np.array(targets)
+        
+        # Teile in Train/Val/Test
+        n_samples = len(self.sequences)
+        train_size = int(0.7 * n_samples)
+        val_size = int(0.15 * n_samples)
+        
+        # Erstelle Datasets
+        self.train_dataset = CareerDataset(
+            self.sequences[:train_size], 
+            self.targets[:train_size]
         )
-        self.test_dataset = LinkedInDataset(
-            features[test_indices], 
-            targets[test_indices]
+        
+        self.val_dataset = CareerDataset(
+            self.sequences[train_size:train_size+val_size], 
+            self.targets[train_size:train_size+val_size]
         )
+        
+        self.test_dataset = CareerDataset(
+            self.sequences[train_size+val_size:], 
+            self.targets[train_size+val_size:]
+        )
+        
+        logger.info(f"Daten aufgeteilt: {len(self.train_dataset)} Train, {len(self.val_dataset)} Val, {len(self.test_dataset)} Test")
     
     def train_dataloader(self):
-        return DataLoader(
-            self.train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=self.num_workers
-        )
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
     
     def val_dataloader(self):
-        return DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers
-        )
+        return DataLoader(self.val_dataset, batch_size=self.batch_size)
     
     def test_dataloader(self):
-        return DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers
-        ) 
+        return DataLoader(self.test_dataset, batch_size=self.batch_size)
+    
+    def teardown(self, stage=None):
+        """
+        Schließt die Datenbankverbindung
+        """
+        if hasattr(self, 'conn'):
+            self.conn.close()
+            logger.info("Datenbankverbindung geschlossen")

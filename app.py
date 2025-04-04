@@ -5,8 +5,8 @@ import numpy as np
 from datetime import datetime
 import logging
 import os
-from ml_pipe.data.dummy_data import create_dummy_database
-from ml_pipe.predict import predict
+from ml_pipe.data.DatabaseHandler import create_dummy_database
+from ml_pipe.models.gru.predict import predict
 
 # Flask-App initialisieren mit korrektem Template-Verzeichnis
 template_dir = os.path.abspath('dashboard/templates')

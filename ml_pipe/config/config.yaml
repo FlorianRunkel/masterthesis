@@ -1,42 +1,36 @@
-# Daten-Konfiguration
 data:
-  raw_data_path: "data/raw/linkedin_data.csv"
-  processed_data_path: "data/processed/processed_data.csv"
-  target_column: "target"
-  categorical_columns:
-    - "industry"
-    - "location"
-    - "company_size"
-  numerical_columns:
-    - "experience_years"
-    - "education_level"
-    - "connections_count"
-    - "posts_count"
-  train_split: 0.8
-  val_split: 0.1
   batch_size: 32
   num_workers: 4
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
 
-# Modell-Konfiguration
 model:
-  input_dim: 10  # Wird automatisch berechnet
-  hidden_dims: [128, 64]
-  output_dim: 1
-  dropout_rate: 0.2
+  input_dim: 5  # experience_years, connections_count, account_age_days, position_level, experience_count
+  hidden_dims: [64, 32, 16]
+  output_dim: 8  # Anzahl der möglichen Karrierestufen
   learning_rate: 0.001
+  dropout_rate: 0.2
 
-# Training-Konfiguration
 training:
-  max_epochs: 100
-  accelerator: "auto"
+  max_epochs: 50
+  accelerator: 'cpu'  # oder 'gpu' wenn verfügbar
   devices: 1
   precision: 32
   log_every_n_steps: 10
-  early_stopping_patience: 10
-  checkpoint_dir: "checkpoints"
 
-# Logging-Konfiguration
 logging:
-  log_dir: "logs"
-  name: "linkedin_model"
-  version: "1.0.0" 
+  log_dir: 'ml_pipe/logs'
+  name: 'linkedin_career_prediction'
+  version: '1.0.0'
+
+callbacks:
+  early_stopping:
+    monitor: 'val_loss'
+    patience: 5
+    mode: 'min'
+  model_checkpoint:
+    monitor: 'val_loss'
+    mode: 'min'
+    save_top_k: 1
+    filename: 'best_model' 

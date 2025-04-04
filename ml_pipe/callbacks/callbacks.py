@@ -1,30 +1,32 @@
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from typing import Dict, Any
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
-def get_callbacks(config: Dict[str, Any]) -> list:
-    """Erstellt und gibt eine Liste von Callbacks zurück"""
+def get_callbacks(config):
+    """
+    Erstellt die Callbacks für das Training basierend auf der Konfiguration
+    
+    Args:
+        config (dict): Konfigurationsdictionary
+        
+    Returns:
+        list: Liste der Callbacks
+    """
     callbacks = []
     
-    # Model Checkpoint
-    checkpoint_callback = ModelCheckpoint(
-        monitor='val_loss',
-        dirpath=config['checkpoint_dir'],
-        filename='linkedin-model-{epoch:02d}-{val_loss:.2f}',
-        save_top_k=3,
-        mode='min',
-        save_last=True
-    )
-    callbacks.append(checkpoint_callback)
-    
     # Early Stopping
-    early_stop_callback = EarlyStopping(
-        monitor='val_loss',
-        min_delta=0.00,
-        patience=config['early_stopping_patience'],
-        verbose=True,
-        mode='min'
+    early_stopping = EarlyStopping(
+        monitor=config['callbacks']['early_stopping']['monitor'],
+        patience=config['callbacks']['early_stopping']['patience'],
+        mode=config['callbacks']['early_stopping']['mode']
     )
-    callbacks.append(early_stop_callback)
+    callbacks.append(early_stopping)
+    
+    # Model Checkpoint
+    model_checkpoint = ModelCheckpoint(
+        monitor=config['callbacks']['model_checkpoint']['monitor'],
+        mode=config['callbacks']['model_checkpoint']['mode'],
+        save_top_k=config['callbacks']['model_checkpoint']['save_top_k'],
+        filename=config['callbacks']['model_checkpoint']['filename']
+    )
+    callbacks.append(model_checkpoint)
     
     return callbacks 
