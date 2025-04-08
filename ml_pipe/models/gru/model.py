@@ -1,112 +1,55 @@
+import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-
 import pytorch_lightning as pl
-import logging
-
-logger = logging.getLogger(__name__)
 
 class GRUModel(pl.LightningModule):
     def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.2, lr=1e-3):
         super().__init__()
         self.save_hyperparameters()
-        
-        # GRU-Layer
-        self.gru = nn.GRU(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            batch_first=True,
-            dropout=dropout if num_layers > 1 else 0
-        )
-        
-        # Fully Connected Layer für die Vorhersage
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout if num_layers > 1 else 0)
         self.fc = nn.Linear(hidden_size, 1)
-        
-        # Aktivierungsfunktion für binäre Klassifikation
         self.sigmoid = nn.Sigmoid()
-        
-        # Loss-Funktion
         self.loss_fn = nn.BCELoss()
-        
-        # Learning Rate
         self.lr = lr
-        
-        logger.info(f"GRU-Modell initialisiert: input_size={input_size}, hidden_size={hidden_size}, num_layers={num_layers}")
-    
+
     def forward(self, x):
-        # x: [batch_size, seq_len, input_size]
-        
-        # GRU-Verarbeitung
+        if x.dim() == 2:
+            x = x.unsqueeze(-1)
+        if x.size(-1) != self.hparams.input_size:
+            if x.size(-1) < self.hparams.input_size:
+                pad = torch.zeros(x.size(0), x.size(1), self.hparams.input_size - x.size(-1), device=x.device)
+                x = torch.cat([x, pad], dim=-1)
+            else:
+                x = x[:, :, :self.hparams.input_size]
         out, _ = self.gru(x)
-        
-        # Nimm nur den letzten Zeitpunkt der Sequenz
-        out = out[:, -1, :]
-        
-        # Fully Connected Layer
-        out = self.fc(out)
-        
-        # Sigmoid für binäre Klassifikation
-        out = self.sigmoid(out)
-        
-        return out
-    
+        out = self.fc(out[:, -1, :])
+        return self.sigmoid(out)
+
+    def step(self, batch, stage):
+        x, y = batch
+        if isinstance(x, (list, tuple)):
+            x = x[0]
+        x = x.float()
+        y = y.float().unsqueeze(1) if y.dim() == 1 else y
+        y_hat = self(x)
+        loss = self.loss_fn(y_hat, y)
+        preds = (y_hat > 0.5).float()
+        acc = (preds == y).float().mean()
+        self.log(f"{stage}_loss", loss, prog_bar=True, batch_size=x.size(0))
+        self.log(f"{stage}_acc", acc, prog_bar=True, batch_size=x.size(0))
+        return loss
+
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = self.loss_fn(y_hat, y)
-        
-        # Logging
-        self.log("train_loss", loss, prog_bar=True)
-        
-        # Berechne Accuracy
-        preds = (y_hat > 0.5).float()
-        acc = (preds == y).float().mean()
-        self.log("train_acc", acc, prog_bar=True)
-        
-        return loss
-    
+        return self.step(batch, "train")
+
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = self.loss_fn(y_hat, y)
-        
-        # Logging
-        self.log("val_loss", loss, prog_bar=True)
-        
-        # Berechne Accuracy
-        preds = (y_hat > 0.5).float()
-        acc = (preds == y).float().mean()
-        self.log("val_acc", acc, prog_bar=True)
-        
-        return loss
-    
+        return self.step(batch, "val")
+
     def test_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = self.loss_fn(y_hat, y)
-        
-        # Logging
-        self.log("test_loss", loss, prog_bar=True)
-        
-        # Berechne Accuracy
-        preds = (y_hat > 0.5).float()
-        acc = (preds == y).float().mean()
-        self.log("test_acc", acc, prog_bar=True)
-        
-        return loss
-    
+        return self.step(batch, "test")
+
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=self.lr)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='min', factor=0.5, patience=5, verbose=True
-        )
-        
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss"
-            }
-        }
+        opt = optim.Adam(self.parameters(), lr=self.lr)
+        sched = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=5, verbose=True)
+        return {"optimizer": opt, "lr_scheduler": {"scheduler": sched, "monitor": "val_loss"}}
