@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset, DataLoader, random_split
 import pytorch_lightning as pl
-from featureEngineering import featureEngineering
+from ml_pipe.data.featureEngineering.featureEngineering import featureEngineering
 
 class Dataset(Dataset):
     def __init__(self, mongo_client, collection_name="CareerData"):

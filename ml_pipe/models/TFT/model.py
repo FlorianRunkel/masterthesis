@@ -1,57 +1,84 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-import numpy as np
+import pytorch_lightning as pl
 
-from ml_pipe.models.gru.dataset_gru import Dataset 
-
-# ------------------------------
-# 2. GRU-Modell
-# ------------------------------
-class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size=1, num_layers=1):
+class TFTModel(pl.LightningModule):
+    def __init__(self, input_size, hidden_size=32, dropout=0.1, lr=1e-3):
         super().__init__()
-        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
-        self.sigmoid = nn.Sigmoid()  # Klassifikation
+        self.save_hyperparameters()
+
+        # Feature Encoding
+        self.input_projection = nn.Linear(input_size, hidden_size)
+
+        # LSTM Layer
+        self.lstm = nn.LSTM(hidden_size, hidden_size, batch_first=True)
+
+        # Attention Layer
+        self.attn = nn.MultiheadAttention(hidden_size, num_heads=4, batch_first=True)
+
+        # Gating Mechanism (optional)
+        self.gate = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size),
+            nn.Sigmoid()
+        )
+
+        # Output Head
+        self.output_layer = nn.Sequential(
+            nn.Linear(hidden_size, 1),
+            nn.Sigmoid()
+        )
+
+        self.loss_fn = nn.BCELoss()
+        self.lr = lr
 
     def forward(self, x):
-        out, _ = self.gru(x)
-        out = out[:, -1, :]  # letztes Zeitschritt
-        out = self.fc(out)
-        return self.sigmoid(out)
+        if x.dim() == 2:
+            x = x.unsqueeze(-1)
 
-# ------------------------------
-# 3. Training
-# ------------------------------
-def train_model(model, dataloader, criterion, optimizer, num_epochs=10):
-    model.train()
-    for epoch in range(num_epochs):
-        epoch_loss = 0
-        for X_batch, y_batch in dataloader:
-            optimizer.zero_grad()
-            outputs = model(X_batch)
-            loss = criterion(outputs, y_batch)
-            loss.backward()
-            optimizer.step()
-            epoch_loss += loss.item()
-        print(f"Epoch {epoch+1}/{num_epochs} - Loss: {epoch_loss/len(dataloader):.4f}")
+        if x.size(-1) != self.hparams.input_size:
+            diff = self.hparams.input_size - x.size(-1)
+            if diff > 0:
+                pad = torch.zeros(x.size(0), x.size(1), diff, device=x.device)
+                x = torch.cat([x, pad], dim=-1)
+            else:
+                x = x[:, :, :self.hparams.input_size]
 
-# ------------------------------
-# 4. Main Run
-# ------------------------------
-if __name__ == "__main__":
-    input_size = 10
-    seq_len = 5
-    hidden_size = 64
-    batch_size = 32
+        x_proj = self.input_projection(x)  # Shape: [B, T, H]
+        lstm_out, _ = self.lstm(x_proj)    # Shape: [B, T, H]
 
-    dataset = Dataset(num_samples=1000, seq_len=seq_len, input_size=input_size)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        attn_out, _ = self.attn(lstm_out, lstm_out, lstm_out)  # Self-attention
+        gated = self.gate(attn_out)
+        fusion = gated * attn_out + (1 - gated) * lstm_out
 
-    model = GRUModel(input_size=input_size, hidden_size=hidden_size)
-    criterion = nn.BCELoss()  # da Sigmoid → Binary Cross Entropy
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+        final_output = fusion[:, -1, :]  # Take last time step
+        out = self.output_layer(final_output)  # [B, 1]
+        return out
 
-    train_model(model, dataloader, criterion, optimizer, num_epochs=10)
+    def step(self, batch, stage):
+        x, y = batch
+        if isinstance(x, (list, tuple)):
+            x = x[0]
+        x = x.float()
+        y = y.float().unsqueeze(1) if y.dim() == 1 else y
+        y_hat = self(x)
+        loss = self.loss_fn(y_hat, y)
+        preds = (y_hat > 0.5).float()
+        acc = (preds == y).float().mean()
+        self.log(f"{stage}_loss", loss, prog_bar=True, batch_size=x.size(0))
+        self.log(f"{stage}_acc", acc, prog_bar=True, batch_size=x.size(0))
+        return loss
+
+    def training_step(self, batch, batch_idx):
+        return self.step(batch, "train")
+
+    def validation_step(self, batch, batch_idx):
+        return self.step(batch, "val")
+
+    def test_step(self, batch, batch_idx):
+        return self.step(batch, "test")
+
+    def configure_optimizers(self):
+        opt = optim.Adam(self.parameters(), lr=self.lr)
+        sched = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=5, verbose=True)
+        return {"optimizer": opt, "lr_scheduler": {"scheduler": sched, "monitor": "val_loss"}}

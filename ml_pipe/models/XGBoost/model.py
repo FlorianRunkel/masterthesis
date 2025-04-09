@@ -1,38 +1,32 @@
 import xgboost as xgb
+from sklearn.metrics import f1_score, accuracy_score, classification_report
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
 
-# ------------------------------
-# 1. Dummy-Daten vorbereiten
-# ------------------------------
-def create_flat_dataset(num_samples=1000, seq_len=5, input_size=10):
-    # 3D: [samples, time, features] → 2D flatten: [samples, time * features]
-    X_seq = np.random.randn(num_samples, seq_len, input_size)
-    X_flat = X_seq.reshape(num_samples, -1)
-    y = np.random.randint(0, 2, size=(num_samples,))
-    return X_flat, y
+class XGBoostModel:
+    def __init__(self, params=None):
+        self.params = params or {
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "use_label_encoder": False
+        }
+        self.model = xgb.XGBClassifier(**self.params)
 
-# ------------------------------
-# 2. XGBoost Training
-# ------------------------------
-def train_xgboost(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    def train(self, X_train, y_train):
+        self.model.fit(X_train, y_train)
 
-    model = xgb.XGBClassifier(objective="binary:logistic", eval_metric="logloss", use_label_encoder=False)
-    model.fit(X_train, y_train)
+    def evaluate(self, X_val, y_val, show_report=False):
+        preds = self.model.predict(X_val)
+        f1 = f1_score(y_val, preds)
+        acc = accuracy_score(y_val, preds)
+        print(f"F1 Score:     {f1:.4f}")
+        print(f"Accuracy:     {acc:.4f}")
+        if show_report:
+            print("Klassifikationsbericht:")
+            print(classification_report(y_val, preds))
+        return f1
 
-    y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    def predict(self, X):
+        return self.model.predict(X)
 
-    print(f"Accuracy: {acc:.4f} | F1-Score: {f1:.4f}")
-
-    return model
-
-# ------------------------------
-# 3. Main
-# ------------------------------
-if __name__ == "__main__":
-    X, y = create_flat_dataset(num_samples=1000, seq_len=5, input_size=10)
-    trained_model = train_xgboost(X, y)
+    def predict_proba(self, X):
+        return self.model.predict_proba(X)[:, 1]
