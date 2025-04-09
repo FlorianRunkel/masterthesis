@@ -1,28 +1,31 @@
-from ml_pipe.data.featureEngineering.featureEngineering import featureEngineering
-import numpy as np
-import joblib
+import torch
 import os
+from ml_pipe.data.featureEngineering.featureEngineering import featureEngineering
+from ml_pipe.models.gru.model import GRUModel
+import numpy as np
 
-def preprocess(documents):
+def preprocess(documents, input_size=2):
     fe = featureEngineering()
     X = fe.extract_features_from_single_user(documents)
 
     if X is None:
         raise ValueError("Nicht genug Daten für Vorhersage")
 
-    if not isinstance(X, np.ndarray):
-        X = np.array(X, dtype=np.float32)
+    return torch.tensor(X, dtype=torch.float32).view(1, -1, input_size)
 
-    return X
-
-def predict(data, model_path="ml_pipe/models/xgboost/saved_models/xgboost_model_20250409_111910.joblib"):
+def predict(data, model_path="ml_pipe/models/gru/saved_models/gru_model_20250409_103100.pt"):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
-    model = joblib.load(model_path)
+    model = GRUModel(input_size=2, hidden_size=32)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    model.eval()
+
     X = preprocess(data)
 
-    prob = model.predict_proba(X)[0][1]
+    with torch.no_grad():
+        prob = model(X).item()
+
     status = "wechselbereit" if prob > 0.5 else "bleibt wahrscheinlich"
 
     return {

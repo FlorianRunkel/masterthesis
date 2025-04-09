@@ -28,26 +28,12 @@ def predict_career():
     try:
         data = request.get_json()
 
-        # Extrahiere Nutzereingaben
-        first_name = data.get('firstName', '')
-        last_name = data.get('lastName', '')
-        location = data.get('location', '')
         experiences = data.get('experiences', [])
-        model_type = data.get('modelType', 'transformer')
+        model_type = data.get('modelType', 'gru')
 
         app.logger.info(f"Eingehende Daten: {data}")
 
-        # Erstelle ein DataFrame mit den Nutzereingaben
-        user_data = pd.DataFrame({
-            'first_name': [first_name],
-            'last_name': [last_name],
-            'location': [location],
-            'experience_years': [len(experiences)],
-            'current_position': [experiences[-1]['position'] if experiences else ''],
-            'current_company': [experiences[-1]['company'] if experiences else ''],
-            'created_at': [datetime.now()]
-        })
-
+        # Dynamisches Laden des Modell-Moduls
         model_predictors = {
             "gru": "ml_pipe.models.gru.predict",
             "xgboost": "ml_pipe.models.xgboost.predict",
@@ -58,9 +44,13 @@ def predict_career():
             return jsonify({'error': f"Unbekannter Modelltyp: {model_type}"}), 400
 
         module = __import__(model_predictors[model_type], fromlist=['predict'])
-        prediction = module.predict(user_data)
 
-        # Formatiere die Vorhersage
+        # Richtige Input-Struktur für die Modelle
+        prediction = module.predict({
+            "career_history": experiences
+        })
+
+        # Formatiere Vorhersage
         formatted_prediction = {
             'confidence': prediction['confidence'][0],
             'recommendations': prediction['recommendations'][0]

@@ -115,13 +115,15 @@ document.getElementById('careerForm').addEventListener('submit', async function(
         const predictionResult = document.getElementById('predictionResult');
         predictionResult.style.display = 'block';
 
+        const recommendations = Array.isArray(result.recommendations)
+        ? result.recommendations
+        : [result.recommendations];
+
         // Vorhersagetext einfügen
         const predictionElement = document.getElementById('prediction');
         predictionElement.innerHTML = `
             <div class="prediction-content">
-                <h4>Nächster Karriereschritt</h4>
-                <p>${result.next_career_step}</p>
-                
+                <h4>Nächster Karriereschritt</h4>                
                 <h4>Konfidenz</h4>
                 <div class="confidence-bar">
                     <div class="confidence-fill" style="width: ${result.confidence * 100}%"></div>
@@ -130,7 +132,7 @@ document.getElementById('careerForm').addEventListener('submit', async function(
                 
                 <h4>Empfehlungen</h4>
                 <ul>
-                    ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
                 </ul>
             </div>
         `;

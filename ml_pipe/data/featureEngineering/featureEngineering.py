@@ -1,6 +1,8 @@
 import torch
 from collections import defaultdict
 import numpy as np
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 """
 Diese Klasse enthält Methoden zur Extraktion, Transformation und Aufbereitung von Karrieredaten für maschinelles Lernen.
@@ -115,3 +117,42 @@ class featureEngineering:
         padded_seqs = [torch.cat([seq, torch.zeros(max_len - len(seq), input_size)], dim=0) for seq in feature_seqs]
 
         return torch.stack(padded_seqs), torch.stack(labels)
+
+    """
+    Wandelt eine einzelne Experience-Liste in einen flachen Feature-Vektor um
+    """
+    def months_between(self, start, end):
+        delta = relativedelta(end, start)
+        return delta.years * 12 + delta.months
+
+    def extract_features_from_single_user(self, user_doc: dict):
+
+        expected_features = 34  # z. B. 17 Positionen à 2 Werte
+        experiences = user_doc.get("career_history", [])
+        feature_seq = []
+
+        for job in experiences:
+            try:
+                start = datetime.strptime(job["startDate"], "%Y-%m-%d")
+                end = datetime.strptime(job["endDate"], "%Y-%m-%d") if job["endDate"].lower() != "present" else datetime.now()
+                duration = self.months_between(start, end)
+                level = self.get_position_level(job.get("position", ""))
+                feature_seq.append([duration, level])
+            except Exception as e:
+                print(f"Fehler bei {job}: {e}")
+                continue
+
+        if not feature_seq:
+            return np.zeros((1, expected_features), dtype=np.float32)
+
+        flat = np.array(feature_seq, dtype=np.float32).flatten().reshape(1, -1)
+        current_len = flat.shape[1]
+
+        # Padding / Truncating
+        if current_len < expected_features:
+            pad = np.zeros((1, expected_features - current_len), dtype=np.float32)
+            flat = np.hstack([flat, pad])
+        elif current_len > expected_features:
+            flat = flat[:, :expected_features]
+
+        return flat
