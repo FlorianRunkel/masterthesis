@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,6 +8,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -36,32 +53,48 @@
             <ul class="menu-items">
                 <li><a href="/" onclick="closeMenu()">Karriere-Prognose</a></li>
                 <li><a href="/batch" onclick="closeMenu()">Batch-Prognose</a></li>
-                <li><a href="/about" onclick="closeMenu()">Masterarbeit</a></li>
             </ul>
         </div>
     </nav>
+
+    <div class="content-container">
+        <div class="batch-wrapper">
+            <div class="batch-intro">
+                <h2>Batch Karriere-Prognose</h2>
+                <p>Bitte lade eine CSV-Datei mit Kandidat:innen hoch (inkl. Vorname, Nachname, LinkedIn-Link & Erfahrungen).</p>
     
-    <div class="loader" id="loader"></div>
-
-    <div class="batch-wrapper">
-        <div class="batch-intro">
-            <h2>Batch Karriere-Prognose</h2>
-            <p>Bitte lade eine CSV-Datei mit Kandidat:innen hoch (inkl. Vorname, Nachname, LinkedIn-Link & Erfahrungen).</p>
-
-            <div class="file-upload-wrapper">
-                <label for="csvFile" class="file-upload-label">Datei auswählen</label>
-                <input type="file" id="csvFile" accept=".csv" />
-                <span id="file-name" class="file-name-placeholder">Keine Datei ausgewählt</span>
+                <div class="file-upload-wrapper">
+                    <label for="csvFile" class="file-upload-label">Datei auswählen</label>
+                    <input type="file" id="csvFile" accept=".csv" />
+                    <span id="file-name" class="file-name-placeholder">Keine Datei ausgewählt</span>
+                </div>
+    
+                <div class="button-container" id="predict-button-container">
+                    <button onclick="uploadAndPredict()">Prognose starten</button>
+                </div>
             </div>
-
-            <button onclick="uploadAndPredict()">Prognose starten</button>
-
-            <div class="loader" id="loader"></div>
+            
+            <div class="loader-container">
+                <div class="loader" id="loader"></div>
+            </div>
+            
+            <!-- Ergebniscontainer hier platziert, damit er in der Struktur besser eingebunden ist -->
+            <div id="resultTableContainer" class="batch-results"></div>
         </div>
     </div>
 
-    <div id="resultTableContainer"></div>
-
     <script src="/static/js/batch.js"></script>
+    <script>
+        // Dateinamen anzeigen, wenn eine Datei ausgewählt wird
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Keine Datei ausgewählt';
+            document.getElementById('file-name').textContent = fileName;
+        });
+        
+        // Menü schließen Funktion
+        function closeMenu() {
+            document.getElementById('menu-checkbox').checked = false;
+        }
+    </script>
 </body>
 </html>

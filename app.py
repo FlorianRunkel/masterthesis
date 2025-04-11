@@ -24,10 +24,6 @@ def index():
 def batch():
     return render_template('batch.html')
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
 @app.route('/predict', methods=['POST'])
 def predict_career():
     try:

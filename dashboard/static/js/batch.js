@@ -2,6 +2,7 @@ async function uploadAndPredict() {
     const fileInput = document.getElementById("csvFile");
     const file = fileInput.files[0];
     const loader = document.getElementById("loader");
+    const loaderContainer = document.querySelector(".loader-container");
     const resultsDiv = document.getElementById("resultTableContainer");
     
     if (!file) {
@@ -14,8 +15,12 @@ async function uploadAndPredict() {
         return;
     }
     
-    loader.style.display = "block"; // Loader einblenden
-    resultsDiv.innerHTML = "";  // Alte Ergebnisse löschen
+    // Loader anzeigen
+    loader.style.display = "block";
+    loaderContainer.style.display = "flex";
+    
+    // Ergebnisse ausblenden
+    resultsDiv.style.display = "none";
     
     const formData = new FormData();
     formData.append("file", file);
@@ -30,15 +35,20 @@ async function uploadAndPredict() {
         
         if (data.error) {
             resultsDiv.innerHTML = `<div class="error-message">Fehler: ${data.error}</div>`;
+            resultsDiv.style.display = "block";
             return;
         }
         
         renderTable(data.results);
+        resultsDiv.style.display = "block";
     } catch (error) {
         console.error("Fehler beim Hochladen oder Verarbeiten:", error);
         resultsDiv.innerHTML = `<div class="error-message">Es gab ein Problem bei der Vorhersage: ${error.message}</div>`;
+        resultsDiv.style.display = "block";
     } finally {
-        loader.style.display = "none"; // Loader ausblenden
+        // Loader ausblenden
+        loader.style.display = "none";
+        loaderContainer.style.display = "none";
     }
 }
 
@@ -54,21 +64,21 @@ function renderTable(results) {
     const errorCount = results.filter(r => r.error).length;
 
     let html = `
-        <div class="summary">
-            <h3>Zusammenfassung</h3>
-            <p>Erfolgreich verarbeitet: ${successCount}</p>
-            <p>Fehler: ${errorCount}</p>
-        </div>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>LinkedIn</th>
-                    <th>Ergebnis</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="table-container">
+            <div class="summary">
+                <h3>Zusammenfassung</h3>
+                <p>Erfolgreich verarbeitet: ${successCount}</p>
+                <p>Fehler: ${errorCount}</p>
+            </div>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>LinkedIn</th>
+                        <th>Wechselwahrscheinlichkeit des Kandidaten</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
 
     results.forEach(result => {
@@ -80,13 +90,11 @@ function renderTable(results) {
                 <tr class="error-row">
                     <td>${name}</td>
                     <td><a href="${linkedin}" target="_blank">${linkedin}</a></td>
-                    <td>Fehler</td>
                     <td>${result.error}</td>
                 </tr>
             `;
         } else {
             const confidence = result.confidence ? result.confidence[0] * 100 : 0;
-            const recommendation = result.recommendations ? result.recommendations[0] : '';
 
             let probabilityClass;
             if (confidence < 30) {
@@ -96,8 +104,6 @@ function renderTable(results) {
             } else {
                 probabilityClass = 'probability-high';
             }
-
-            const recommendationClass = confidence > 50 ? 'recommendation-change' : 'recommendation-stay';
 
             html += `
                 <tr>
@@ -111,15 +117,15 @@ function renderTable(results) {
                             </div>
                         </div>
                     </td>
-                    <td><span class="recommendation ${recommendationClass}">${recommendation}</span></td>
                 </tr>
             `;
         }
     });
 
     html += `
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     `;
 
     resultsDiv.innerHTML = html;

@@ -1,31 +1,29 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // "Add Experience" Button Funktionalität
-    document.getElementById("addExperience").addEventListener("click", function() {
-        const experiencesContainer = document.getElementById("experiences");
-        const newExperience = document.createElement("div");
-        newExperience.classList.add("experience-entry");
-        
-        // Die Felder für die neue Erfahrung
-        newExperience.innerHTML = `
-            <input type="text" placeholder="Firma" required>
-            <input type="text" placeholder="Position" required>
-            <input type="date" placeholder="Start-Datum" required>
-            <input type="date" placeholder="End-Datum">
-            <button type="button" class="removeExperience">🗑️</button>
-        `;
-
-        experiencesContainer.appendChild(newExperience);
-    });
-
-    // Funktion, um ein "Remove"-Button zu behandeln
-    document.getElementById("experiences").addEventListener("click", function(event) {
-        if (event.target && event.target.classList.contains("removeExperience")) {
-            const experienceEntry = event.target.closest(".experience-entry");
-            if (experienceEntry) {
-                experienceEntry.remove();
+    // Formular absenden
+    const careerForm = document.getElementById('careerForm');
+    if (careerForm) {
+        careerForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Berufserfahrung hinzufügen - einziger Event-Listener
+    const addExperienceButton = document.getElementById('addExperience');
+    if (addExperienceButton) {
+        addExperienceButton.addEventListener('click', addExperienceField);
+    }
+    
+    // Delegierter Event-Listener für das Entfernen von Erfahrungseinträgen
+    const experiencesContainer = document.getElementById('experiences');
+    if (experiencesContainer) {
+        experiencesContainer.addEventListener('click', function(event) {
+            if (event.target && (event.target.classList.contains('remove-experience') || 
+                               event.target.classList.contains('removeExperience'))) {
+                const experienceEntry = event.target.closest('.experience-entry');
+                if (experienceEntry) {
+                    experienceEntry.remove();
+                }
             }
-        }
-    });
+        });
+    }
 
     // Dynamisch weitere Ausbildungseinträge hinzufügen
     const addEducationButton = document.getElementById('addEducation');
@@ -72,80 +70,174 @@ document.addEventListener("DOMContentLoaded", function() {
     setTimeout(openContactSlide, 5000); // 5 Sekunden warten, bevor die Slide erscheint
 });
 
-// Formulardaten absenden
-document.getElementById('careerForm').addEventListener('submit', async function(event) {
+// Erfahrungsfeld hinzufügen
+function addExperienceField() {
+    const experiences = document.getElementById('experiences');
+    
+    const newExperience = document.createElement('div');
+    newExperience.className = 'experience-entry';
+    newExperience.innerHTML = `
+        <input type="text" placeholder="Firma">
+        <input type="text" placeholder="Position">
+        <input type="date" placeholder="Start-Datum">
+        <input type="date" placeholder="End-Datum">
+        <button type="button" class="remove-experience">Entfernen</button>
+    `;
+    
+    experiences.appendChild(newExperience);
+    
+    // Leichte Animation für den neuen Eintrag
+    setTimeout(() => {
+        newExperience.style.opacity = '0';
+        newExperience.style.transition = 'opacity 0.3s ease';
+        
+        requestAnimationFrame(() => {
+            newExperience.style.opacity = '1';
+        });
+    }, 0);
+    
+    // Scrollen zum neuen Eintrag
+    newExperience.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Formulardaten sammeln und senden
+async function handleFormSubmit(event) {
     event.preventDefault();
-
-    // Sammeln der Formulardaten
-    const formData = new FormData(event.target);
-    const formObj = Object.fromEntries(formData);
-
-    // Sammeln der Berufserfahrung
-    const experiences = [];
-    const experienceEntries = document.querySelectorAll('.experience-entry');
+    
+    // Manuelle Validierung
+    const experienceEntries = document.querySelectorAll('#experiences .experience-entry');
+    let isFormValid = true;
+    
     experienceEntries.forEach(entry => {
         const company = entry.querySelector('input[placeholder="Firma"]').value;
         const position = entry.querySelector('input[placeholder="Position"]').value;
         const startDate = entry.querySelector('input[placeholder="Start-Datum"]').value;
-        const endDate = entry.querySelector('input[placeholder="End-Datum"]').value;
-
-        experiences.push({ company, position, startDate, endDate });
+        
+        if (!company || !position || !startDate) {
+            isFormValid = false;
+            // Fügen Sie hier keine sichtbaren Fehlermeldungen hinzu, nur die Validierung
+            entry.querySelectorAll('input').forEach(input => {
+                if (!input.value && (input !== entry.querySelector('input[placeholder="End-Datum"]'))) {
+                    input.style.borderColor = '#FF5F00';
+                } else {
+                    input.style.borderColor = '#ddd';
+                }
+            });
+        }
     });
-
-    formObj.experiences = experiences;
-    formObj.modelType = document.getElementById('modelType').value;
-
+    
+    if (!isFormValid) {
+        return; // Verhindert das Absenden, wenn nicht alle Pflichtfelder ausgefüllt sind
+    }
+    
+    // Loader anzeigen, Ergebnisse ausblenden
+    const loader = document.getElementById('loader-prediction');
+    const loaderContainer = document.querySelector('.loader-container-prediction');
+    const resultDiv = document.getElementById('predictionResult');
+    
+    loader.style.display = 'block';
+    loaderContainer.style.display = 'flex';
+    resultDiv.style.display = 'none';
+    
+    // Berufserfahrungen sammeln
+    const experiences = Array.from(experienceEntries).map(entry => {
+        const company = entry.querySelector('input[placeholder="Firma"]').value || '';
+        const position = entry.querySelector('input[placeholder="Position"]').value || '';
+        const startDate = entry.querySelector('input[placeholder="Start-Datum"]').value || '';
+        const endDate = entry.querySelector('input[placeholder="End-Datum"]').value || '';
+        return { company, position, startDate, endDate };
+    });
+    
+    // Modell auswählen
+    const modelType = document.getElementById('modelType').value;
+    
+    // Daten für API-Anfrage vorbereiten
+    const formData = {
+        experiences,
+        modelType
+    };
+    
     try {
-        // Senden der Daten an das Backend
+        // API-Anfrage senden
         const response = await fetch('/predict', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formObj)
+            body: JSON.stringify(formData)
         });
-
-        const result = await response.json();
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        // Vorhersagebox anzeigen
-        const predictionResult = document.getElementById('predictionResult');
-        predictionResult.style.display = 'block';
-
-        const recommendations = Array.isArray(result.recommendations)
-        ? result.recommendations
-        : [result.recommendations];
-
-        // Vorhersagetext einfügen
-        const predictionElement = document.getElementById('prediction');
-        predictionElement.innerHTML = `
-            <div class="prediction-content">
-                <h4>Nächster Karriereschritt</h4>                
-                <h4>Konfidenz</h4>
-                <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: ${result.confidence * 100}%"></div>
-                </div>
-                <p>${Math.round(result.confidence * 100)}%</p>
-                
-                <h4>Empfehlungen</h4>
-                <ul>
-                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-
+        
+        const data = await response.json();
+        
+        // Ergebnisse anzeigen
+        displayPrediction(data);
     } catch (error) {
         console.error('Fehler bei der Vorhersage:', error);
-        const predictionResult = document.getElementById('predictionResult');
-        predictionResult.style.display = 'block';
-        const predictionElement = document.getElementById('prediction');
-        predictionElement.innerHTML = `
-            <div class="error-message">
-                <p>Es ist ein Fehler aufgetreten: ${error.message}</p>
-            </div>
-        `;
+        // Fehlermeldung anzeigen
+        document.getElementById('recommendation-list').innerHTML = 
+            `<li class="recommendation-item" style="color: #dc3545">Fehler bei der Vorhersage: ${error.message}</li>`;
+    } finally {
+        // Loader ausblenden, Ergebnisse anzeigen
+        loader.style.display = 'none';
+        loaderContainer.style.display = 'none';
+        resultDiv.style.display = 'block';
     }
-});
+}
+
+// Vorhersage anzeigen
+function displayPrediction(data) {
+    const resultDiv = document.getElementById('predictionResult');
+    const probabilityValue = document.getElementById('probability-value');
+    const probabilityBar = document.getElementById('probability-bar');
+    const recommendationList = document.getElementById('recommendation-list');
+    
+    // Sicherstellen, dass die Daten vorhanden sind
+    if (!data || !data.confidence) {
+        recommendationList.innerHTML = '<li class="recommendation-item">Keine Vorhersage verfügbar</li>';
+        return;
+    }
+    
+    // Wahrscheinlichkeit als Prozent (erster Wert im Array oder direkter Wert)
+    const confidence = Array.isArray(data.confidence) ? data.confidence[0] * 100 : data.confidence * 100;
+    
+    // Wahrscheinlichkeitswert und Balken einstellen
+    probabilityValue.textContent = `${confidence.toFixed(0)}%`;
+    probabilityBar.style.width = `${confidence}%`;
+    
+    // Klasse basierend auf Wahrscheinlichkeitswert setzen
+    if (confidence < 30) {
+        probabilityBar.className = 'probability-bar-single probability-low-single';
+    } else if (confidence < 70) {
+        probabilityBar.className = 'probability-bar-single probability-medium-single';
+    } else {
+        probabilityBar.className = 'probability-bar-single probability-high-single';
+    }
+    
+    // Empfehlungen anzeigen - sicherstellen, dass recommendations ein Array ist
+    recommendationList.innerHTML = '';
+    
+    // Prüfen ob recommendations vorhanden ist
+    if (!data.recommendations) {
+        recommendationList.innerHTML = '<li class="recommendation-item">Keine Empfehlungen verfügbar</li>';
+        return;
+    }
+    
+    // Recommendations in ein Array umwandeln, falls es keins ist
+    const recommendations = Array.isArray(data.recommendations) 
+        ? data.recommendations 
+        : [data.recommendations];
+    
+    // Recommendations anzeigen
+    recommendations.forEach(recommendation => {
+        const listItem = document.createElement('li');
+        listItem.className = 'recommendation-item';
+        listItem.textContent = recommendation;
+        recommendationList.appendChild(listItem);
+    });
+    
+    // Ergebnisbereich anzeigen
+    resultDiv.style.display = 'block';
+    
+    // Zu den Ergebnissen scrollen
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+}
