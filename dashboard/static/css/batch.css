@@ -60,14 +60,16 @@ section {
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 20px 40px;
-    width: 70%;
+    padding: 15px 30px;
+    width: 90%;
+    max-width: 1200px;
     border-radius: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
     z-index: 1000;
+    box-sizing: border-box;
 }
 
 /* Container für Logo + Menü */
@@ -139,12 +141,12 @@ section {
 /* Linien des Hamburger-Buttons */
 .hamburger-lines .line {
     display: block;
-    height: 5px;
+    height: 5px; /* etwas dünner macht's klarer */
     width: 100%;
-    border-radius: 2px;
+    border-radius: 2px; /* weniger Rundung */
     background: #0e2431;
     transition: all 0.3s ease-in-out;
-    margin: 5px 0;
+    margin: 5px 0; /* Abstand oben/unten zwischen Linien */
 }
 
 /* Checkbox für das Menü */
@@ -161,13 +163,13 @@ section {
 
 .nav-container input[type="checkbox"]:checked ~ .menu-items {
     transform: translateX(0);
-}
+  }
 
 .close-icon {
     display: none;
-    font-size: 32px;
-    font-weight: 900;
-    color: #0e2431;
+    font-size: 32px;          /* größer */
+    font-weight: 900;         /* dicker */
+    color: #0e2431;           /* dunkleres Schwarzblau (optional) */
     position: absolute;
     top: 50%;
     left: 50%;
@@ -175,6 +177,10 @@ section {
     line-height: 1;
     user-select: none;
 }
+
+.nav-container input[type="checkbox"]:checked ~ .menu-items {
+    transform: translateX(0);
+  }
 
 input[type="checkbox"]:checked ~ .hamburger-lines .hamburger {
     display: none;
