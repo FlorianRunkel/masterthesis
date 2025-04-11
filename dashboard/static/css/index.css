@@ -135,11 +135,12 @@ section {
 /* Linien des Hamburger-Buttons */
 .hamburger-lines .line {
     display: block;
-    height: 4px;
+    height: 5px; /* etwas dünner macht’s klarer */
     width: 100%;
-    border-radius: 10px;
+    border-radius: 2px; /* weniger Rundung */
     background: #0e2431;
     transition: all 0.3s ease-in-out;
+    margin: 5px 0; /* Abstand oben/unten zwischen Linien */
 }
 
 /* Checkbox für das Menü */
@@ -157,17 +158,36 @@ section {
 .nav-container input[type="checkbox"]:checked ~ .menu-items {
     transform: translateX(0);
   }
-  
-.checkbox:checked ~ .hamburger-lines .line1 {
-    transform: rotate(45deg);
+
+.close-icon {
+    display: none;
+    font-size: 32px;          /* größer */
+    font-weight: 900;         /* dicker */
+    color: #0e2431;           /* dunkleres Schwarzblau (optional) */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+    user-select: none;
 }
 
-.checkbox:checked ~ .hamburger-lines .line2 {
-    opacity: 0;
+.nav-container input[type="checkbox"]:checked ~ .menu-items {
+    transform: translateX(0);
+  }
+
+input[type="checkbox"]:checked ~ .hamburger-lines .hamburger {
+    display: none;
 }
 
-.checkbox:checked ~ .hamburger-lines .line3 {
-    transform: rotate(45deg);
+input[type="checkbox"]:checked ~ .hamburger-lines .close-icon {
+    display: block;
+}
+
+input[type="checkbox"]:checked ~ .menu-items {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
 }
 
 .carrer-explanation {

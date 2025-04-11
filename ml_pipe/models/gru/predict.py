@@ -4,27 +4,32 @@ from ml_pipe.data.featureEngineering.featureEngineering import featureEngineerin
 from ml_pipe.models.gru.model import GRUModel
 import numpy as np
 
-def preprocess(documents, input_size=2):
+def preprocess(user_data):
     fe = featureEngineering()
-    X = fe.extract_features_from_single_user(documents)
+    features = fe.extract_features_from_single_user(user_data)
+    print(features)
 
-    if X is None:
+    if features is None:
         raise ValueError("Nicht genug Daten für Vorhersage")
 
-    return torch.tensor(X, dtype=torch.float32).view(1, -1, input_size)
+    # Konvertiere (1, 51) → (T, 3)
+    seq_len = features.shape[1] // 3
+    reshaped = features.reshape(seq_len, 3)
+    return reshaped.tolist()
 
-def predict(data, model_path="ml_pipe/models/gru/saved_models/gru_model_20250409_103100.pt"):
+def predict(data, model_path="ml_pipe/models/gru/saved_models/gru_model_20250410_110554.pt"):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
-    model = GRUModel(input_size=2, hidden_size=32)
+    model = GRUModel(input_size=3, hidden_size=32)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
 
     X = preprocess(data)
+    X_tensor = torch.tensor(X, dtype=torch.float32).unsqueeze(0)  # → [1, seq_len, 3]
 
     with torch.no_grad():
-        prob = model(X).item()
+        prob = model(X_tensor).item()
 
     status = "wechselbereit" if prob > 0.5 else "bleibt wahrscheinlich"
 

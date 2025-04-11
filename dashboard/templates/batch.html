@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Karriere-Prognose</title>
+    <link rel="stylesheet" href="/static/css/batch.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logos -->
+            <div class="logo-container">
+                <img src="static/images/logo.png" alt="Aurio Technology Logo" class="navbar-logo">
+                <img src="static/images/ur-logo.png" alt="UR Logo" class="navbar-logo">
+            </div>
+    
+            <!-- Checkbox für das Menü -->
+            <input type="checkbox" id="menu-checkbox" class="checkbox" />
+    
+            <!-- Hamburger Button -->
+            <label for="menu-checkbox" class="hamburger-lines">
+                <div class="hamburger">
+                    <span class="line line1"></span>
+                    <span class="line line2"></span>
+                    <span class="line line3"></span>
+                </div>
+                <div class="close-icon">✕</div>
+            </label>
+    
+            <!-- Menü -->
+            <ul class="menu-items">
+                <li><a href="/" onclick="closeMenu()">Karriere-Prognose</a></li>
+                <li><a href="/batch" onclick="closeMenu()">Batch-Prognose</a></li>
+                <li><a href="/about" onclick="closeMenu()">Masterarbeit</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="loader" id="loader"></div>
+
+    <div class="batch-wrapper">
+        <div class="batch-intro">
+            <h2>Batch Karriere-Prognose</h2>
+            <p>Bitte lade eine CSV-Datei mit Kandidat:innen hoch (inkl. Vorname, Nachname, LinkedIn-Link & Erfahrungen).</p>
+
+            <div class="file-upload-wrapper">
+                <label for="csvFile" class="file-upload-label">Datei auswählen</label>
+                <input type="file" id="csvFile" accept=".csv" />
+                <span id="file-name" class="file-name-placeholder">Keine Datei ausgewählt</span>
+            </div>
+
+            <button onclick="uploadAndPredict()">Prognose starten</button>
+
+            <div class="loader" id="loader"></div>
+        </div>
+    </div>
+
+    <div id="resultTableContainer"></div>
+
+    <script src="/static/js/batch.js"></script>
+</body>
+</html>

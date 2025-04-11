@@ -13,14 +13,15 @@ def preprocess(documents):
     if not isinstance(X, np.ndarray):
         X = np.array(X, dtype=np.float32)
 
-    return X
+    return X 
 
-def predict(data, model_path="ml_pipe/models/xgboost/saved_models/xgboost_model_20250409_111910.joblib"):
+def predict(data, model_path="ml_pipe/models/xgboost/saved_models/xgboost_model_20250410_110704.joblib"):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
     model = joblib.load(model_path)
     X = preprocess(data)
+    print(X)
 
     prob = model.predict_proba(X)[0][1]
     status = "wechselbereit" if prob > 0.5 else "bleibt wahrscheinlich"

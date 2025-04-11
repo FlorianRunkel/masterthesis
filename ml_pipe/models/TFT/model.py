@@ -4,38 +4,57 @@ import torch.optim as optim
 import pytorch_lightning as pl
 
 class TFTModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size=32, dropout=0.1, lr=1e-3):
+    def __init__(self, input_size, hidden_size=64, num_layers=2, dropout=0.2, lr=1e-3):
         super().__init__()
         self.save_hyperparameters()
 
-        # Feature Encoding
-        self.input_projection = nn.Linear(input_size, hidden_size)
-
-        # LSTM Layer
-        self.lstm = nn.LSTM(hidden_size, hidden_size, batch_first=True)
-
-        # Attention Layer
-        self.attn = nn.MultiheadAttention(hidden_size, num_heads=4, batch_first=True)
-
-        # Gating Mechanism (optional)
-        self.gate = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size),
-            nn.Sigmoid()
-        )
-
-        # Output Head
-        self.output_layer = nn.Sequential(
-            nn.Linear(hidden_size, 1),
-            nn.Sigmoid()
-        )
-
-        self.loss_fn = nn.BCELoss()
         self.lr = lr
+        self.loss_fn = nn.BCELoss()
+
+        # Input Projection
+        self.input_projection = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(dropout)
+        )
+
+        # Stacked LSTM
+        self.lstm = nn.LSTM(
+            hidden_size,
+            hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0
+        )
+
+        # Self-Attention (more heads, deeper output)
+        self.attn = nn.MultiheadAttention(hidden_size, num_heads=8, batch_first=True)
+        self.attn_norm = nn.LayerNorm(hidden_size)
+
+        # Feedforward block after attention
+        self.ffn = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size * 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size * 2, hidden_size),
+            nn.ReLU(),
+        )
+        self.ffn_norm = nn.LayerNorm(hidden_size)
+
+        # Output layer
+        self.output_head = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size // 2, 1),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
         if x.dim() == 2:
             x = x.unsqueeze(-1)
 
+        # Padding/truncation
         if x.size(-1) != self.hparams.input_size:
             diff = self.hparams.input_size - x.size(-1)
             if diff > 0:
@@ -44,15 +63,20 @@ class TFTModel(pl.LightningModule):
             else:
                 x = x[:, :, :self.hparams.input_size]
 
-        x_proj = self.input_projection(x)  # Shape: [B, T, H]
-        lstm_out, _ = self.lstm(x_proj)    # Shape: [B, T, H]
+        x = self.input_projection(x)
+        lstm_out, _ = self.lstm(x)
 
-        attn_out, _ = self.attn(lstm_out, lstm_out, lstm_out)  # Self-attention
-        gated = self.gate(attn_out)
-        fusion = gated * attn_out + (1 - gated) * lstm_out
+        # Self-attention + residual
+        attn_out, _ = self.attn(lstm_out, lstm_out, lstm_out)
+        attn_out = self.attn_norm(attn_out + lstm_out)
 
-        final_output = fusion[:, -1, :]  # Take last time step
-        out = self.output_layer(final_output)  # [B, 1]
+        # Feedforward + residual
+        ffn_out = self.ffn(attn_out)
+        fusion = self.ffn_norm(ffn_out + attn_out)
+
+        # Final time step
+        final = fusion[:, -1, :]
+        out = self.output_head(final)
         return out
 
     def step(self, batch, stage):
