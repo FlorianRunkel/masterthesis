@@ -539,27 +539,22 @@ button:hover {
 }
 
 .contact-section {
-    background-color: #ffffff; /* Helles Grau */
-    background: linear-gradient(to bottom, rgba(245, 245, 245, 0) 0%, rgba(245, 245, 245, 1) 50%); /* Verlauf */
     color: black;
     text-align: center;
-    min-height: 5vh;
+    min-height:10vh;
     display: flex;
     flex-direction: column;
     justify-content: center; /* Zentriert die Inhalte vertikal */
     align-items: center; /* Zentriert die Inhalte horizontal */
-    padding: 10px;
 }
 
 .copyright {
     margin: 0;
-    padding: 10px 0;
 }
 
 .copyright p {
     margin: 0;
     font-size: 0.9rem;
-    color: #666;
 }
 
 
