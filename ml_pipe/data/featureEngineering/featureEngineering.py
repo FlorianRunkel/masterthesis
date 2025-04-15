@@ -381,3 +381,144 @@ class featureEngineering:
             torch.tensor(padded_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32)
         )
+
+    def extract_features_for_xgboost(self, user_doc: dict) -> np.ndarray:
+        """
+        Extrahiert Features für das XGBoost-Modell.
+        Gibt eine flache Feature-Vektor mit 51 Features zurück (17 Schritte × 3 Features).
+        """
+        # Versuche beide möglichen Keys
+        experiences = user_doc.get("experiences", user_doc.get("career_history", []))
+        
+        if not experiences:
+            print("Keine Erfahrungen gefunden")
+            return np.zeros(51, dtype=np.float32)  # 17 × 3 = 51 Features
+
+        # Filtere ungültige Einträge und konvertiere zu Tupeln mit Datum
+        valid_experiences = []
+        for exp in experiences:
+            if exp.get("position") and exp.get("startDate"):
+                start_date = self.parse_date_safe(exp.get("startDate", ""))
+                if start_date is not None:  # Nur Einträge mit gültigem Startdatum
+                    valid_experiences.append((start_date, exp))
+
+        if not valid_experiences:
+            print("Keine gültigen Erfahrungen mit Position und Startdatum gefunden")
+            return np.zeros(51, dtype=np.float32)
+
+        # Sortiere Erfahrungen nach Datum
+        valid_experiences.sort(key=lambda x: x[0], reverse=True)  # Neueste zuerst
+        
+        # Erstelle Feature-Array mit 51 Features
+        features = np.zeros(51, dtype=np.float32)
+        
+        # Fülle die ersten Positionen mit den tatsächlichen Daten
+        for i, (_, exp) in enumerate(valid_experiences[:17]):  # Maximal 17 Positionen
+            start_date = self.parse_date_safe(exp.get("startDate", ""))
+            end_date = self.parse_date_safe(exp.get("endDate", ""))
+            
+            # Wenn kein Enddatum, verwende aktuelles Datum
+            if not end_date:
+                end_date = datetime.now()
+            
+            # Wenn kein gültiges Startdatum, überspringe diese Position
+            if not start_date:
+                continue
+
+            try:
+                # Berechne Features für diese Position
+                duration_months = self.months_between(start_date, end_date)
+                
+                # Position Features
+                position_title = exp.get("position", "").strip()
+                level, branche = self.find_best_match(position_title)
+                branche_code = self.get_branch_code(branche)
+                
+                # Hole erwartete Verweildauer für Position und Branche
+                expected = self.expected_duration.get(
+                    (branche.lower(), level),
+                    self.expected_duration.get(("default", level), 24)  # Default: 2 Jahre
+                )
+                
+                # Normalisiere Dauer basierend auf erwarteter Dauer
+                normalized_duration = min(duration_months / expected, 1.0)
+                
+                # Speichere Features an der richtigen Position im Array
+                base_idx = i * 3
+                features[base_idx] = normalized_duration    # Normalisierte Dauer
+                features[base_idx + 1] = float(level)      # Level
+                features[base_idx + 2] = float(branche_code)  # Branche
+            except Exception as e:
+                print(f"Fehler bei der Verarbeitung von Position {i}: {str(e)}")
+                continue
+        
+        return features
+
+    def extract_features_for_prediction(self, user_doc: dict) -> np.ndarray:
+        """
+        Extrahiert Features für die Vorhersage mit XGBoost.
+        Gibt einen flachen Feature-Vektor mit 51 Features zurück (17 Schritte × 3 Features).
+        """
+        # Versuche beide möglichen Keys
+        experiences = user_doc.get("experiences", user_doc.get("career_history", []))
+        
+        if not experiences:
+            print("Keine Erfahrungen gefunden")
+            return np.zeros(51, dtype=np.float32)  # 17 × 3 = 51 Features
+
+        # Filtere ungültige Einträge und konvertiere zu Tupeln mit Datum
+        valid_experiences = []
+        for exp in experiences:
+            if exp.get("position") and exp.get("startDate"):
+                start_date = self.parse_date_safe(exp.get("startDate", ""))
+                if start_date is not None:  # Nur Einträge mit gültigem Startdatum
+                    valid_experiences.append((start_date, exp))
+
+        if not valid_experiences:
+            print("Keine gültigen Erfahrungen mit Position und Startdatum gefunden")
+            return np.zeros(51, dtype=np.float32)
+
+        # Sortiere Erfahrungen nach Datum
+        valid_experiences.sort(key=lambda x: x[0], reverse=True)  # Neueste zuerst
+        
+        # Erstelle Feature-Array mit 51 Features
+        features = np.zeros(51, dtype=np.float32)
+        
+        # Fülle die ersten Positionen mit den tatsächlichen Daten
+        for i, (_, exp) in enumerate(valid_experiences[:17]):  # Maximal 17 Positionen
+            start_date = self.parse_date_safe(exp.get("startDate", ""))
+            end_date = self.parse_date_safe(exp.get("endDate", ""))
+            if not end_date:
+                end_date = datetime.now()
+            
+            if not start_date:
+                continue
+
+            try:
+                # Berechne Features für diese Position
+                duration_months = self.months_between(start_date, end_date)
+                
+                # Position Features
+                position_title = exp.get("position", "").strip()
+                level, branche = self.find_best_match(position_title)
+                branche_code = self.get_branch_code(branche)
+                
+                # Hole erwartete Verweildauer für Position und Branche
+                expected = self.expected_duration.get(
+                    (branche.lower(), level),
+                    self.expected_duration.get(("default", level), 24)  # Default: 2 Jahre
+                )
+                
+                # Normalisiere Dauer basierend auf erwarteter Dauer
+                normalized_duration = min(duration_months / expected, 1.0)
+                
+                # Speichere Features an der richtigen Position im Array
+                base_idx = i * 3
+                features[base_idx] = normalized_duration    # Normalisierte Dauer
+                features[base_idx + 1] = float(level)      # Level
+                features[base_idx + 2] = float(branche_code)  # Branche
+            except Exception as e:
+                print(f"Fehler bei der Verarbeitung von Position {i}: {str(e)}")
+                continue
+        
+        return features.reshape(1, -1)  # Reshape für Vorhersage (1, 51)

@@ -5,7 +5,7 @@ import os
 
 def preprocess(documents):
     fe = featureEngineering()
-    X = fe.extract_features_from_single_user(documents)
+    X = fe.extract_features_for_prediction(documents)
 
     if X is None:
         raise ValueError("Nicht genug Daten für Vorhersage")
@@ -15,7 +15,7 @@ def preprocess(documents):
 
     return X 
 
-def predict(data, model_path="ml_pipe/models/xgboost/saved_models/xgboost_model_20250410_110704.joblib"):
+def predict(data, model_path="ml_pipe/models/xgboost/saved_models/xgboost_model_20250415_183015.joblib"):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 

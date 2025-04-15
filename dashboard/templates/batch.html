@@ -3,103 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batch Karriere-Prognose</title>
-    <link rel="stylesheet" href="/static/css/batch.css">
+    <title>Batch-Prognose KI</title>
+    <link rel="stylesheet" href="static/css/batch.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            body {
-                padding: 8px;
-            }
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <!-- Logos -->
             <div class="logo-container">
-                <img src="static/images/logo.png" alt="Aurio Technology Logo" class="navbar-logo">
-                <img src="static/images/ur-logo.png" alt="UR Logo" class="navbar-logo">
-            </div>
-    
-            <!-- Checkbox für das Menü -->
-            <input type="checkbox" id="menu-checkbox" class="checkbox" />
-    
-            <!-- Hamburger Button -->
-            <label for="menu-checkbox" class="hamburger-lines">
-                <div class="hamburger">
-                    <span class="line line1"></span>
-                    <span class="line line2"></span>
-                    <span class="line line3"></span>
+                <div class="logo-wrapper">
+                    <img src="static/images/logo.png" alt="Aurio Technology Logo" class="navbar-logo">
+                    <img src="static/images/ur-logo.png" alt="UR Logo" class="navbar-logo">
                 </div>
-                <div class="close-icon">✕</div>
-            </label>
-    
-            <!-- Menü -->
-            <ul class="menu-items">
-                <li><a href="/" onclick="closeMenu()">Karriere-Prognose</a></li>
-                <li><a href="/batch" onclick="closeMenu()">Batch-Prognose</a></li>
-            </ul>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <img src="static/images/carrer_nav.jpeg" alt="Karriere Navigation" class="nav-icon">
+                    <a href="/">Karriere-Prognose</a>
+                </div>
+                <div class="nav-item">
+                    <img src="static/images/candi_batch_nav.jpg" alt="Batch Navigation" class="nav-icon">
+                    <a href="/batch" class="active">Batch-Prognose</a>
+                </div>
+            </div>
         </div>
     </nav>
 
     <div class="content-container">
-        <div class="batch-wrapper">
-            <div class="batch-intro">
-                <h2>Batch Karriere-Prognose</h2>
-                <p>Bitte lade eine CSV-Datei mit Kandidat:innen hoch (inkl. Vorname, Nachname, LinkedIn-Link & Erfahrungen).</p>
-    
+        <div class="header-section">
+            <div class="settings-header">
+                <h1>Batch-Prognose</h1>
+                <div class="settings-info">
+                    <p class="info-description">Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit mehrerer Kandidaten gleichzeitig zu analysieren.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="batch-form">
+            <div class="form-group">
+                <h3>CSV-Datei hochladen</h3>
                 <div class="file-upload-wrapper">
                     <label for="csvFile" class="file-upload-label">Datei auswählen</label>
                     <input type="file" id="csvFile" accept=".csv" />
                     <span id="file-name" class="file-name-placeholder">Keine Datei ausgewählt</span>
                 </div>
-    
-                <div class="button-container" id="predict-button-container">
-                    <button onclick="uploadAndPredict()">Prognose starten</button>
-                </div>
+                <button onclick="uploadAndPredict()" class="btn-primary">Prognose erstellen</button>
             </div>
-            
-            <div class="loader-container">
-                <div class="loader" id="loader"></div>
+
+            <div class="loader-container-prediction">
+                <div class="loader-prediction" id="loader"></div>
             </div>
-            
-            <div id="resultTableContainer" class="batch-results"></div>
+
+            <div id="resultTableContainer">
+                <!-- Ergebnisse werden hier dynamisch eingefügt -->
+            </div>
         </div>
     </div>
-    
-    <footer class="contact-section">
-        <div class="copyright">
-            <p>&copy; 2025 Florian Runkel</p>
-        </div>
-    </footer>
 
-    <script src="/static/js/batch.js"></script>
-    <script>
-        // Dateinamen anzeigen, wenn eine Datei ausgewählt wird
-        document.getElementById('csvFile').addEventListener('change', function(e) {
-            const fileName = e.target.files[0] ? e.target.files[0].name : 'Keine Datei ausgewählt';
-            document.getElementById('file-name').textContent = fileName;
-        });
-        
-        // Menü schließen Funktion
-        function closeMenu() {
-            document.getElementById('menu-checkbox').checked = false;
-        }
-    </script>
+
+    <script src="static/js/batch.js"></script>
 </body>
 </html>
