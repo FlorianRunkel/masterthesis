@@ -97,9 +97,9 @@ function renderTable(results) {
             const confidence = result.confidence ? result.confidence[0] * 100 : 0;
 
             let probabilityClass;
-            if (confidence < 30) {
+            if (confidence < 45) {
                 probabilityClass = 'probability-low';
-            } else if (confidence < 70) {
+            } else if (confidence < 65) {
                 probabilityClass = 'probability-medium';
             } else {
                 probabilityClass = 'probability-high';

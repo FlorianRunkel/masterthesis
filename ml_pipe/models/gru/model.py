@@ -4,13 +4,52 @@ import torch.optim as optim
 import pytorch_lightning as pl
 
 class GRUModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.2, lr=1e-3):
+    def __init__(self, input_size=3, hidden_size=50, num_layers=4, dropout=0.2, lr=0.01):
         super().__init__()
         self.save_hyperparameters()
-        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout if num_layers > 1 else 0)
+        
+        # GRU Schichten
+        self.gru1 = nn.GRU(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            dropout=0
+        )
+        self.dropout1 = nn.Dropout(dropout)
+        
+        self.gru2 = nn.GRU(
+            input_size=hidden_size,
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            dropout=0
+        )
+        self.dropout2 = nn.Dropout(dropout)
+        
+        self.gru3 = nn.GRU(
+            input_size=hidden_size,
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            dropout=0
+        )
+        self.dropout3 = nn.Dropout(dropout)
+        
+        self.gru4 = nn.GRU(
+            input_size=hidden_size,
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            dropout=0
+        )
+        self.dropout4 = nn.Dropout(dropout)
+        
+        # Output Layer
         self.fc = nn.Linear(hidden_size, 1)
-        self.sigmoid = nn.Sigmoid()
-        self.loss_fn = nn.BCELoss()
+        self.tanh = nn.Tanh()
+        
+        self.loss_fn = nn.MSELoss()  # Mean Squared Error Loss
         self.lr = lr
 
     def forward(self, x):
@@ -22,9 +61,33 @@ class GRUModel(pl.LightningModule):
                 x = torch.cat([x, pad], dim=-1)
             else:
                 x = x[:, :, :self.hparams.input_size]
-        out, _ = self.gru(x)
-        out = self.fc(out[:, -1, :])
-        return self.sigmoid(out)
+        
+        # Erste GRU Schicht
+        out, _ = self.gru1(x)
+        out = self.tanh(out)
+        out = self.dropout1(out)
+        
+        # Zweite GRU Schicht
+        out, _ = self.gru2(out)
+        out = self.tanh(out)
+        out = self.dropout2(out)
+        
+        # Dritte GRU Schicht
+        out, _ = self.gru3(out)
+        out = self.tanh(out)
+        out = self.dropout3(out)
+        
+        # Vierte GRU Schicht
+        out, _ = self.gru4(out)
+        out = self.tanh(out)
+        out = self.dropout4(out)
+        
+        # Nur die letzte Ausgabe der Sequenz verwenden
+        out = out[:, -1, :]
+        
+        # Output Layer
+        out = self.fc(out)
+        return out
 
     def step(self, batch, stage):
         x, y = batch
@@ -34,10 +97,7 @@ class GRUModel(pl.LightningModule):
         y = y.float().unsqueeze(1) if y.dim() == 1 else y
         y_hat = self(x)
         loss = self.loss_fn(y_hat, y)
-        preds = (y_hat > 0.5).float()
-        acc = (preds == y).float().mean()
         self.log(f"{stage}_loss", loss, prog_bar=True, batch_size=x.size(0))
-        self.log(f"{stage}_acc", acc, prog_bar=True, batch_size=x.size(0))
         return loss
 
     def training_step(self, batch, batch_idx):
@@ -50,6 +110,11 @@ class GRUModel(pl.LightningModule):
         return self.step(batch, "test")
 
     def configure_optimizers(self):
-        opt = optim.Adam(self.parameters(), lr=self.lr)
-        sched = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=5, verbose=True)
-        return {"optimizer": opt, "lr_scheduler": {"scheduler": sched, "monitor": "val_loss"}}
+        optimizer = optim.SGD(
+            self.parameters(),
+            lr=self.lr,
+            momentum=0.9,
+            nesterov=False,
+            weight_decay=1e-7
+        )
+        return optimizer

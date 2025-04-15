@@ -15,11 +15,12 @@
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     color: #333;
     line-height: 1.6;
     position: relative;
     background: transparent;
+    box-sizing: border-box;
 
     /* Subtiles Raster, bleibt sichtbar */
     background-image: 
@@ -48,6 +49,14 @@ body::before {
     z-index: -1;
 }
 
+/* Container für den gesamten Inhalt */
+.content-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
 section {
     position: relative;
     z-index: 1;
@@ -70,6 +79,7 @@ section {
     align-items: center;
     z-index: 1000;
     box-sizing: border-box;
+    height: 80px; /* Fixe Höhe für die Navbar */
 }
 
 /* Container für Logo + Menü */
@@ -78,19 +88,24 @@ section {
     align-items: center;
     width: 100%;
     justify-content: space-between;
+    position: relative;
 }
 
 /* Logo-Container */
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 30px; /* Mehr Abstand zwischen den Logos */
+    height: 50px; /* Fixe Höhe für den Logo-Container */
+    margin-right: auto;
 }
 
 /* Logo Styling */
 .navbar-logo {
-    height: 50px;
+    height: 45px; /* Einheitliche Höhe für beide Logos */
     width: auto;
+    object-fit: contain; /* Behält Seitenverhältnis bei */
+    display: block; /* Entfernt zusätzlichen Whitespace */
 }
 
 /* Menü Styling */
@@ -132,21 +147,22 @@ section {
     height: 30px;
     width: 40px;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     cursor: pointer;
     position: relative;
-    right: 0;
+    right: 40px;
+    margin: auto 0;
 }
 
 /* Linien des Hamburger-Buttons */
 .hamburger-lines .line {
     display: block;
-    height: 5px; /* etwas dünner macht's klarer */
+    height: 5px;
     width: 100%;
-    border-radius: 2px; /* weniger Rundung */
+    border-radius: 2px;
     background: #0e2431;
     transition: all 0.3s ease-in-out;
-    margin: 5px 0; /* Abstand oben/unten zwischen Linien */
+    margin: 3px 0;
 }
 
 /* Checkbox für das Menü */
@@ -615,6 +631,40 @@ input[type="file"]#csvFile {
     text-align: center;
 }
 
+.content-container {
+    min-height: calc(100vh - 100px); /* Höhe abzüglich Footer */
+    position: relative;
+    padding-bottom: 20px; /* Platz für Footer */
+}
+
+.contact-section {
+    background-color: #ffffff; /* Helles Grau */
+    background: linear-gradient(to bottom, rgba(245, 245, 245, 0) 0%, rgba(245, 245, 245, 1) 50%); /* Verlauf */
+    color: black;
+    text-align: center;
+    min-height: 5vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Zentriert die Inhalte vertikal */
+    align-items: center; /* Zentriert die Inhalte horizontal */
+    padding: 10px;
+}
+
+.copyright {
+    margin: 0;
+    padding: 10px 0;
+}
+
+.copyright p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.contact-media {
+    display: none;
+}
+
 /* Responsive Design */
 @media screen and (max-width: 992px) {
     .navbar {
@@ -683,6 +733,19 @@ input[type="file"]#csvFile {
     .results-table th:last-child,
     .results-table td:last-child {
         min-width: 100px;
+    }
+
+    .content-container {
+        min-height: calc(100vh - 80px);
+        padding-bottom: 40px;
+    }
+    
+    .contact-section {
+        padding: 15px;
+    }
+    
+    .copyright p {
+        font-size: 0.8rem;
     }
 }
 

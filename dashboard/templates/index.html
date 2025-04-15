@@ -52,14 +52,7 @@
     </nav>
 
     <div class="content-container">
-        <div class="carrer-explanation" id="carrer_exp">
-            <div class="text-container">
-                <h2>Karriere-Prognose</h2>
-                <p>Nutzen Sie unsere KI, um präzise Vorhersagen über Ihre Karrieremöglichkeiten und -chancen zu erhalten.</p>
-            </div>
-            <img src="static/images/hr_carrer.webp" alt="hr_carrer" class="hr_carrer">
-        </div>
-    
+
         <div class="pers-form">
             <form id="careerForm">
                 <div class="form-group">
@@ -70,16 +63,16 @@
                             <input type="text" placeholder="Position">
                             <input type="date" placeholder="Start-Datum">
                             <input type="date" placeholder="End-Datum">
-                            <button type="button" class="remove-experience">Entfernen</button>
                         </div>
                     </div>
                     <button type="button" id="addExperience" class="btn-secondary">Weitere Position hinzufügen</button>
                 </div>
-            
+
                 <div class="form-group">
                     <h3>KI-Modell</h3>
                     <div class="model-selection">
-                        <select id="modelType">
+                        <select id="modelType" required>
+                            <option value="" disabled selected>Wählen Sie ein Modell</option>
                             <option value="gru">Gated Recurrent Unit (GRU)</option>
                             <option value="xgboost">Extreme Gradient Boosting (XGBoost)</option>
                             <option value="tft">Temporal Fusion Transformer (TFT)</option>
@@ -88,18 +81,15 @@
                     <button type="submit" class="btn-primary">Prognose erstellen</button>
                 </div>
             </form>
-            
-            <!-- Loader für die Prognose -->
+
             <div class="loader-container-prediction">
                 <div class="loader-prediction" id="loader-prediction"></div>
             </div>
-            
-            <!-- Verbesserte Prognose-Anzeige mit graphischer Darstellung -->
-            <div class="prediction-result" id="predictionResult" style="display: none;">
+
+            <div class="prediction-result" id="predictionResult">
                 <div class="prediction-container">
-                    <h3>Ihre Karriere-Prognose</h3>
+                    <h3>Prognose-Ergebnis</h3>
                     
-                    <!-- Wahrscheinlichkeitsanzeige mit Balken -->
                     <div class="probability-wrapper-single">
                         <span class="probability-value-single" id="probability-value">0%</span>
                         <div class="probability-bar-container-single">
@@ -107,7 +97,6 @@
                         </div>
                     </div>
                     
-                    <!-- Vorhersagedetails und Empfehlungen -->
                     <div class="prediction-details">
                         <h4 class="recommendation-title">Empfehlungen:</h4>
                         <ul class="recommendation-list" id="recommendation-list">
@@ -117,39 +106,14 @@
                 </div>
             </div>
         </div>
-    
-        <div class="contact-section">
-            <h2>Kontakt</h2>
-            <div class="contact-info">
-                <div class="contact-item">
-                    <img src="static/images/profile.jpeg" alt="Florian Runkel" class="contact-img">
-                    <p>Florian Runkel</p>
-                </div>
-                <div class="contact-item">
-                    <img src="static/images/email.jpeg" alt="Email Icon" class="contact-img">
-                    <p>florian.runkel@stud-regensburg.de</p>
-                </div>
-                <div class="contact-item">
-                    <a href="https://www.linkedin.com/in/florian-runkel-82b521228/" class="contact-link" target="_blank">
-                        <img src="static/images/linkedin.jpeg" alt="LinkedIn Icon" class="contact-img"> 
-                        <p>LinkedIn</p>
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div class="contact-media" id="contact">
+    <footer class="contact-section">
         <div class="copyright">
             <p>&copy; 2025 Florian Runkel</p>
         </div>
-    </div>
+    </footer>
 
     <script src="static/js/main.js"></script>
-    <script>
-        function closeMenu() {
-            document.getElementById('menu-checkbox').checked = false;
-        }
-    </script>
 </body>
 </html>

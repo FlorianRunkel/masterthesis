@@ -9,8 +9,8 @@ class Dataset(Dataset):
 
     def _process_data(self, documents):
         fe = featureEngineering()
-        X, y = fe.extract_features_and_labels(documents)
-        return X,y
+        X, y = fe.extract_features_and_labels_for_training(documents)
+        return X, y
 
     def __len__(self):
         return len(self.sequences)
@@ -31,7 +31,7 @@ class DataModule(pl.LightningDataModule):
         self.train_data, self.val_data = random_split(full_data, [train_len, val_len])
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_data, batch_size=self.batch_size)
