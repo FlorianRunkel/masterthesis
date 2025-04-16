@@ -39,6 +39,7 @@ body::before {
     z-index: -1;
 }
 
+/* Navbar Styling */
 .navbar {
     position: fixed;
     top: 0;
@@ -80,13 +81,6 @@ body::before {
     margin-bottom: 0;
 }
 
-.nav-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
 .nav-menu {
     display: flex;
     flex-direction: column;
@@ -103,6 +97,13 @@ body::before {
     border-radius: 8px;
     transition: all 0.2s ease;
     border-left: 4px solid transparent;
+}
+
+.nav-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 .nav-item:hover {
@@ -132,10 +133,7 @@ body::before {
     color: var(--aurio-orange);
 }
 
-.menu-items {
-    display: none;
-}
-
+/* Content Container */
 .content-container {
     margin-left: var(--navbar-width);
     padding: 40px 0;
@@ -176,7 +174,7 @@ body::before {
     max-width: 600px;
 }
 
-/* Batch Form */
+/* Form Styling */
 .batch-form {
     max-width: 1200px;
 }
@@ -196,40 +194,35 @@ body::before {
     font-weight: 600;
 }
 
-/* File Upload */
-.file-upload-wrapper {
+/* LinkedIn Input Styling */
+.linkedin-input-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 20px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.file-upload-label {
-    background: var(--aurio-blue);
-    color: var(--white);
-    padding: 12px 24px;
+.linkedin-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
     font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
 }
 
-.file-upload-label:hover {
-    transform: translateY(-2px);
+.linkedin-input:focus {
+    border-color: var(--aurio-blue);
+    box-shadow: 0 0 0 2px rgba(0, 27, 65, 0.1);
 }
 
-input[type="file"]#csvFile {
-    display: none;
+.linkedin-input::placeholder {
+    color: #999;
 }
 
-.file-name-placeholder {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-/* Button */
+/* Button Styling */
 .btn-primary {
     width: 60%;
     background: var(--aurio-blue);
@@ -253,13 +246,15 @@ input[type="file"]#csvFile {
     transform: translateY(-2px);
 }
 
-/* Loader */
+/* Loader Styling */
 .loader-container-prediction {
     display: none;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100px;
+    height: 150px;
     margin: 20px 0;
+    gap: 20px;
 }
 
 .loader-prediction {
@@ -269,6 +264,13 @@ input[type="file"]#csvFile {
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
+}
+
+.loader-status {
+    color: var(--aurio-blue);
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
 }
 
 @keyframes spin {
@@ -288,20 +290,8 @@ input[type="file"]#csvFile {
     box-shadow: var(--shadow);
 }
 
-.summary {
-    padding: 20px 30px;
-    border-bottom: 1px solid #eee;
-}
-
-.summary h3 {
-    color: var(--aurio-blue);
-    font-size: 1.25rem;
-    margin: 0 0 15px;
-}
-
-.summary p {
-    margin: 8px 0;
-    color: #666;
+.results-content {
+    margin-top: 20px;
 }
 
 .results-table {
@@ -314,29 +304,7 @@ input[type="file"]#csvFile {
 .results-table td {
     padding: 15px 20px;
     text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.results-table th:nth-child(1),
-.results-table td:nth-child(1) {
-    width: 20%;
-}
-
-.results-table th:nth-child(2),
-.results-table td:nth-child(2) {
-    width: 35%;
-}
-
-.results-table th:nth-child(3),
-.results-table td:nth-child(3) {
-    width: 35%;
-}
-
-.results-table th:nth-child(4),
-.results-table td:nth-child(4) {
-    width: 10%;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .results-table th {
@@ -345,140 +313,12 @@ input[type="file"]#csvFile {
     font-weight: 600;
 }
 
-.results-table td {
-    border-bottom: 1px solid #eee;
-}
-
 .results-table tr:last-child td {
     border-bottom: none;
 }
 
-.probability-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.probability-value {
-    font-weight: 600;
-    min-width: 50px;
-    color: #333;
-}
-
-.probability-bar-container {
-    flex-grow: 1;
-    height: 8px;
-    background: #eee;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.probability-bar {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.probability-low { background: var(--error-red); }
-.probability-medium { background: var(--warning-yellow); }
-.probability-high { background: var(--success-green); }
-
-.probability-low-text { color: #333; }
-.probability-medium-text { color: #333; }
-.probability-high-text { color: #333; }
-
-.probability-label {
-    font-size: 0.9rem;
-    color: #666;
-    margin-left: 8px;
-}
-
-.details-btn {
-    background: var(--aurio-blue);
-    color: var(--white);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-
-.details-btn:hover {
-    background: var(--aurio-orange);
-    transform: translateY(-1px);
-}
-
-.details-row td {
-    background: #f8f9fa;
-    padding: 20px !important;
-}
-
-.recommendations-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.features-section,
-.recommendations-section {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.features-section h4,
-.recommendations-section h4 {
-    color: var(--aurio-blue);
-    margin: 0 0 10px;
-    font-size: 1rem;
-}
-
-.features-section ul,
-.recommendations-section ul {
-    margin: 0;
-    padding-left: 20px;
-}
-
-.features-section li,
-.recommendations-section li {
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.error-message {
-    background: #fff3f3;
-    border: 1px solid #ffcdd2;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-.error-message h4 {
-    color: var(--error-red);
-    margin: 0 0 10px;
-}
-
-.error-message p {
-    margin: 10px 0;
-}
-
-.error-message ul {
-    margin: 10px 0;
-    padding-left: 20px;
-}
-
-.error-message li {
-    margin-bottom: 5px;
-}
-
-.error-row {
-    background: rgba(220, 53, 69, 0.05);
-}
-
-.error-row td {
-    color: var(--error-red);
+.results-table tr:hover {
+    background-color: var(--background-color);
 }
 
 /* Footer */
@@ -493,6 +333,260 @@ input[type="file"]#csvFile {
     color: #666;
     margin: 0;
     font-size: 0.9rem;
+}
+
+/* Profile Container Styling */
+.profile-content {
+    padding: 20px;
+    background: var(--white);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--aurio-blue);
+    margin: 0 0 5px 0;
+}
+
+.profile-title {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0 0 10px 0;
+}
+
+.profile-location {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Profile Experience Styling */
+.profile-experience {
+    margin-top: 30px;
+}
+
+.profile-experience h3 {
+    color: var(--aurio-blue);
+    font-size: 1.3rem;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--aurio-blue);
+}
+
+.experience-entry {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.experience-entry:last-child {
+    border-bottom: none;
+}
+
+.entry-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.entry-header h4 {
+    color: var(--aurio-blue);
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.entry-header .company {
+    color: var(--text-color);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.entry-header .duration {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Profile Industry */
+.profile-industry {
+    display: none;
+    font-size: 0.9rem;
+    color: var(--aurio-blue);
+    margin-top: 5px;
+}
+
+/* Profile Summary */
+.profile-summary {
+    display: none;
+}
+
+.profile-summary h3 {
+    color: var(--aurio-blue);
+    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+}
+
+.profile-summary p {
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* Education Section mit gleichem Design */
+.profile-education {
+    margin-top: 30px;
+}
+
+.profile-education h3 {
+    color: var(--aurio-blue);
+    font-size: 1.3rem;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--aurio-blue);
+}
+
+.education-entry {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.education-entry:last-child {
+    border-bottom: none;
+}
+
+.education-entry .entry-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.education-entry h4 {
+    color: var(--aurio-blue);
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.education-entry .school {
+    color: var(--text-color);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.education-entry .duration {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Prediction Styles */
+.prediction-section {
+    margin-top: 30px;
+}
+
+.probability-section {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.probability-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.probability-header h4 {
+    margin: 0;
+    color: var(--aurio-blue);
+    font-size: 1.1rem;
+}
+
+.probability-value {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.probability-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.probability-bar-single {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.probability-low-single {
+    background-color: var(--error-red);
+}
+
+.probability-medium-single {
+    background-color: var(--warning-yellow);
+}
+
+.probability-high-single {
+    background-color: var(--success-green);
+}
+
+.recommendations-section {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.recommendations-section h4 {
+    margin: 0 0 15px 0;
+    color: var(--aurio-blue);
+    font-size: 1.1rem;
+}
+
+.recommendation-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recommendation-item {
+    padding: 12px 15px;
+    background: var(--background-color);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.recommendation-item:last-child {
+    margin-bottom: 0;
 }
 
 /* Responsive Design */
@@ -527,21 +621,9 @@ input[type="file"]#csvFile {
         padding: 20px;
     }
 
-    .results-table {
+    .linkedin-input {
+        padding: 10px 14px;
         font-size: 0.9rem;
-    }
-
-    .results-table th,
-    .results-table td {
-        padding: 12px 15px;
-    }
-
-    .probability-wrapper {
-        gap: 8px;
-    }
-
-    .probability-bar-container {
-        height: 6px;
     }
 }
 
@@ -579,37 +661,30 @@ input[type="file"]#csvFile {
         padding: 15px;
     }
 
-    .file-upload-label {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-    }
-
-    .results-table {
+    .linkedin-input {
+        padding: 8px 12px;
         font-size: 0.85rem;
     }
 
-    .results-table th,
-    .results-table td {
-        padding: 10px;
+    .profile-summary h3,
+    .profile-education h3 {
+        font-size: 1.1rem;
     }
 
-    .probability-bar-container {
-        height: 5px;
-    }
-
-    .details-btn {
-        padding: 6px 12px;
-        font-size: 0.85rem;
-    }
-
-    .features-section,
-    .recommendations-section {
-        padding: 12px;
-    }
-
-    .features-section h4,
-    .recommendations-section h4 {
+    .profile-summary p {
         font-size: 0.9rem;
+    }
+
+    .education-school {
+        font-size: 0.95rem;
+    }
+
+    .education-degree {
+        font-size: 0.9rem;
+    }
+
+    .education-date {
+        font-size: 0.85rem;
     }
 }
 
@@ -648,90 +723,34 @@ input[type="file"]#csvFile {
         padding: 12px;
     }
 
-    .file-upload-label {
-        padding: 6px 12px;
-        font-size: 0.85rem;
-    }
-
-    .results-table {
-        font-size: 0.8rem;
-    }
-
-    .results-table th,
-    .results-table td {
-        padding: 8px;
-    }
-
-    .probability-wrapper {
-        gap: 6px;
-    }
-
-    .probability-bar-container {
-        height: 4px;
-    }
-
-    .details-btn {
-        padding: 5px 10px;
-        font-size: 0.8rem;
-    }
-
-    .features-section,
-    .recommendations-section {
-        padding: 10px;
-    }
-
-    .features-section h4,
-    .recommendations-section h4 {
-        font-size: 0.85rem;
-    }
-
-    .features-section li,
-    .recommendations-section li {
-        font-size: 0.8rem;
-        margin-bottom: 6px;
-        line-height: 1.3;
-    }
-}
-
-/* LinkedIn Input */
-.linkedin-input-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.linkedin-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    outline: none;
-}
-
-.linkedin-input:focus {
-    border-color: var(--aurio-blue);
-    box-shadow: 0 0 0 2px rgba(0, 27, 65, 0.1);
-}
-
-.linkedin-input::placeholder {
-    color: #999;
-}
-
-/* Responsive Design für LinkedIn Input */
-@media (max-width: 768px) {
     .linkedin-input {
-        padding: 10px 14px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    .profile-summary,
+    .profile-education {
+        padding: 15px;
+    }
+
+    .profile-summary h3,
+    .profile-education h3 {
+        font-size: 1rem;
+    }
+
+    .profile-summary p {
+        font-size: 0.85rem;
+    }
+
+    .education-school {
         font-size: 0.9rem;
     }
-}
 
-@media (max-width: 480px) {
-    .linkedin-input {
-        padding: 8px 12px;
+    .education-degree {
         font-size: 0.85rem;
     }
-}
+
+    .education-date {
+        font-size: 0.8rem;
+    }
+} 

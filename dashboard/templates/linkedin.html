@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterarbeit</title>
+    <link rel="stylesheet" href="static/css/linkedin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <img src="static/images/logo.png" alt="Aurio Technology Logo" class="navbar-logo">
+                    <img src="static/images/ur-logo.png" alt="UR Logo" class="navbar-logo">
+                </div>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <img src="static/images/carrer_nav.jpeg" alt="Karriere Navigation" class="nav-icon">
+                    <a href="/">Karriere-Prognose</a>
+                </div>
+                <div class="nav-item">
+                    <img src="static/images/candi_batch_nav.jpg" alt="Batch Navigation" class="nav-icon">
+                    <a href="/batch">Batch-Prognose</a>
+                </div>
+                <div class="nav-item">
+                    <img src="static/images/linkedin_nav.jpg" alt="LinkedIn Navigation" class="nav-icon">
+                    <a href="/linkedin" class="active">LinkedIn-Prognose</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-container">
+        <section class="header-section">
+            <div class="settings-header">
+                <h1>LinkedIn Analyse</h1>
+                <div class="settings-info">
+                    <p class="info-description">
+                        Geben Sie einen LinkedIn-Profillink ein, um automatisch eine Karriereprognose basierend auf den verfügbaren Berufserfahrungen zu erstellen.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="batch-form">
+            <div class="form-group">
+                <h3>LinkedIn Profil</h3>
+                <div class="linkedin-input-wrapper">
+                    <input type="url" 
+                           id="linkedinUrl" 
+                           class="linkedin-input" 
+                           placeholder="https://www.linkedin.com/in/beispiel-profil"
+                           required>
+                    <button class="btn-primary" onclick="analyzeProfil()">Profil analysieren</button>
+                </div>
+            </div>
+
+            <!-- Loader mit Status -->
+            <div class="loader-container-prediction" id="loaderContainer">
+                <div class="loader-prediction"></div>
+                <div class="loader-status" id="loaderStatus">Profil wird analysiert...</div>
+            </div>
+
+            <!-- Profile Container -->
+            <div id="profileContainer" class="form-group" style="display: none;">
+                <h3>LinkedIn Profil</h3>
+                <div id="profile-section" class="profile-content">
+                    <!-- Profildaten werden hier dynamisch eingefügt -->
+                </div>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultTableContainer" class="form-group" style="display: none;">
+                <h3>Analyse-Ergebnisse</h3>
+                <div class="results-content">
+                    <!-- Ergebnisse werden hier dynamisch eingefügt -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/linkedin.js"></script>
+</body>
+</html> 

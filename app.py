@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, jsonify
-import sqlite3
 import pandas as pd
-import numpy as np
-from datetime import datetime
 import logging
 import os
 import json
+from linkedin_api import Linkedin
 
 # Flask-App initialisieren mit korrektem Template-Verzeichnis
 template_dir = os.path.abspath('dashboard/templates')
@@ -16,6 +14,27 @@ app = Flask(__name__,
 
 app.logger.setLevel(logging.INFO)
 
+# LinkedIn API Konfiguration
+LINKEDIN_EMAIL = 'f.runkel@yahoo.com'  # In Produktion über Umgebungsvariablen!
+LINKEDIN_PASSWORD = 'Cool0089!%'       # In Produktion über Umgebungsvariablen!
+
+# Globale Variable für die API
+linkedin_api = None
+
+def initialize_linkedin_api():
+    global linkedin_api
+    try:
+        linkedin_api = Linkedin(LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
+        app.logger.info("LinkedIn API erfolgreich initialisiert")
+        # Test-Aufruf um die Verbindung zu verifizieren
+        test_profile = linkedin_api.get_profile('williamhgates')
+        if test_profile:
+            app.logger.info("LinkedIn API Verbindung erfolgreich getestet")
+        return True
+    except Exception as e:
+        app.logger.error(f"Fehler bei der LinkedIn API Initialisierung: {str(e)}")
+        return False
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -23,6 +42,10 @@ def index():
 @app.route('/batch')
 def batch():
     return render_template('batch.html')
+
+@app.route('/linkedin')
+def linkedin():
+    return render_template('linkedin.html')
 
 @app.route('/predict', methods=['POST'])
 def predict_career():
@@ -168,6 +191,80 @@ def predict_batch():
 
     except Exception as e:
         app.logger.error(f"Batch prediction error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/scrape-linkedin', methods=['POST'])
+def scrape_linkedin():
+    global linkedin_api
+    
+    try:
+        # Überprüfe ob die API initialisiert ist
+        if linkedin_api is None:
+            if not initialize_linkedin_api():
+                return jsonify({
+                    'error': 'LinkedIn API nicht verfügbar. Bitte versuchen Sie es später erneut.'
+                }), 500
+
+        data = request.get_json()
+        linkedin_url = data.get('url')
+
+        if not linkedin_url:
+            return jsonify({'error': 'Keine LinkedIn-URL angegeben'}), 400
+
+        # Extrahiere LinkedIn Username aus der URL
+        try:
+            username = linkedin_url.split('/in/')[1].split('/')[0]
+            username = username.split('?')[0]  # Entferne Query-Parameter
+        except IndexError:
+            return jsonify({'error': 'Ungültiges LinkedIn-URL-Format'}), 400
+
+        app.logger.info(f"Starte API-Abfrage für LinkedIn-Profil: {username}")
+
+        try:
+            # Hole Profildaten über die API
+            profile = linkedin_api.get_profile(username)
+            #app.logger.info(f"Rohe Profildaten: {json.dumps(profile, indent=2)}")
+            
+            contact_info = linkedin_api.get_profile_contact_info(username)
+            #app.logger.info(f"Kontaktinformationen: {json.dumps(contact_info, indent=2)}")
+
+            if not profile:
+                return jsonify({'error': 'Profil nicht gefunden'}), 404
+
+            # Formatiere die Profildaten
+            profile_data = {
+                'name': f"{profile.get('firstName', '')} {profile.get('lastName', '')}".strip(),
+                'currentTitle': profile.get('headline', ''),
+                'location': profile.get('locationName', ''),
+                'imageUrl': profile.get('displayPictureUrl', '') + profile.get('img_400_400', ''),
+                'experience': []
+            }
+
+            # Formatiere die Berufserfahrung
+            for position in profile.get('experience', []):
+                exp_data = {
+                    'title': position.get('title', ''),
+                    'company': position.get('companyName', ''),
+                    'duration': f"{position.get('timePeriod', {}).get('startDate', {}).get('year', '')} - "
+                              f"{position.get('timePeriod', {}).get('endDate', {}).get('year', 'Present')}"
+                }
+                profile_data['experience'].append(exp_data)
+
+            # Füge zusätzliche Informationen hinzu
+            profile_data['industry'] = profile.get('industry', '')
+            profile_data['summary'] = profile.get('summary', '')
+
+            app.logger.info(f"Profildaten erfolgreich extrahiert für: {profile_data['name']}")
+            return jsonify(profile_data)
+
+        except Exception as api_error:
+            app.logger.error(f"API-Fehler: {str(api_error)}")
+            # Versuche die API neu zu initialisieren
+            initialize_linkedin_api()
+            return jsonify({'error': 'Fehler beim Abrufen der Profildaten. Bitte versuchen Sie es erneut.'}), 500
+
+    except Exception as e:
+        app.logger.error(f"Unerwarteter Fehler beim API-Zugriff: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
