@@ -46,7 +46,7 @@ body::before {
     left: 0;
     width: var(--navbar-width);
     height: 100vh;
-    background-color: white;
+    background-color: var(--navbar-bg);
     border-right: 1px solid var(--border-color);
     padding: 20px 0;
     z-index: 1000;
@@ -78,6 +78,17 @@ body::before {
     height: auto;
 }
 
+.navbar-logo:last-child {
+    margin-bottom: 0;
+}
+
+.nav-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
 .nav-menu {
     display: flex;
     flex-direction: column;
@@ -92,29 +103,20 @@ body::before {
     gap: 10px;
     padding: 15px;
     border-radius: 8px;
-    transition: all 0.2s ease;
-    border-left: 4px solid transparent;
-}
-
-.nav-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    object-fit: cover;
+    transition: background-color 0.3s ease;
 }
 
 .nav-item:hover {
     background-color: var(--background-color);
-    transform: translateX(4px);
 }
 
 .nav-item a {
-    color: var(--text-color);
+    color: var(--navbar-text);
     text-decoration: none;
     font-weight: 500;
     font-size: 14px;
     text-align: center;
-    transition: color 0.2s;
+    width: 100%;
 }
 
 .nav-item:hover a {
@@ -128,6 +130,33 @@ body::before {
 
 .nav-item:hover a.active {
     color: var(--aurio-orange);
+}
+
+.menu-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-items li {
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+.menu-items a {
+    display: block;
+    padding: 15px 25px;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    font-size: 16px;
+}
+
+.menu-items a:hover,
+.menu-items a.active {
+    background-color: var(--background-color);
+    color: var(--aurio-blue);
 }
 
 /* Content Container */
@@ -148,7 +177,7 @@ body::before {
 }
 
 .settings-header {
-    max-width: 800px;
+    max-width: 1200px;
 }
 
 .settings-header h1 {
@@ -182,7 +211,7 @@ body::before {
     border-radius: 16px;
     box-shadow: var(--shadow);
     margin-bottom: 30px;
-    max-width: 800px;
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
 }
