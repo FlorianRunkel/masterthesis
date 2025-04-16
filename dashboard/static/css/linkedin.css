@@ -49,17 +49,19 @@ body::before {
     background-color: white;
     border-right: 1px solid var(--border-color);
     padding: 20px 0;
+    z-index: 1000;
 }
 
 .nav-container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow-y: auto;
 }
 
 .logo-container {
     padding: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     display: flex;
     justify-content: center;
 }
@@ -74,11 +76,6 @@ body::before {
 .navbar-logo {
     width: 120px;
     height: auto;
-    margin-bottom: 10px;
-}
-
-.navbar-logo:last-child {
-    margin-bottom: 0;
 }
 
 .nav-menu {
@@ -185,6 +182,9 @@ body::before {
     border-radius: 16px;
     box-shadow: var(--shadow);
     margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .form-group h3 {
@@ -199,8 +199,7 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-width: 600px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 .linkedin-input {
@@ -211,6 +210,7 @@ body::before {
     font-size: 1rem;
     transition: all 0.3s ease;
     outline: none;
+    box-sizing: border-box;
 }
 
 .linkedin-input:focus {
@@ -599,18 +599,26 @@ body::before {
         width: var(--navbar-width);
     }
 
+    .content-container {
+        margin-left: var(--navbar-width);
+        padding: 40px;
+    }
+
+    .logo-container {
+        padding: 15px;
+    }
+
     .navbar-logo {
         width: 80px;
+    }
+
+    .nav-menu {
+        padding: 0 15px;
     }
 
     .nav-icon {
         width: 32px;
         height: 32px;
-    }
-
-    .content-container {
-        padding-left: 40px;
-        padding-right: 20px;
     }
 
     .settings-header h1 {
@@ -621,9 +629,13 @@ body::before {
         padding: 20px;
     }
 
-    .linkedin-input {
-        padding: 10px 14px;
-        font-size: 0.9rem;
+    .profile-header {
+        gap: 15px;
+    }
+
+    .profile-image {
+        width: 80px;
+        height: 80px;
     }
 }
 
@@ -632,8 +644,25 @@ body::before {
         --navbar-width: 160px;
     }
 
+    .navbar {
+        width: var(--navbar-width);
+    }
+
+    .content-container {
+        margin-left: var(--navbar-width);
+        padding: 30px 20px;
+    }
+
+    .logo-container {
+        padding: 10px;
+    }
+
     .navbar-logo {
         width: 60px;
+    }
+
+    .nav-menu {
+        padding: 0 10px;
     }
 
     .nav-icon {
@@ -649,42 +678,13 @@ body::before {
         font-size: 12px;
     }
 
-    .content-container {
-        padding-left: 20px;
+    .profile-header {
+        gap: 12px;
     }
 
-    .settings-header h1 {
-        font-size: 1.6rem;
-    }
-
-    .form-group {
-        padding: 15px;
-    }
-
-    .linkedin-input {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-    }
-
-    .profile-summary h3,
-    .profile-education h3 {
-        font-size: 1.1rem;
-    }
-
-    .profile-summary p {
-        font-size: 0.9rem;
-    }
-
-    .education-school {
-        font-size: 0.95rem;
-    }
-
-    .education-degree {
-        font-size: 0.9rem;
-    }
-
-    .education-date {
-        font-size: 0.85rem;
+    .profile-image {
+        width: 60px;
+        height: 60px;
     }
 }
 
@@ -693,8 +693,25 @@ body::before {
         --navbar-width: 120px;
     }
 
+    .navbar {
+        width: var(--navbar-width);
+    }
+
+    .content-container {
+        margin-left: var(--navbar-width);
+        padding: 20px 10px;
+    }
+
+    .logo-container {
+        padding: 8px;
+    }
+
     .navbar-logo {
         width: 50px;
+    }
+
+    .nav-menu {
+        padding: 0 5px;
     }
 
     .nav-icon {
@@ -710,47 +727,15 @@ body::before {
         font-size: 11px;
     }
 
-    .content-container {
-        padding-left: 10px;
-        padding-right: 10px;
+    .profile-header {
+        gap: 10px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
 
-    .settings-header h1 {
-        font-size: 1.4rem;
-    }
-
-    .form-group {
-        padding: 12px;
-    }
-
-    .linkedin-input {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-    }
-
-    .profile-summary,
-    .profile-education {
-        padding: 15px;
-    }
-
-    .profile-summary h3,
-    .profile-education h3 {
-        font-size: 1rem;
-    }
-
-    .profile-summary p {
-        font-size: 0.85rem;
-    }
-
-    .education-school {
-        font-size: 0.9rem;
-    }
-
-    .education-degree {
-        font-size: 0.85rem;
-    }
-
-    .education-date {
-        font-size: 0.8rem;
+    .profile-image {
+        width: 50px;
+        height: 50px;
     }
 } 

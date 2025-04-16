@@ -26,17 +26,21 @@ body {
     background-color: white;
     border-right: 1px solid var(--border-color);
     padding: 20px 0;
+    z-index: 1000;
+    transform: none;
+    transition: none;
 }
 
 .nav-container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow-y: auto;
 }
 
 .logo-container {
     padding: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     display: flex;
     justify-content: center;
 }
@@ -51,7 +55,6 @@ body {
 .navbar-logo {
     width: 120px;
     height: auto;
-    margin-bottom: 10px;
 }
 
 .navbar-logo:last-child {
@@ -795,8 +798,15 @@ button {
 display: none;
 }
 
-/* Responsive Design für verschiedene Bildschirmgrößen */
-@media (max-width: 1200px) {
+/* Responsive Design */
+@media (max-width: 1024px) {
+    :root {
+        --navbar-width: 200px;
+    }
+
+    .navbar {
+        width: var(--navbar-width);
+    }
     .carrer-explanation {
         gap: 20px;
         padding: 30px;
@@ -812,907 +822,94 @@ display: none;
         padding: 15px;
     }
     
-    .navbar {
-        width: 90%;
-        padding: 15px 20px;
-    }
 }
 
-@media (max-width: 992px) {
-    body {
-        padding: 15px;
-    }
-    
-    .carrer-explanation {
-        grid-template-columns: 1fr;
-        text-align: center;
-        margin-top: 100px;
-        gap: 15px;
-    }
-    
-    .text-container {
-        order: 1;
-        margin-top: 0;
-        text-align: center;
-    }
-    
-    .carrer-explanation img {
-        order: 2;
-        width: 80%;
-        max-width: 400px;
-        margin: 0 auto;
-    }
-    
-    .carrer-explanation h2 {
-        font-size: 2.5rem;
-    }
-    
-    .carrer-explanation p {
-        font-size: 1.2rem;
-    }
-    
-    .form-group {
-        padding: 20px;
-    }
-    
-    .name-fields input, 
-    .education-fields input, 
-    .experience-entry input,
-    .model-selection select {
-        font-size: 1rem;
-    }
-    
-    button {
-        width: 80%;
-    }
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .navbar {
-        width: 95%;
-        top: 10px;
-        padding: 10px 15px;
-    }
-    
-    .navbar-logo {
-        height: 40px;
-    }
-    
-    .hamburger-lines {
-        width: 30px;
-        height: 20px;
-    }
-    
-    .menu-items {
-        top: 60px;
-        right: 10px;
-    }
-    
-    .carrer-explanation {
-        padding: 20px;
-        margin-top: 80px;
-    }
-    
-    .carrer-explanation h2 {
-        font-size: 2rem;
-    }
-    
-    .carrer-explanation p {
-        font-size: 1.1rem;
-    }
-    
-    .pers-form {
-        padding: 15px;
-    }
-    
-    .form-group h3 {
-        font-size: 1.4rem;
-        padding: 10px;
-    }
-    
-    .experience-entry {
-        grid-template-columns: 1fr;
-    }
-    
-    button {
-        padding: 12px;
-        width: 100%;
-    }
-    
-    .prediction-container h3 {
-        font-size: 1.8rem;
-    }
-    
-    #prediction {
-        font-size: 1.1rem;
-        max-width: 90%;
-    }
-    
-    .contact-section {
-        padding: 30px 15px;
-    }
-    
-    .contact-section h2 {
-        font-size: 1.8rem;
-    }
-    
-    .contact-item {
-        font-size: 1.1rem;
-        gap: 15px;
-    }
-    
-    .contact-item .contact-img {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-@media (max-width: 576px) {
-    body {
-        padding: 8px;
-    }
-    
-    .navbar {
-        padding: 8px 12px;
-    }
-    
-    .navbar-logo {
-        height: 35px;
-    }
-    
-    .carrer-explanation h2 {
-        font-size: 1.8rem;
-    }
-    
-    .carrer-explanation p {
-        font-size: 1rem;
-    }
-    
-    .form-group {
-        padding: 15px;
-    }
-    
-    .form-group h3 {
-        font-size: 1.3rem;
-        padding: 8px;
-    }
-    
-    .name-fields input, 
-    .education-fields input, 
-    .experience-entry input,
-    .model-selection select {
-        padding: 8px 10px;
-        font-size: 0.9rem;
-    }
-    
-    button {
-        padding: 10px;
-        font-size: 0.9rem;
-    }
-    
-    .prediction-container h3 {
-        font-size: 1.5rem;
-    }
-    
-    #prediction {
-        font-size: 1rem;
-        padding: 15px;
-    }
-    
-    .contact-section h2 {
-        font-size: 1.5rem;
-    }
-    
-    .contact-info {
-        gap: 20px;
-    }
-    
-    .contact-item {
-        font-size: 0.9rem;
-    }
-    
-    .contact-item .contact-img {
-        width: 35px;
-        height: 35px;
-    }
-}
-
-/* Die Übernahme des vorhandenen Media Query für Mobil mit einigen Anpassungen */
-@media (max-width: 768px) {
-    /* Übernehmen aller relevanten Styles aus dem vorhandenen Mobile-Media-Query,
-    aber mit Anpassungen für bessere Responsivität */
-    
-    .form-group {
-        width: auto;
-        max-width: 100%;
-        margin: 20px auto;
-        margin-left: 0;
-    }
-    
-    /* Rest des vorhandenen Mobile-Media-Queries beibehalten mit Anpassungen */
-    .navbar {
-        width: 95%;
-        top: 10px;
-        padding: 10px 15px;
-    }
-    
-    .navbar-logo {
-        height: 40px;
-    }
-    
-    .hamburger-lines {
-        width: 30px;
-        height: 20px;
-    }
-    
-    .menu-items {
-        top: 60px;
-        right: 10px;
-    }
-    
-    .carrer-explanation {
-        padding: 20px;
-        margin-top: 80px;
-    }
-    
-    .carrer-explanation h2 {
-        font-size: 2rem;
-    }
-    
-    .carrer-explanation p {
-        font-size: 1.1rem;
-    }
-    
-    .pers-form {
-        padding: 15px;
-    }
-    
-    .form-group h3 {
-        font-size: 1.4rem;
-        padding: 10px;
-    }
-    
-    .experience-entry {
-        grid-template-columns: 1fr;
-    }
-    
-    button {
-        padding: 12px;
-        width: 100%;
-    }
-    
-    .prediction-container h3 {
-        font-size: 1.8rem;
-    }
-    
-    #prediction {
-        font-size: 1.1rem;
-        max-width: 90%;
-    }
-    
-    .contact-section {
-        padding: 30px 15px;
-    }
-    
-    .contact-section h2 {
-        font-size: 1.8rem;
-    }
-    
-    .contact-item {
-        font-size: 1.1rem;
-        gap: 15px;
-    }
-    
-    .contact-item .contact-img {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-/* Vorhersage-Styles */
-.prediction-content {
-    padding: 20px;
-    border-radius: 15px;
-    background: transparent;
-}
-
-.prediction-content h4 {
-    color: var(--aurio-blue);
-    margin: 15px 0 10px;
-    font-size: 1.4rem;
-    font-weight: 600;
-}
-
-.prediction-content p {
-    margin: 10px 0;
-    font-size: 1.1rem;
-    line-height: 1.5;
-}
-
-.confidence-bar {
-    width: 100%;
-    height: 20px;
-    background: #f0f0f0;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 10px 0;
-}
-
-.confidence-fill {
-    height: 100%;
-    background: var(--aurio-orange);
-    transition: width 0.3s ease;
-}
-
-.prediction-content ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0;
-}
-
-.prediction-content li {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 1.1rem;
-}
-
-.prediction-content li:last-child {
-    border-bottom: none;
-}
-
-.error-message {
-    padding: 20px;
-    background: #fff3f3;
-    border: 1px solid #ffcdd2;
-    border-radius: 10px;
-    color: #d32f2f;
-    text-align: center;
-}
-
-.error-message p {
-    margin: 0;
-    font-size: 1.1rem;
-}
-
-/* Einheitlicher Fokus für alle Eingabefelder - keine Effekte */
-input[type="text"],
-input[type="date"],
-select {
-    transition: none;
-}
-
-input[type="text"]:focus,
-input[type="date"]:focus,
-select:focus {
-    border-color: var(--aurio-blue);
-    outline: none;
-    box-shadow: none;
-    transform: none;
-}
-
-.experience-entry input:focus {
-    border-color: var(--aurio-blue);
-    outline: none;
-    box-shadow: none;
-    transform: none;
-}
-
-.model-selection select:focus {
-    border-color: var(--aurio-blue);
-    outline: none;
-    box-shadow: none;
-    transform: none;
-}
-
-/* Loader für die Prognose-Erstellung */
-.loader-prediction {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid var(--aurio-orange);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 30px auto;
-    display: none;
-}
-
-.loader-container-prediction {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-    width: 100%;
-    margin: 20px 0;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Styling für den Entfernen-Button */
-.remove-experience {
-    padding: 8px 15px;
-    background-color: #f2f2f2;
-    color: #333;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 10px;
-}
-
-.remove-experience:hover {
-    background-color: #e74c3c;
-    color: white;
-}
-
-/* Container für Erfahrungseinträge */
-.experiences-container {
-    margin-bottom: 25px;
-    padding: 20px;
-    border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.7);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-/* Abstand zwischen Erfahrungseinträgen */
-.experience-entry {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    position: relative;
-}
-
-.experience-entry:last-child {
-    margin-bottom: 10px;
-    border-bottom: none;
-}
-
-/* Styling für Eingabefelder in den Erfahrungseinträgen */
-.experience-entry input {
-    margin-bottom: 12px;
-    transition: none;
-}
-
-.experience-entry input:focus {
-    border-color: var(--aurio-blue);
-    outline: none;
-    box-shadow: none;
-    transform: none;
-}
-
-/* Styling für den Entfernen-Button */
-.remove-experience {
-    padding: 8px 15px;
-    background-color: #f2f2f2;
-    color: #333;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 10px;
-    display: inline-block;
-}
-
-.remove-experience:hover {
-    background-color: #e74c3c;
-    color: white;
-}
-
-@media (max-width: 768px) {
-    :root {
-        --navbar-width: 200px;
-    }
-
-    .content-container {
-        padding: 20px;
-    }
-
-    .dashboard-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .performance-stats {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    :root {
-        --navbar-width: 0;
-    }
-
-    .navbar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    .navbar.active {
-        transform: translateX(0);
-    }
-
-    .content-container {
-        margin-left: 0;
-    }
-}
-
-.page-title {
-    text-align: center;
-    color: var(--text-color);
-    font-size: 2.2rem;
-    margin-bottom: 40px;
-    font-weight: 600;
-}
-
-/* Header Section Styling */
-.header-section {
-    padding: 20px 0;
-    margin-bottom: 20px;
-    background: transparent;
-    box-shadow: none;
-}
-
-.settings-header {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 800px;
-    margin: 0;
-    padding-left: 0;
-}
-
-.settings-header h1 {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--aurio-blue);
-    margin: 0;
-    letter-spacing: -0.5px;
-}
-
-.settings-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.info-label {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-color);
-    margin: 0;
-}
-
-.info-description {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    font-size: 1rem;
-    color: #666;
-    margin: 0;
-    line-height: 1.5;
-    max-width: 600px;
-}
-
-/* Responsive Anpassungen */
-@media (max-width: 768px) {
-    .header-section {
-        padding: 15px 20px;
-        margin-bottom: 30px;
-    }
-
-    .settings-header h1 {
-        font-size: 2rem;
-    }
-
-    .info-label {
-        font-size: 1.1rem;
-    }
-
-    .info-description {
-        font-size: 0.95rem;
-    }
-}
-
-/* Batch Page Styling */
-.batch-wrapper {
-    max-width: 800px;
-    margin: 0;
-    padding: 0;
-}
-
-.batch-intro {
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.batch-intro h2 {
-    color: var(--aurio-blue);
-    font-size: 1.5rem;
-    margin: 0 0 15px 0;
-}
-
-.batch-intro p {
-    color: #666;
-    margin-bottom: 25px;
-}
-
-.file-upload-wrapper {
-    margin: 20px 0;
-    text-align: center;
-}
-
-.file-upload-label {
-    display: inline-block;
-    padding: 12px 24px;
-    background: var(--aurio-blue);
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.file-upload-label:hover {
-    background: var(--aurio-orange);
-}
-
-.file-upload-wrapper input[type="file"] {
-    display: none;
-}
-
-.file-name-placeholder {
-    display: block;
-    margin-top: 10px;
-    color: #666;
-}
-
-.button-container {
-    margin-top: 25px;
-    text-align: center;
-}
-
-.button-container button {
-    padding: 12px 24px;
-    background: var(--aurio-blue);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.button-container button:hover {
-    background: var(--aurio-orange);
-}
-
-.loader-container {
-    display: none;
-    justify-content: center;
-    margin: 20px 0;
-}
-
-.loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--aurio-orange);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.batch-results {
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-    overflow-x: auto;
-}
-
-/* Tablet Breakpoint */
-@media (max-width: 1024px) {
-    :root {
-        --navbar-width: 200px;
-    }
-
-    .navbar {
-        width: var(--navbar-width);
-    }
-
-    .navbar-logo {
-        width: 80px;
-    }
-
-    .nav-icon {
-        width: 32px;
-        height: 32px;
-    }
-
-    .content-container {
-        padding-left: 40px;
-        padding-right: 20px;
-    }
-
-    .carrer-explanation h2 {
-        font-size: 2.4rem;
-    }
-
-    .carrer-explanation p {
-        font-size: 1.1rem;
-    }
-
-    .form-group {
-        padding: 20px;
-    }
-
-    .experience-entry {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .experience-entry input {
-        font-size: 0.9rem;
-    }
-}
-
-/* Mobile Breakpoint */
 @media (max-width: 768px) {
     :root {
         --navbar-width: 160px;
     }
 
-    .navbar-logo {
-        width: 60px;
+    .navbar {
+        width: var(--navbar-width);
     }
-
-    .nav-icon {
-        width: 28px;
-        height: 28px;
+    
+    .carrer-explanation {
+        padding: 20px;
+        margin-top: 80px;
     }
-
-    .nav-item {
-        padding: 8px;
-    }
-
-    .nav-item a {
-        font-size: 12px;
-    }
-
-    .content-container {
-        padding-left: 20px;
-    }
-
-    .settings-header h1 {
-        font-size: 1.8rem;
-    }
-
+    
     .carrer-explanation h2 {
         font-size: 2rem;
     }
-
+    
     .carrer-explanation p {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
-
+    
+    .pers-form {
+        padding: 15px;
+    }
+    
     .form-group h3 {
-        font-size: 1.2rem;
-    }
-
-    .experience-entry input {
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-
-    button {
-        padding: 10px;
-        font-size: 0.9rem;
-    }
-
-    .prediction-container h3 {
-        font-size: 1.6rem;
-    }
-
-    .probability-value-single {
         font-size: 1.4rem;
+        padding: 10px;
     }
-
-    .recommendation-title {
-        font-size: 1.2rem;
+    
+    .experience-entry {
+        grid-template-columns: 1fr;
     }
-
-    .recommendation-item {
-        font-size: 0.9rem;
-        padding: 10px 15px;
+    
+    button {
+        padding: 12px;
+        width: 100%;
+    }
+    
+    .prediction-container h3 {
+        font-size: 1.8rem;
+    }
+    
+    #prediction {
+        font-size: 1.1rem;
+        max-width: 90%;
+    }
+    
+    .contact-section {
+        padding: 30px 15px;
+    }
+    
+    .contact-section h2 {
+        font-size: 1.8rem;
+    }
+    
+    .contact-item {
+        font-size: 1.1rem;
+        gap: 15px;
+    }
+    
+    .contact-item .contact-img {
+        width: 40px;
+        height: 40px;
     }
 }
 
-/* Kleine Mobile Geräte */
 @media (max-width: 480px) {
     :root {
         --navbar-width: 120px;
     }
 
-    .navbar-logo {
-        width: 50px;
-    }
-
-    .nav-icon {
-        width: 24px;
-        height: 24px;
-    }
-
-    .nav-item {
-        padding: 6px;
-    }
-
-    .nav-item a {
-        font-size: 11px;
+    .navbar {
+        width: var(--navbar-width);
+        transform: none;
     }
 
     .content-container {
-        padding-left: 10px;
-        padding-right: 10px;
+        margin-left: var(--navbar-width);
+        padding: 20px 10px;
+        width: calc(100% - var(--navbar-width));
     }
 
-    .settings-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .carrer-explanation h2 {
-        font-size: 1.6rem;
-    }
-
-    .carrer-explanation p {
-        font-size: 0.9rem;
-    }
-
-    .form-group {
-        padding: 15px;
-    }
-
-    .form-group h3 {
-        font-size: 1.1rem;
-    }
-
-    .experience-entry input {
-        padding: 6px;
-        font-size: 0.8rem;
-    }
-
-    button {
+    .logo-container {
         padding: 8px;
-        font-size: 0.85rem;
     }
 
-    .prediction-container h3 {
-        font-size: 1.4rem;
-    }
-
-    .probability-value-single {
-        font-size: 1.2rem;
-    }
-
-    .recommendation-title {
-        font-size: 1.1rem;
-    }
-
-    .recommendation-item {
-        font-size: 0.85rem;
-        padding: 8px 12px;
-    }
 }
-
