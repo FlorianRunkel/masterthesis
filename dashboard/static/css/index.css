@@ -170,8 +170,8 @@ body::before {
 
 /* Header Section */
 .header-section {
-    padding: 0;
-    margin-bottom: 20px;
+    padding: 20px 0;
+    margin-bottom: 40px;
 }
 
 .settings-header {
@@ -210,7 +210,7 @@ body::before {
     border-radius: 16px;
     box-shadow: var(--shadow);
     margin-bottom: 30px;
-    width: 100%;
+    width: calc(100% - 40px);  /* Abzug des Paddings links und rechts */
     max-width: 1200px;
 }
 
@@ -223,14 +223,14 @@ body::before {
 
 .pers-form {
     max-width: 1200px;
-    padding: 0;
     width: 100%;
+    padding-right: 40px;
 }
 
 /* Form Styling */
 .batch-form {
     max-width: 1200px;
-    padding: 0;
+    padding-right: 40px;
 }
 
 /* File Upload Styling */
@@ -282,74 +282,71 @@ body::before {
 
 /* Button Styling */
 .btn-primary {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--aurio-blue);
+    width: 60%;
+    background: var(--aurio-blue);
     color: var(--white);
     border: none;
+    padding: 14px;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    text-align: center;
 }
 
 .btn-primary:hover {
-    background-color: var(--aurio-orange);
+    background: var(--aurio-orange);
     transform: translateY(-2px);
 }
 
 .btn-secondary {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--aurio-orange);
+    width: 40%;
+    background: var(--aurio-blue);
     color: var(--white);
     border: none;
+    padding: 14px;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 15px;
+    display: flex;
 }
 
 .btn-secondary:hover {
+    background: var(--aurio-orange);
     transform: translateY(-2px);
 }
 
 /* Experience Entry Styling */
 .experience-entry {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 15px;
     margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
+    width: 100%;
 }
 
 .experience-entry:last-child {
     border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
+    margin-bottom: 10px;
 }
 
 .experience-entry input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background-color: white;
     font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.experience-entry input:hover {
-    border-color: var(--aurio-orange);
-}
-
-.experience-entry input:focus {
-    border-color: var(--aurio-blue);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 27, 65, 0.1);
+    box-sizing: border-box;
 }
 
 /* Batch Results Styling */
@@ -435,7 +432,7 @@ body::before {
     border-radius: 10px;
     border: 1px solid #ddd;
     background-color: white;
-    font-size: 1.2rem;  /* von 1.5rem auf 1.2rem reduziert */
+    font-size: 1rem;  /* von 1.5rem auf 1.2rem reduziert */
     box-sizing: border-box; /* Ensures padding and borders are included in the width/height */
 }
 /* Button Styles */
@@ -467,7 +464,7 @@ button {
 
 .model-selection select {
     padding: 10px 12px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     border-radius: 10px;
     border: 1px solid #ddd;
     background-color: white;
@@ -485,6 +482,10 @@ button {
     color: white;
     font-weight: bold;
     margin-top: 30px;
+    width: 60%;
+    margin: 0 auto;
+    align-items: center;
+    text-align: center;
 }
 
 /* Adjustments for form layout */
@@ -494,7 +495,7 @@ button {
 
 .model-selection select {
     width: 100%;
-    font-size: 1.2rem;
+    font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 10px;
     background-color: white;
@@ -651,6 +652,9 @@ display: none;
     :root {
         --navbar-width: 200px;
     }
+    body{
+        padding-right: 40px;
+    }   
 
     .navbar {
         width: var(--navbar-width);
@@ -682,7 +686,7 @@ display: none;
     
     .content-container {
         padding-left: 40px;
-        padding-right: 20px;
+        padding-right: 40px;
     }
 
     .settings-header h1 {
@@ -690,8 +694,11 @@ display: none;
     }
 
     .form-group {
-        padding: 25px;
-        margin-bottom: 25px;
+        width: calc(100% - 20px);
+        padding: 30px;
+    }
+    .pers-form{
+        padding-right: 40px;
     }
 }
 
@@ -785,8 +792,8 @@ display: none;
     }
 
     .form-group {
-        padding: 20px;
-        margin-bottom: 20px;
+        width: calc(100% - 10px);
+        padding: 25px;
     }
 
     .settings-header h1 {
@@ -821,8 +828,8 @@ display: none;
     }
 
     .content-container {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
     .logo-container {
@@ -830,8 +837,8 @@ display: none;
     }
 
     .form-group {
-        padding: 15px;
-        margin-bottom: 15px;
+        width: calc(100% - 5px);
+        padding: 20px;
     }
 
     .settings-header h1 {

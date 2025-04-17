@@ -76,12 +76,17 @@ function addExperienceField() {
     
     const newExperience = document.createElement('div');
     newExperience.className = 'experience-entry';
+    newExperience.style.display = 'grid';
+    newExperience.style.gridTemplateColumns = '1fr 1fr 1fr 1fr';
+    newExperience.style.gap = '15px';
+    newExperience.style.width = '100%';
+    
     newExperience.innerHTML = `
-        <input type="text" placeholder="Firma">
-        <input type="text" placeholder="Position">
-        <input type="date" placeholder="Start-Datum">
-        <input type="date" placeholder="End-Datum">
-        <button type="button" class="remove-experience">Entfernen</button>
+        <input type="text" placeholder="Firma" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
+        <input type="text" placeholder="Position" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
+        <input type="date" placeholder="Start-Datum" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
+        <input type="date" placeholder="End-Datum" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
+        <button type="button" class="remove-experience" style="grid-column: 1 / -1; width: 10%;">Entfernen</button>
     `;
     
     experiences.appendChild(newExperience);

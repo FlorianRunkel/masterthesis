@@ -253,7 +253,7 @@ body::before {
 
 /* Button Styling */
 .btn-primary {
-    width: 60%;
+    width: 40%;
     background: var(--aurio-blue);
     color: var(--white);
     border: none;

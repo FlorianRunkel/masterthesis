@@ -114,7 +114,7 @@ function renderTable(results) {
             html += `
                 <tr class="error-row">
                     <td>${name}</td>
-                    <td><a href="${linkedin}" target="_blank" rel="noopener noreferrer">${linkedin}</a></td>
+                    <td><a href="${linkedin}" target="_blank" rel="noopener noreferrer" style="color: #666; text-decoration: none;">${linkedin}</a></td>
                     <td colspan="2">${result.error}</td>
                 </tr>
             `;
@@ -139,7 +139,7 @@ function renderTable(results) {
             html += `
                 <tr>
                     <td>${name}</td>
-                    <td><a href="${linkedin}" target="_blank" rel="noopener noreferrer">${linkedin}</a></td>
+                    <td><a href="${linkedin}" target="_blank" rel="noopener noreferrer" style="color: #333; text-decoration: none;">${linkedin}</a></td>
                     <td>
                         <div class="probability-wrapper">
                             <span class="probability-value ${probabilityClass}-text">${confidence.toFixed(0)}%</span>
