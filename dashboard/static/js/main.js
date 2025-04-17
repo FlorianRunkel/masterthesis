@@ -86,7 +86,7 @@ function addExperienceField() {
         <input type="text" placeholder="Position" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
         <input type="date" placeholder="Start-Datum" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
         <input type="date" placeholder="End-Datum" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background-color: white; font-size: 1rem; box-sizing: border-box;">
-        <button type="button" class="remove-experience" style="grid-column: 1 / -1; width: 10%;">Entfernen</button>
+        <button type="button" class="remove-experience" style="grid-column: 1 / -1; width: 120px; margin-left: 0; padding: 8px 12px; border-radius: 8px; border: none; background-color: #f8f9fa; color: #333; font-size: 1rem; cursor: pointer;">Entfernen</button>
     `;
     
     experiences.appendChild(newExperience);
@@ -120,7 +120,6 @@ async function handleFormSubmit(event) {
         
         if (!company || !position || !startDate) {
             isFormValid = false;
-            // Fügen Sie hier keine sichtbaren Fehlermeldungen hinzu, nur die Validierung
             entry.querySelectorAll('input').forEach(input => {
                 if (!input.value && (input !== entry.querySelector('input[placeholder="End-Datum"]'))) {
                     input.style.borderColor = '#FF5F00';
@@ -132,17 +131,30 @@ async function handleFormSubmit(event) {
     });
     
     if (!isFormValid) {
-        return; // Verhindert das Absenden, wenn nicht alle Pflichtfelder ausgefüllt sind
+        return;
     }
-    
-    // Loader anzeigen, Ergebnisse ausblenden
-    const loader = document.getElementById('loader-prediction');
-    const loaderContainer = document.querySelector('.loader-container-prediction');
+
+    // Loader-Container und Ergebnisbereich abrufen
+    let loaderContainer = document.querySelector('.loader-container-prediction');
     const resultDiv = document.getElementById('predictionResult');
-    
-    loader.style.display = 'block';
+
+    // Loader erstellen, falls er nicht existiert
+    if (!loaderContainer) {
+        const loaderHTML = `
+            <div class="loader-container-prediction">
+                <div class="loader-prediction"></div>
+                <div class="loader-status">Vorhersage wird berechnet...</div>
+            </div>
+        `;
+        document.getElementById('careerForm').insertAdjacentHTML('beforeend', loaderHTML);
+        loaderContainer = document.querySelector('.loader-container-prediction');
+    }
+
+    // Loader anzeigen, Ergebnisse ausblenden
     loaderContainer.style.display = 'flex';
-    resultDiv.style.display = 'none';
+    if (resultDiv) {
+        resultDiv.style.display = 'none';
+    }
     
     // Berufserfahrungen sammeln
     const experiences = Array.from(experienceEntries).map(entry => {
@@ -172,20 +184,25 @@ async function handleFormSubmit(event) {
             body: JSON.stringify(formData)
         });
         
+        if (!response.ok) {
+            throw new Error('Fehler bei der API-Anfrage');
+        }
+        
         const data = await response.json();
         
         // Ergebnisse anzeigen
         displayPrediction(data);
     } catch (error) {
         console.error('Fehler bei der Vorhersage:', error);
-        // Fehlermeldung anzeigen
-        document.getElementById('recommendation-list').innerHTML = 
-            `<li class="recommendation-item" style="color: #dc3545">Fehler bei der Vorhersage: ${error.message}</li>`;
+        if (document.getElementById('recommendation-list')) {
+            document.getElementById('recommendation-list').innerHTML = 
+                `<li class="recommendation-item" style="color: #dc3545">Fehler bei der Vorhersage: ${error.message}</li>`;
+        }
     } finally {
-        // Loader ausblenden, Ergebnisse anzeigen
-        loader.style.display = 'none';
-        loaderContainer.style.display = 'none';
-        resultDiv.style.display = 'block';
+        // Loader ausblenden
+        if (loaderContainer) {
+            loaderContainer.style.display = 'none';
+        }
     }
 }
 
@@ -195,6 +212,12 @@ function displayPrediction(data) {
     const probabilityValue = document.getElementById('probability-value');
     const probabilityBar = document.getElementById('probability-bar');
     const recommendationList = document.getElementById('recommendation-list');
+    const loaderContainer = document.querySelector('.loader-container-prediction');
+    
+    // Loader ausblenden
+    if (loaderContainer) {
+        loaderContainer.style.display = 'none';
+    }
     
     // Sicherstellen, dass die Daten vorhanden sind
     if (!data || !data.confidence) {
