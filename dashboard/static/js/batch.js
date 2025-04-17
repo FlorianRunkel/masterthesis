@@ -125,10 +125,10 @@ function renderTable(results) {
 
             let probabilityClass;
             let probabilityText;
-            if (confidence < 45) {
+            if (confidence < 50) {
                 probabilityClass = 'probability-low';
                 probabilityText = 'Niedrig';
-            } else if (confidence < 65) {
+            } else if (confidence < 75) {
                 probabilityClass = 'probability-medium';
                 probabilityText = 'Mittel';
             } else {

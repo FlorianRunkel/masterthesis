@@ -225,9 +225,9 @@ function displayResults(data) {
     const probabilityBar = document.getElementById('probability-bar');
     if (probabilityBar) {
         const confidence = data.confidence * 100;
-        if (confidence < 30) {
+        if (confidence < 50) {
             probabilityBar.className = 'probability-bar-single probability-low-single';
-        } else if (confidence < 70) {
+        } else if (confidence < 75) {
             probabilityBar.className = 'probability-bar-single probability-medium-single';
         } else {
             probabilityBar.className = 'probability-bar-single probability-high-single';

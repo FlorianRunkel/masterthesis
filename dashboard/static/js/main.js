@@ -233,9 +233,9 @@ function displayPrediction(data) {
     probabilityBar.style.width = `${confidence}%`;
     
     // Klasse basierend auf Wahrscheinlichkeitswert setzen
-    if (confidence < 30) {
+    if (confidence < 50) {
         probabilityBar.className = 'probability-bar-single probability-low-single';
-    } else if (confidence < 70) {
+    } else if (confidence < 75) {
         probabilityBar.className = 'probability-bar-single probability-medium-single';
     } else {
         probabilityBar.className = 'probability-bar-single probability-high-single';
