@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import logging
 import os
@@ -11,6 +12,9 @@ static_dir = os.path.abspath('dashboard/static')
 app = Flask(__name__, 
             template_folder=template_dir,
             static_folder=static_dir)
+
+# CORS für alle Routen aktivieren
+CORS(app)
 
 app.logger.setLevel(logging.INFO)
 

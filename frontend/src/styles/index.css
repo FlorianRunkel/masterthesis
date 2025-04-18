@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Benutzerdefinierte Styles */
+
+.main-content {
+  @apply container mx-auto px-4 py-8;
+}
+
+.navbar {
+  @apply bg-white shadow-md;
+}
+
+.nav-container {
+  @apply container mx-auto px-4 py-4 flex justify-between items-center;
+}
+
+.logo-wrapper {
+  @apply flex items-center space-x-4;
+}
+
+.navbar-logo {
+  @apply h-12;
+}
+
+.nav-menu {
+  @apply flex items-center space-x-8;
+}
+
+.nav-item {
+  @apply flex items-center space-x-2;
+}
+
+.nav-icon {
+  @apply h-6 w-6;
+}
+
+.upload-candidates {
+  @apply p-6 max-w-6xl mx-auto;
+}
+
+.header-section {
+  @apply mb-8;
+}
+
+.header-section h1 {
+  @apply text-3xl font-bold text-gray-800 mb-2;
+}
+
+.info-description {
+  @apply text-gray-600;
+}
+
+.tab-content {
+  @apply mt-6;
+}
+
+.manual-input,
+.linkedin-input,
+.batch-upload {
+  @apply space-y-6;
+}
+
+.input-group {
+  @apply flex gap-4;
+}
+
+.file-upload-wrapper {
+  @apply flex items-center gap-4;
+}
+
+.btn-primary {
+  @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors;
+}
+
+.loader-container-prediction {
+  @apply flex items-center justify-center my-6;
+}
+
+.probability-wrapper {
+  @apply mt-6;
+}
+
+.probability-value {
+  @apply text-lg font-semibold;
+}
+
+.probability-bar-container {
+  @apply h-4 bg-gray-200 rounded-full overflow-hidden mt-2;
+}
+
+.probability-bar {
+  @apply h-full transition-all duration-500;
+}
+
+.probability-low {
+  @apply bg-red-500;
+}
+
+.probability-medium {
+  @apply bg-yellow-500;
+}
+
+.probability-high {
+  @apply bg-green-500;
+}
+
+.recommendations {
+  @apply mt-6 p-4 rounded-lg;
+  background-color: #F5F7FA;
+}
+
+.recommendations h4 {
+  @apply text-lg font-semibold mb-2;
+}
+
+.recommendations ul {
+  @apply list-disc list-inside space-y-2;
+}
+
+/* Form Styles */
+.form-group {
+  @apply space-y-4;
+}
+
+.form-group h3 {
+  @apply text-xl font-semibold;
+}
+
+.experience-entry {
+  @apply grid grid-cols-4 gap-4;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="url"] {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Table Styles */
+.results-table {
+  @apply w-full border-collapse;
+}
+
+.results-table th,
+.results-table td {
+  @apply border border-gray-300 px-4 py-2;
+}
+
+.results-table th {
+  @apply bg-gray-100 font-semibold;
+}
+
+/* Error Styles */
+.error-message {
+  @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded;
+}
+
+/* Profile Display */
+.profile-content {
+  @apply bg-white rounded-lg shadow p-6;
+}
+
+.profile-header {
+  @apply flex items-center space-x-4 mb-6;
+}
+
+.profile-image {
+  @apply h-20 w-20 rounded-full;
+}
+
+.profile-info {
+  @apply space-y-2;
+}
+
+.profile-title {
+  @apply text-lg font-semibold;
+}
+
+.profile-location {
+  @apply text-gray-600;
+}
+
+.profile-industry {
+  @apply text-gray-600;
+}
+
+.profile-summary {
+  @apply mt-6;
+}
+
+.profile-experience {
+  @apply mt-6;
+}
+
+.experience-entry {
+  @apply border-b border-gray-200 py-4;
+}
+
+.entry-header {
+  @apply space-y-1;
+}
+
+.company {
+  @apply text-gray-600;
+}
+
+.duration {
+  @apply text-gray-500 text-sm;
+} 
