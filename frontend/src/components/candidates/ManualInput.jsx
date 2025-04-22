@@ -86,7 +86,7 @@ const ManualInput = () => {
         color: '#1a1a1a',
         mb: 2
       }}>
-        Karriere-Prognose
+        Manuelle-Prognose
       </Typography>
 
       <Typography sx={{

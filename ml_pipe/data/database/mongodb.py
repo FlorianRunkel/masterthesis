@@ -158,3 +158,29 @@ class MongoDb:
             print(f"Fehler beim Loeschen der Dokumente in {collection_name}: {e}")
             logger.error(f"Fehler beim Loeschen der Dokumente in {collection_name}: {e}")
             raise e
+
+    '''Holt alle Elemente aus der jeweiligen collection'''
+    def get_all(self, collection_name):
+        try:
+            collection = self.get_collection(collection_name)
+            cursor = collection.find({})
+            documents = list(cursor)
+            
+            # Konvertiere ObjectId zu String für JSON-Serialisierung
+            for doc in documents:
+                if '_id' in doc:
+                    doc['_id'] = str(doc['_id'])
+            
+            return {
+                'statusCode': 200,
+                'data': documents,
+                'count': len(documents)
+            }
+            
+        except Exception as e:
+            print(f"Fehler beim Laden aller Dokumente aus {collection_name}: {e}")
+            logger.error(f"Fehler beim Laden aller Dokumente aus {collection_name}: {e}")
+            return {
+                'statusCode': 500,
+                'error': str(e)
+            }

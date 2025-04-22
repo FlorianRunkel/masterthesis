@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProfileDisplay from './ProfileDisplay';
 import PredictionResult from './PredictionResult';
 
@@ -9,6 +11,8 @@ const LinkedInInput = () => {
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [predictionData, setPredictionData] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,6 +69,46 @@ const LinkedInInput = () => {
     }
   };
 
+  const handleSaveCandidate = async () => {
+    if (!profileData || !predictionData) return;
+    
+    setSaving(true);
+    setSaveSuccess(false);
+    setError(null);
+
+    try {
+      const candidateData = {
+        firstName: profileData.name.split(' ')[0],
+        lastName: profileData.name.split(' ').slice(1).join(' '),
+        linkedinProfile: linkedinUrl,
+        currentPosition: profileData.currentTitle,
+        location: profileData.location,
+        confidence: [predictionData.confidence],
+        recommendations: predictionData.recommendations,
+        imageUrl: profileData.imageUrl,
+        industry: profileData.industry,
+        experience: profileData.experience
+      };
+
+      const response = await fetch('/api/candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([candidateData])
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Fehler beim Speichern des Kandidaten');
+      }
+
+      setSaveSuccess(true);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
       <Typography variant="h1" sx={{
@@ -73,7 +117,7 @@ const LinkedInInput = () => {
         color: '#1a1a1a',
         mb: 2
       }}>
-        LinkedIn Analyse
+        LinkedIn Prognose
       </Typography>
 
       <Typography sx={{
@@ -187,7 +231,58 @@ const LinkedInInput = () => {
       )}
 
       {profileData && <ProfileDisplay profile={profileData} />}
-      {predictionData && <PredictionResult prediction={predictionData} />}
+      {predictionData && (
+        <>
+          <PredictionResult prediction={predictionData} />
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            mt: 4,
+            mb: 2,
+            gap: 2
+          }}>
+            <Button
+              variant="contained"
+              startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+              onClick={handleSaveCandidate}
+              disabled={saving || saveSuccess}
+              sx={{
+                bgcolor: '#001B41',
+                color: '#fff',
+                px: 4,
+                py: 1.5,
+                borderRadius: '8px',
+                '&:hover': {
+                  bgcolor: '#FF5F00'
+                },
+                minWidth: '250px'
+              }}
+            >
+              {saving ? 'Speichere...' : 'Kandidat speichern'}
+            </Button>
+            <Fade in={saveSuccess}>
+              <Alert 
+                icon={<CheckCircleOutlineIcon fontSize="inherit" />}
+                severity="success"
+                sx={{
+                  mt: 2,
+                  bgcolor: '#ECFDF5',
+                  color: '#059669',
+                  border: '1px solid #A7F3D0',
+                  '& .MuiAlert-icon': {
+                    color: '#059669'
+                  },
+                  borderRadius: '8px',
+                  minWidth: '250px'
+                }}
+              >
+                Kandidat wurde erfolgreich gespeichert!
+              </Alert>
+            </Fade>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

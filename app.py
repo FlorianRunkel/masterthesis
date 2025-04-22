@@ -5,6 +5,9 @@ import logging
 import os
 import json
 from linkedin_api import Linkedin
+import numpy as np
+from datetime import datetime
+from ml_pipe.data.database.mongodb import MongoDb
 
 # Flask-App initialisieren mit korrektem Template-Verzeichnis
 template_dir = os.path.abspath('dashboard/templates')
@@ -14,7 +17,14 @@ app = Flask(__name__,
             static_folder=static_dir)
 
 # CORS für alle Routen aktivieren
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:3000", "http://localhost:5173", "http://192.168.3.10:3000"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 app.logger.setLevel(logging.INFO)
 
@@ -24,6 +34,12 @@ LINKEDIN_PASSWORD = 'Cool0089!%'       # In Produktion über Umgebungsvariablen!
 
 # Globale Variable für die API
 linkedin_api = None
+
+# Globale Variable für gespeicherte Kandidaten
+candidates_db = []
+
+# MongoDB Instanz erstellen
+mongo_db = MongoDb()
 
 def initialize_linkedin_api():
     global linkedin_api
@@ -50,6 +66,20 @@ def batch():
 @app.route('/linkedin')
 def linkedin():
     return render_template('linkedin.html')
+
+@app.route('/candidates')
+def get_all_candidates():
+    try:
+        result = mongo_db.get_all('candidates')
+        
+        if result['statusCode'] != 200:
+            return jsonify({'error': result.get('error', 'Unbekannter Fehler')}), result['statusCode']
+            
+        return jsonify(result['data']), 200
+        
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Kandidaten: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/predict', methods=['POST'])
 def predict_career():
@@ -178,7 +208,9 @@ def predict_batch():
                         "lastName": row.get("lastName", ""),
                         "linkedinProfile": row.get("profileLink", ""),
                         "confidence": prediction["confidence"],
-                        "recommendations": prediction["recommendations"]
+                        "recommendations": prediction["recommendations"],
+                        "explanations": prediction.get("explanations", []),
+                        "status": prediction.get("status", "")
                     })
 
             except Exception as user_err:
@@ -270,6 +302,46 @@ def scrape_linkedin():
     except Exception as e:
         app.logger.error(f"Unerwarteter Fehler beim API-Zugriff: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/candidates', methods=['POST'])
+def save_candidates():
+    try:
+        candidates = request.json
+        
+        if not candidates:
+            return jsonify({'error': 'Keine Kandidaten zum Speichern gefunden'}), 400
+            
+        # Stelle sicher, dass die MongoDB-Verbindung hergestellt ist
+        if mongo_db.db is None:
+            mongo_db.get_mongo_client()
+            if mongo_db.db is None:
+                return jsonify({'error': 'Fehler bei der Verbindung zur Datenbank'}), 500
+                
+        # Füge Zeitstempel hinzu und speichere jeden Kandidaten einzeln
+        saved_count = 0
+        skipped_count = 0
+        for candidate in candidates:
+            # Prüfe auf Duplikate anhand der LinkedIn-URL
+            if 'linkedinProfile' in candidate and candidate['linkedinProfile']:
+                existing = mongo_db.find_one({'linkedinProfile': candidate['linkedinProfile']}, 'candidates')
+                if existing:
+                    skipped_count += 1
+                    continue
+            candidate['created_at'] = datetime.now().isoformat()
+            result = mongo_db.create(candidate, 'candidates')
+            if result['statusCode'] == 200:
+                saved_count += 1
+        
+        return jsonify({
+            'message': 'Kandidaten erfolgreich gespeichert',
+            'savedCount': saved_count,
+            'skippedCount': skipped_count,
+            'reasonSkipped': 'Duplikate basierend auf LinkedIn-Profil-URL'
+        }), 201
+        
+    except Exception as e:
+        logging.error(f"Fehler beim Speichern der Kandidaten: {str(e)}")
+        return jsonify({'error': 'Interner Serverfehler: ' + str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5100, debug=True)

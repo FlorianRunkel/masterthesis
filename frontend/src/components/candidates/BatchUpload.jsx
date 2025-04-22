@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, Alert } from '@mui/material';
 import ResultsTable from './ResultsTable';
+import LoadingSpinner from '../LoadingSpinner';
 
 const BatchUpload = () => {
   const [file, setFile] = useState(null);
-  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error] = useState(null);
+  const [results, setResults] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -36,7 +41,7 @@ const BatchUpload = () => {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Upload fehlgeschlagen');
       }
       
       const data = await response.json();
@@ -67,15 +72,51 @@ const BatchUpload = () => {
     }
   };
 
+  const handleSaveCandidates = async (candidates) => {
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    
+    try {
+      const response = await fetch('http://localhost:5100/api/candidates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(candidates),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Fehler beim Speichern der Kandidaten');
+      }
+      
+      setSaveSuccess(true);
+      setResults(null); // Reset results after successful save
+      setFile(null);
+      
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+      setSaveError(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+    }}>
+
       <Typography variant="h1" sx={{
         fontSize: '2.5rem',
         fontWeight: 700,
         color: '#1a1a1a',
         mb: 2
       }}>
-        Batch-Prognose
+        Batch Upload
       </Typography>
 
       <Typography sx={{
@@ -83,11 +124,9 @@ const BatchUpload = () => {
         mb: 4,
         fontSize: '1rem',
         maxWidth: '800px'
-      }}>
-        Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit
+      }}>Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit
         mehrerer Kandidaten gleichzeitig zu analysieren.
-      </Typography>
-
+        </Typography>
       <Box
         sx={{
           bgcolor: '#fff',
@@ -178,31 +217,35 @@ const BatchUpload = () => {
         </Box>
       </Box>
 
-      {loading && (
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          my: 4
-        }}>
-          <Box 
-            sx={{
-              border: '3px solid #f3f3f3',
-              borderTop: '3px solid #FF5F00',
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              animation: 'spin 1s linear infinite',
-              '@keyframes spin': {
-                '0%': { transform: 'rotate(0deg)' },
-                '100%': { transform: 'rotate(360deg)' }
-              }
-            }}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {saveError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {saveError}
+        </Alert>
+      )}
+      
+      {saveSuccess && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          Kandidaten wurden erfolgreich gespeichert!
+        </Alert>
+      )}
+      
+      {loading && <LoadingSpinner />}
+      
+      {results && !loading && (
+        <Box sx={{ mt: 3 }}>
+          <ResultsTable 
+            results={results} 
+            onSave={handleSaveCandidates}
+            isSaving={isSaving}
           />
         </Box>
       )}
-
-      {results && <ResultsTable results={results} />}
     </Box>
   );
 };

@@ -14,7 +14,11 @@ const PredictionResult = ({ prediction }) => {
     return 'probability-high-single';
   };
 
-  const confidence = prediction.confidence * 100;
+  const confidenceValue = Array.isArray(prediction.confidence) 
+    ? prediction.confidence[0] 
+    : prediction.confidence;
+    
+  const confidence = Math.round(confidenceValue * 100);
   const probabilityClass = getProbabilityClass(confidence);
 
   return (

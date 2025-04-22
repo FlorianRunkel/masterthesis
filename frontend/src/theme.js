@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, withTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
@@ -7,8 +7,10 @@ const theme = createTheme({
       light: '#FF5F00', // aurio-orange
     },
     background: {
-      default: 'rgba(242, 242, 242, 0.6)',
-      paper: '#FFFFFF',
+      default: '#f6f6f6',  // Hellgrauer Haupthintergrund für alles
+      paper: '#FFFFFF',    // Weiße Karten/Boxen
+      sidebar: '#1C2536', // Dunkle Sidebar
+      hover: '#F8FAFB'    // Hover-Effekt Hintergrund
     },
     text: {
       primary: '#333333',
@@ -54,17 +56,9 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: 'rgba(242, 242, 242, 0.6)',
-          '&::before': {
-            content: '""',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'radial-gradient(circle, rgba(245, 245, 240, 0) 40%, rgba(245, 245, 240, 0.8) 70%, rgba(242, 242, 242, 1) 100%)',
-            zIndex: -1,
-          },
+          backgroundColor: '#f6f6f6',
+          margin: 0,
+          minHeight: '100vh'
         },
       },
     },
@@ -107,9 +101,10 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',  // Subtilerer Schatten
           borderRadius: '16px',
           padding: '30px',
+          backgroundColor: '#FFFFFF'
         },
       },
     },
@@ -120,7 +115,7 @@ const theme = createTheme({
           marginBottom: '15px',
           transition: 'background-color 0.2s',
           '&:hover': {
-            backgroundColor: 'rgba(242, 242, 242, 0.6)',
+            backgroundColor: 'rgba(244, 246, 248, 0.8)',
           },
           '&.Mui-selected': {
             backgroundColor: '#001B41',

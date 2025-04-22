@@ -9,20 +9,26 @@ const Sidebar = () => {
     { 
       path: '/', 
       icon: '/static/images/carrer_nav.jpeg',
-      text: 'Karriere-Prognose',
+      text: 'Manuelle-Prognose',
       alt: 'Karriere Navigation'
-    },
-    { 
-      path: '/batch', 
-      icon: '/static/images/candi_batch_nav.jpg',
-      text: 'Batch-Prognose',
-      alt: 'Batch Navigation'
     },
     { 
       path: '/linkedin', 
       icon: '/static/images/linkedin_nav.jpg',
       text: 'LinkedIn-Prognose',
       alt: 'LinkedIn Navigation'
+    },
+    { 
+      path: '/batch', 
+      icon: '/static/images/candi_batch_nav.jpg',
+      text: 'Batch-Upload',
+      alt: 'Batch Navigation'
+    },
+    { 
+      path: '/candidates', 
+      icon: '/static/images/candidates.png',
+      text: 'Kandidaten',
+      alt: 'Kandidaten Navigation'
     }
   ];
 
@@ -36,7 +42,7 @@ const Sidebar = () => {
         width: '280px',
         height: '100vh',
         bgcolor: 'background.paper',
-        borderRight: '1px solid',
+        borderRight: '0.5px solid',
         borderColor: 'divider',
         borderRadius: 0,
         padding: '20px 0',

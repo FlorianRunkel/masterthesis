@@ -10,3 +10,4 @@ gunicorn
 plotly
 dash
 dash-bootstrap-components
+shap
