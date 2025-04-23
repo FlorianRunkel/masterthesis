@@ -2,6 +2,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.errors import ConfigurationError
 import logging
+import os
 # Initialize logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -17,14 +18,22 @@ class MongoDb:
 
     '''MongoDB-Verbindung'''
     def get_mongo_client(self):
-
         if self.client is None:
             try:
-                mongo_uri = f"mongodb+srv://{self.user}:{self.password}@{self.url}/{self.db_name}?retryWrites=true&w=majority"
-                self.client = pymongo.MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
+                # Standard MongoDB Atlas URI
+                mongo_uri = f"mongodb+srv://{self.user}:{self.password}@{self.url}/{self.db_name}?retryWrites=true&w=majority&ssl=true&tlsAllowInvalidCertificates=true"
+                
+                # Setze Umgebungsvariable für SSL-Zertifikatsprüfung
+                os.environ['PYMONGO_SSL_CERT_REQS'] = 'CERT_NONE'
+                
+                self.client = pymongo.MongoClient(mongo_uri)
                 self.db = self.client[self.db_name]
-            except ConfigurationError as e:
-                print(f"MongoDB Konfigurationsfehler: {e}")
+                
+                # Test the connection
+                self.client.server_info()
+                print("MongoDB Verbindung erfolgreich hergestellt!")
+            except Exception as e:
+                print(f"MongoDB Verbindungsfehler: {e}")
                 raise
         return self.db
 
