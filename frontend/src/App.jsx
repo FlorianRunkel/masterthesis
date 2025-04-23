@@ -4,9 +4,9 @@ import { CssBaseline, Box } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import theme from './theme';
 import Sidebar from './components/layout/Sidebar';
-import LinkedInInput from './components/candidates/LinkedInInput';
-import BatchUpload from './components/candidates/BatchUpload';
-import ManualInput from './components/candidates/ManualInput';
+import LinkedInInput from './components/candidates/forms/LinkedInInput';
+import BatchUpload from './components/candidates/forms/BatchUpload';
+import ManualInput from './components/candidates/forms/ManualInput';
 import CandidatesPage from './pages/CandidatesPage';
 
 const App = () => {

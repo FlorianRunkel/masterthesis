@@ -6,36 +6,49 @@ Ein KI-basiertes System zur Vorhersage des optimalen Zeitpunkts für den nächst
 
 ```
 .
-├── app.py                 # Flask-Anwendung
-├── ml_pipe/              # Machine Learning Pipeline
-│   ├── data/            # Datenverarbeitung
-│   │   ├── dummy_data.py
-│   │   ├── datamodule.py
-│   │   └── data_processor.py
-│   ├── models/          # KI-Modelle
-│   │   └── model.py
-│   └── predict.py       # Vorhersage-Logik
-├── dashboard/           # Frontend
-│   ├── static/
-│   │   ├── css/
-│   │   └── js/
-│   └── templates/
-├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
+├── backend/                # Backend-Server
+│   ├── app.py             # Flask-Anwendung
+│   └── ml_pipe/           # Machine Learning Pipeline
+│       ├── data/          # Datenverarbeitung
+│       │   ├── featureEngineering/
+│       │   │   ├── featureEngineering.py
+│       │   │   └── position_level.json
+│       │   └── database/
+│       │       └── mongodb.py
+│       └── models/        # KI-Modelle
+│           ├── tft/       # Temporal Fusion Transformer
+│           ├── gru/       # GRU Modell
+│           └── xgboost/   # XGBoost Modell
+├── frontend/              # React Frontend
+│   ├── src/              # React Komponenten
+│   ├── package.json      # Frontend Abhängigkeiten
+│   └── public/           # Statische Dateien
+└── start.sh              # Startskript für Backend und Frontend
 ```
 
 ## Features
 
-- Vorhersage des nächsten Karriereschritts
-- Konfidenz-Score für Vorhersagen
-- Personalisierte Empfehlungen
-- Interaktives Dashboard
-- Dummy-Daten für Tests und Entwicklung
+- Vorhersage der Wechselwahrscheinlichkeit basierend auf LinkedIn-Profilen
+- Drei verschiedene KI-Modelle zur Analyse:
+  - Temporal Fusion Transformer (TFT)
+  - GRU (Gated Recurrent Unit)
+  - XGBoost
+- Detaillierte Erklärungen der Vorhersagen
+- Interaktives Dashboard mit:
+  - LinkedIn-Profil-Analyse
+  - Batch-Upload für mehrere Profile
+  - Kandidatenübersicht
+- MongoDB-Integration für Kandidatenverwaltung
 
-## Installation
+## Installation & Start
 
-### Option 1: Lokale Installation
+### Voraussetzungen
+
+- Python 3.x
+- Node.js und npm
+- MongoDB (lokal oder Remote)
+
+### Schnellstart
 
 1. Repository klonen:
 ```bash
@@ -43,83 +56,89 @@ git clone [repository-url]
 cd [repository-name]
 ```
 
-2. Virtuelle Umgebung erstellen und aktivieren:
+2. Backend-Abhängigkeiten installieren:
 ```bash
-python -m venv venv
-source venv/bin/activate  # Unter Windows: venv\Scripts\activate
+cd backend
+pip3 install flask flask-cors pandas numpy linkedin-api
 ```
 
-3. Abhängigkeiten installieren:
+3. Frontend-Abhängigkeiten installieren:
 ```bash
-pip install -r requirements.txt
+cd ../frontend
+npm install
 ```
 
 4. Anwendung starten:
 ```bash
-python app.py
+cd ..
+chmod +x start.sh
+./start.sh
 ```
 
-### Option 2: Docker Installation
-
-1. Docker und Docker Compose installieren
-
-2. Repository klonen:
-```bash
-git clone [repository-url]
-cd [repository-name]
-```
-
-3. Container starten:
-```bash
-docker-compose up --build
-```
+Die Anwendung ist dann unter folgenden URLs erreichbar:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5100
 
 ## Verwendung
 
-1. Öffnen Sie die Anwendung im Browser: `http://localhost:5001`
+### LinkedIn-Analyse
 
-2. Geben Sie Ihre persönlichen Informationen ein:
-   - Name
-   - Standort
-   - Berufserfahrung
-   - Ausbildung
+1. Navigieren Sie zur "LinkedIn Analyse"-Seite
+2. Fügen Sie einen LinkedIn-Profil-Link ein
+3. Wählen Sie das gewünschte KI-Modell
+4. Klicken Sie auf "Analysieren"
 
-3. Wählen Sie das KI-Modell aus:
-   - LLM
+### Batch-Upload
 
-4. Klicken Sie auf "Prognose erstellen"
+1. Navigieren Sie zur "Batch Upload"-Seite
+2. Laden Sie eine CSV-Datei mit LinkedIn-Profilen hoch
+3. Starten Sie die Batch-Analyse
+4. Speichern Sie interessante Kandidaten
 
-5. Die Vorhersage wird mit Konfidenz-Score und Empfehlungen angezeigt
+### Kandidatenverwaltung
+
+1. Navigieren Sie zur "Kandidaten"-Seite
+2. Sehen Sie alle gespeicherten Kandidaten
+3. Filtern und sortieren Sie nach verschiedenen Kriterien
 
 ## API-Endpunkte
 
-- `GET /api/profiles`: Alle Profile abrufen
-- `GET /api/experiences/<profile_id>`: Berufserfahrung eines Profils abrufen
-- `GET /api/education/<profile_id>`: Ausbildung eines Profils abrufen
-- `POST /predict`: Neue Vorhersage generieren
+- `POST /scrape-linkedin`: LinkedIn-Profil analysieren
+- `POST /predict`: Vorhersage für ein Profil erstellen
+- `POST /predict-batch`: Batch-Vorhersage für mehrere Profile
+- `GET /candidates`: Alle gespeicherten Kandidaten abrufen
+- `POST /api/candidates`: Neue Kandidaten speichern
 
 ## Entwicklung
 
-### Dummy-Daten generieren
+### Backend-Entwicklung
 
 ```bash
-python ml_pipe/data/dummy_data.py
+cd backend
+python3 app.py
 ```
 
-### Tests ausführen
+### Frontend-Entwicklung
 
 ```bash
-python -m pytest tests/
+cd frontend
+npm start
 ```
 
 ## Technologien
 
-- Python 3.9
-- Flask
-- PyTorch
-- SQLite
-- Docker
-- HTML/CSS/JavaScript
+- **Backend**:
+  - Python 3.x
+  - Flask
+  - PyTorch (TFT, GRU)
+  - XGBoost
+  - MongoDB
+
+- **Frontend**:
+  - React
+  - Material-UI
+  - React Router
+  - Tailwind CSS
 
 ## Autor
 

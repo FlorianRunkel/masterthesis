@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Box, Typography, Grid, CircularProgress, TextField, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import CandidateCard from '../components/candidates/CandidateCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import InputAdornment from '@mui/material/InputAdornment';
+import CandidateCard from '../components/candidates/display/CandidateCard';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const CandidatesPage = () => {
   const [candidates, setCandidates] = useState([]);
