@@ -133,7 +133,7 @@ def get_feature_description(feature_name, importance):
     }
     return descriptions.get(feature_name, "Dieses Feature beeinflusst die Vorhersage.")
 
-def predict(input_data, model_name="career_lstm_20250424_160229.pt"):
+def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
     try:
         # Feature Engineering Instanz erstellen
         fe = featureEngineering()

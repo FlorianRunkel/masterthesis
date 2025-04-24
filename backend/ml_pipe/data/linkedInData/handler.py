@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import csv
 
 import sys
 sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
@@ -300,19 +301,42 @@ def import_candidates_from_csv(csv_file):
                 if 'linkedinProfileInformation' in row and pd.notna(row['linkedinProfileInformation']):
                     # Bereinige die JSON-Daten
                     json_str = row['linkedinProfileInformation']
-                    if json_str.startswith('"') and json_str.endswith('"'):
-                        json_str = json_str[1:-1]  # Entferne äußere Anführungszeichen
                     
-                    # Ersetze doppelte durch einfache Anführungszeichen
-                    json_str = json_str.replace('""', '"')
+                    # Korrigiere Encoding-Probleme
+                    try:
+                        # Versuche UTF-8 Dekodierung
+                        json_str = json_str.encode('latin1').decode('utf-8')
+                    except UnicodeError:
+                        # Falls das fehlschlägt, behalte den Original-String
+                        pass
+                    
+                    # Entferne ungültige Steuerzeichen
+                    json_str = ''.join(char for char in json_str if ord(char) >= 32 or char in '\n\r\t')
+                    
+                    # Entferne Escaping von Anführungszeichen innerhalb des JSON
+                    json_str = json_str.replace('\\"', '"')
+                    
+                    # Entferne zusätzliche Escapes
+                    json_str = json_str.replace('\\\\', '\\')
+                    
+                    # Entferne BOM und andere spezielle Unicode-Marker
+                    json_str = json_str.replace('\ufeff', '')
                     
                     try:
+                        # Versuche das JSON zu parsen
                         profile_info = json.loads(json_str)
                     except json.JSONDecodeError as je:
-                        logger.error(f"JSON Parsing Fehler: {str(je)}")
-                        logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
-                        failed_imports += 1
-                        continue
+                        try:
+                            # Zweiter Versuch: Bereinige JSON noch gründlicher
+                            import re
+                            # Entferne alle nicht-druckbaren Zeichen außer Whitespace
+                            json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
+                            profile_info = json.loads(json_str)
+                        except json.JSONDecodeError as je2:
+                            logger.error(f"JSON Parsing Fehler nach zweitem Versuch: {str(je2)}")
+                            logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
+                            failed_imports += 1
+                            continue
                     
                     # Extrahiere Karriere- und Bildungsdaten
                     career_history = extract_career_data(profile_info, fe)
@@ -336,14 +360,19 @@ def import_candidates_from_csv(csv_file):
                     communication_status = str(row.get('communicationStatus', '')).lower()
                     candidate_status = str(row.get('candidateStatus', '')).lower()
                     
-                    label = 1 if (
+                    # Prüfe ob es ein positives Label ist
+                    is_positive = (
                         'interviewbooked' in communication_status.replace(' ', '') or 
                         'accepted' in candidate_status or 
                         'interested' in candidate_status
-                    ) else 0
+                    )
                     
-                    if label == 1:
-                        label_ones_count += 1
+                    # Fahre nur fort, wenn es ein positives Label ist
+                    if not is_positive:
+                        continue
+                        
+                    label = 1  # Wir speichern nur noch die positiven Fälle
+                    label_ones_count += 1
                     
                     # Erstelle bereinigte Kandidatendaten
                     candidate_data = {
@@ -407,10 +436,9 @@ def handler(filename):
         
         # CSV-Datei einlesen
         df = pd.read_csv(file_path, 
-                        sep=';',           # Semikolon als Trennzeichen
-                        quoting=3,         # Deaktiviere Quoting
-                        encoding='utf-8',   # UTF-8 Encoding
-                        on_bad_lines='skip' # Überspringe problematische Zeilen
+                        sep=',',              # Komma als Trennzeichen
+                        quoting=csv.QUOTE_ALL,  # Alle Felder sind in Anführungszeichen
+                        encoding='utf-8'        # UTF-8 Encoding
                         )
         
         successful_imports = 0
@@ -423,19 +451,33 @@ def handler(filename):
                 if 'linkedinProfileInformation' in row and pd.notna(row['linkedinProfileInformation']):
                     # Bereinige die JSON-Daten
                     json_str = row['linkedinProfileInformation']
-                    if json_str.startswith('"') and json_str.endswith('"'):
-                        json_str = json_str[1:-1]  # Entferne äußere Anführungszeichen
                     
-                    # Ersetze doppelte durch einfache Anführungszeichen
-                    json_str = json_str.replace('""', '"')
+                    # Korrigiere Encoding-Probleme
+                    try:
+                        # Versuche UTF-8 Dekodierung
+                        json_str = json_str.encode('latin1').decode('utf-8')
+                    except UnicodeError:
+                        # Falls das fehlschlägt, behalte den Original-String
+                        pass
+                    
+                    # Entferne ungültige Steuerzeichen
+                    json_str = ''.join(char for char in json_str if ord(char) >= 32 or char in '\n\r\t')
                     
                     try:
+                        # Versuche das JSON zu parsen
                         profile_info = json.loads(json_str)
                     except json.JSONDecodeError as je:
-                        logger.error(f"JSON Parsing Fehler: {str(je)}")
-                        logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
-                        failed_imports += 1
-                        continue
+                        try:
+                            # Zweiter Versuch: Bereinige JSON noch gründlicher
+                            import re
+                            # Entferne alle nicht-druckbaren Zeichen außer Whitespace
+                            json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
+                            profile_info = json.loads(json_str)
+                        except json.JSONDecodeError as je2:
+                            logger.error(f"JSON Parsing Fehler nach zweitem Versuch: {str(je2)}")
+                            logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
+                            failed_imports += 1
+                            continue
                     
                     # Extrahiere Karriere- und Bildungsdaten
                     career_history = extract_career_data(profile_info, fe)
@@ -459,13 +501,19 @@ def handler(filename):
                     communication_status = str(row.get('communicationStatus', '')).lower()
                     candidate_status = str(row.get('candidateStatus', '')).lower()
                     
-                    label = 1 if (
+                    # Prüfe ob es ein positives Label ist
+                    is_positive = (
                         'interviewbooked' in communication_status.replace(' ', '') or 
-                        'accepted' in candidate_status
-                    ) else 0
+                        'accepted' in candidate_status or 
+                        'interested' in candidate_status
+                    )
                     
-                    if label == 1:
-                        label_ones_count += 1
+                    # Fahre nur fort, wenn es ein positives Label ist
+                    if not is_positive:
+                        continue
+                        
+                    label = 1  # Wir speichern nur noch die positiven Fälle
+                    label_ones_count += 1
                     
                     # Erstelle bereinigte Kandidatendaten
                     candidate_data = {
@@ -503,4 +551,4 @@ def handler(filename):
         return
 
 if __name__ == "__main__":
-    handler('CID129 (3)_clean.csv')  # Änderung des Dateinamens auf die bereinigte Version
+    handler('CID224.csv')  # Änderung des Dateinamens auf die bereinigte Version
