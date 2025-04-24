@@ -1,0 +1,7 @@
+bidirectional: true
+dropout: 0.2
+global_features: 9
+hidden_size: 128
+lr: 0.001
+num_layers: 2
+sequence_features: 13

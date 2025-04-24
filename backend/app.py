@@ -183,25 +183,9 @@ def predict_batch():
                     })
                     continue
                 
-                # Check for required data
-                work_experiences = profile_data.get("workExperience", [])
-                if not work_experiences:
-                    results.append({
-                        "firstName": row.get("firstName", ""),
-                        "lastName": row.get("lastName", ""),
-                        "linkedinProfile": row.get("profileLink", ""),
-                        "error": "Keine Berufserfahrung gefunden"
-                    })
-                    continue
+                # Make prediction with complete profile data
+                prediction = module.predict(profile_data)
                 
-                formatted_input = {
-                    "career_history": work_experiences
-                }
-                
-                # Make prediction
-                prediction = module.predict(formatted_input)
-                
-                # Check if prediction contains error
                 if "error" in prediction:
                     results.append({
                         "firstName": row.get("firstName", ""),
@@ -216,9 +200,10 @@ def predict_batch():
                         "linkedinProfile": row.get("profileLink", ""),
                         "confidence": prediction["confidence"],
                         "recommendations": prediction["recommendations"],
-                        "explanations": prediction.get("explanations", []),
-                        "status": prediction.get("status", "")
+                        "status": prediction.get("status", ""),
+                        "explanations": prediction.get("explanations", [])
                     })
+                    print(results)
 
             except Exception as user_err:
                 app.logger.error(f"Error processing row {idx+1}: {str(user_err)}")

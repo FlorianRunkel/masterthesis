@@ -1,6 +1,8 @@
 import pymongo
 import logging
 import os
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 # Initialize logging
 logger = logging.getLogger()
@@ -192,3 +194,58 @@ class MongoDb:
                 'statusCode': 500,
                 'error': str(e)
             }
+
+    def find_all(self, collection_name):
+        """Findet alle Dokumente in der angegebenen Collection"""
+        try:
+            collection = self.get_collection(collection_name)
+            documents = list(collection.find({}))
+            
+            # Konvertiere ObjectId zu String für JSON-Serialisierung
+            for doc in documents:
+                if '_id' in doc:
+                    doc['_id'] = str(doc['_id'])
+            
+            return {"statusCode": 200, "data": documents}
+        except Exception as e:
+            return {"statusCode": 500, "message": f"Fehler beim Abrufen der Daten: {str(e)}"}
+
+    def find_by_id(self, id, collection_name):
+        try:
+            collection = self.get_collection(collection_name)
+            document = collection.find_one({"_id": ObjectId(id)})
+            if document:
+                document['_id'] = str(document['_id'])
+                return {"statusCode": 200, "data": document}
+            return {"statusCode": 404, "message": "Nicht gefunden"}
+        except Exception as e:
+            return {"statusCode": 500, "message": f"Fehler beim Abrufen: {str(e)}"}
+
+    def update(self, id, data, collection_name):
+        try:
+            collection = self.get_collection(collection_name)
+            result = collection.update_one({"_id": ObjectId(id)}, {"$set": data})
+            if result.modified_count > 0:
+                return {"statusCode": 200, "message": "Erfolgreich aktualisiert"}
+            return {"statusCode": 404, "message": "Nicht gefunden"}
+        except Exception as e:
+            return {"statusCode": 500, "message": f"Fehler beim Aktualisieren: {str(e)}"}
+
+    def delete(self, id, collection_name):
+        try:
+            collection = self.get_collection(collection_name)
+            result = collection.delete_one({"_id": ObjectId(id)})
+            if result.deleted_count > 0:
+                return {"statusCode": 200, "message": "Erfolgreich gelöscht"}
+            return {"statusCode": 404, "message": "Nicht gefunden"}
+        except Exception as e:
+            return {"statusCode": 500, "message": f"Fehler beim Löschen: {str(e)}"}
+
+    def count_documents(self, collection_name):
+        """Zählt die Anzahl der Dokumente in der angegebenen Collection"""
+        try:
+            collection = self.get_collection(collection_name)
+            count = collection.count_documents({})
+            return {"statusCode": 200, "count": count}
+        except Exception as e:
+            return {"statusCode": 500, "message": f"Fehler beim Zählen der Dokumente: {str(e)}"}

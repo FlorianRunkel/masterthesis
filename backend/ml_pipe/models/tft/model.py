@@ -1,108 +1,190 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import pytorch_lightning as pl
 
 class TFTModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size=64, num_layers=2, dropout=0.2, lr=1e-3):
+    def __init__(self, 
+                 sequence_features=13,    # 5 Position + 8 Transition Features
+                 global_features=9,
+                 hidden_size=128,
+                 num_layers=2,
+                 dropout=0.2,
+                 bidirectional=True,
+                 lr=1e-3):
         super().__init__()
         self.save_hyperparameters()
-
+        
         self.lr = lr
         self.loss_fn = nn.BCELoss()
-
-        # Input Projection
-        self.input_projection = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
+        
+        # Sequenz-Verarbeitung
+        self.sequence_encoder = nn.LSTM(
+            input_size=sequence_features,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0,
+            bidirectional=bidirectional
+        )
+        
+        # Attention für Sequenz
+        self.attention = nn.MultiheadAttention(
+            embed_dim=hidden_size * 2 if bidirectional else hidden_size,
+            num_heads=4,
+            dropout=dropout,
+            batch_first=True
+        )
+        
+        # Layer Normalization
+        self.layer_norm = nn.LayerNorm(hidden_size * 2 if bidirectional else hidden_size)
+        
+        # Globale Feature-Verarbeitung
+        self.global_encoder = nn.Sequential(
+            nn.Linear(global_features, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             nn.Dropout(dropout)
         )
-
-        # Stacked LSTM
-        self.lstm = nn.LSTM(
-            hidden_size,
-            hidden_size,
-            num_layers=num_layers,
-            batch_first=True,
-            dropout=dropout if num_layers > 1 else 0
-        )
-
-        # Self-Attention (more heads, deeper output)
-        self.attn = nn.MultiheadAttention(hidden_size, num_heads=8, batch_first=True)
-        self.attn_norm = nn.LayerNorm(hidden_size)
-
-        # Feedforward block after attention
-        self.ffn = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size * 2),
+        
+        # Feature Fusion
+        fusion_input_size = (hidden_size * 2 if bidirectional else hidden_size) + hidden_size
+        self.fusion_layer = nn.Sequential(
+            nn.Linear(fusion_input_size, hidden_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size * 2, hidden_size),
-            nn.ReLU(),
-        )
-        self.ffn_norm = nn.LayerNorm(hidden_size)
-
-        # Output layer
-        self.output_head = nn.Sequential(
             nn.Linear(hidden_size, hidden_size // 2),
             nn.ReLU(),
+            nn.Dropout(dropout)
+        )
+        
+        # Karriere-Entwicklungs-Prädiktor
+        self.career_predictor = nn.Sequential(
+            nn.Linear(hidden_size // 2, hidden_size // 4),
+            nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size // 2, 1),
+            nn.Linear(hidden_size // 4, 1),
             nn.Sigmoid()
         )
+        
+        # Initialisiere Gewichte
+        self.apply(self._init_weights)
+        
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.LSTM):
+            for name, param in module.named_parameters():
+                if 'weight' in name:
+                    torch.nn.init.xavier_uniform_(param)
+                elif 'bias' in name:
+                    torch.nn.init.zeros_(param)
 
-    def forward(self, x):
-        if x.dim() == 2:
-            x = x.unsqueeze(-1)
-
-        # Padding/truncation
-        if x.size(-1) != self.hparams.input_size:
-            diff = self.hparams.input_size - x.size(-1)
-            if diff > 0:
-                pad = torch.zeros(x.size(0), x.size(1), diff, device=x.device)
-                x = torch.cat([x, pad], dim=-1)
-            else:
-                x = x[:, :, :self.hparams.input_size]
-
-        x = self.input_projection(x)
-        lstm_out, _ = self.lstm(x)
-
-        # Self-attention + residual
-        attn_out, _ = self.attn(lstm_out, lstm_out, lstm_out)
-        attn_out = self.attn_norm(attn_out + lstm_out)
-
-        # Feedforward + residual
-        ffn_out = self.ffn(attn_out)
-        fusion = self.ffn_norm(ffn_out + attn_out)
-
-        # Final time step
-        final = fusion[:, -1, :]
-        out = self.output_head(final)
-        return out
-
-    def step(self, batch, stage):
-        x, y = batch
-        if isinstance(x, (list, tuple)):
-            x = x[0]
-        x = x.float()
-        y = y.float().unsqueeze(1) if y.dim() == 1 else y
-        y_hat = self(x)
-        loss = self.loss_fn(y_hat, y)
-        preds = (y_hat > 0.5).float()
-        acc = (preds == y).float().mean()
-        self.log(f"{stage}_loss", loss, prog_bar=True, batch_size=x.size(0))
-        self.log(f"{stage}_acc", acc, prog_bar=True, batch_size=x.size(0))
-        return loss
+    def forward(self, batch):
+        x_seq, x_global, lengths = batch
+        batch_size = x_seq.size(0)
+        
+        # Pack die Sequenz für effizientes LSTM-Processing
+        packed_seq = nn.utils.rnn.pack_padded_sequence(
+            x_seq, 
+            lengths.cpu(), 
+            batch_first=True, 
+            enforce_sorted=False
+        )
+        
+        # Verarbeite Sequenz durch LSTM
+        lstm_out, _ = self.sequence_encoder(packed_seq)
+        
+        # Unpack die Sequenz wieder
+        lstm_out, _ = nn.utils.rnn.pad_packed_sequence(lstm_out, batch_first=True)
+        
+        # Erstelle Attention Mask für gepaddte Bereiche
+        max_len = lstm_out.size(1)
+        attention_mask = torch.arange(max_len, device=lengths.device)[None, :] < lengths[:, None]
+        
+        # Self-Attention auf LSTM output mit Maske
+        attn_out, attn_weights = self.attention(
+            lstm_out, 
+            lstm_out, 
+            lstm_out,
+            key_padding_mask=~attention_mask  # Invertiere für PyTorch Attention
+        )
+        
+        # Residual connection und Layer Norm
+        sequence_features = self.layer_norm(lstm_out + attn_out)  # [batch, seq_len, hidden*2]
+        
+        # Gewichteter Durchschnitt der Sequenz-Features basierend auf der Attention
+        sequence_features = torch.sum(sequence_features * attn_weights.mean(dim=1).unsqueeze(-1), dim=1)
+        
+        # Verarbeite globale Features
+        global_features = self.global_encoder(x_global)  # [batch, hidden]
+        
+        # Kombiniere Features
+        combined = torch.cat([sequence_features, global_features], dim=1)
+        fused = self.fusion_layer(combined)
+        
+        # Vorhersage
+        return self.career_predictor(fused)
 
     def training_step(self, batch, batch_idx):
-        return self.step(batch, "train")
-
+        return self._shared_step(batch, "train")
+        
     def validation_step(self, batch, batch_idx):
-        return self.step(batch, "val")
-
+        return self._shared_step(batch, "val")
+    
     def test_step(self, batch, batch_idx):
-        return self.step(batch, "test")
-
+        return self._shared_step(batch, "test")
+    
+    def _shared_step(self, batch, stage):
+        (x_seq, x_global, lengths), y = batch
+        
+        # Forward pass
+        y_hat = self((x_seq, x_global, lengths))
+        
+        # Reshape wenn nötig
+        if y.dim() == 1:
+            y = y.unsqueeze(1)
+            
+        # Berechne Loss
+        loss = self.loss_fn(y_hat, y)
+        
+        # Berechne Metriken
+        preds = (y_hat > 0.5).float()
+        acc = (preds == y).float().mean()
+        
+        # Logging
+        self.log(f"{stage}_loss", loss, prog_bar=True)
+        self.log(f"{stage}_acc", acc, prog_bar=True)
+        
+        # Detailliertes Logging während des Trainings
+        if stage == "train":
+            self.log("learning_rate", self.optimizers().param_groups[0]['lr'])
+            
+        return loss
+    
     def configure_optimizers(self):
-        opt = optim.Adam(self.parameters(), lr=self.lr)
-        sched = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=5, verbose=True)
-        return {"optimizer": opt, "lr_scheduler": {"scheduler": sched, "monitor": "val_loss"}}
+        optimizer = torch.optim.AdamW(
+            self.parameters(),
+            lr=self.lr,
+            weight_decay=0.01
+        )
+        
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode="min",
+            factor=0.5,
+            patience=5,
+            verbose=True
+        )
+        
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "val_loss",
+                "frequency": 1
+            }
+        }

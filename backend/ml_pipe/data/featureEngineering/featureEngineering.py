@@ -2,17 +2,20 @@ import torch
 import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from collections import defaultdict
 import json
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from typing import List, Tuple, Dict
+from typing import Tuple
 from difflib import SequenceMatcher
-import re
 import os
-import pandas as pd
+from .position_classifier import PositionClassifier
 
 class featureEngineering:
-    def __init__(self):
+    def __init__(self, use_llm: bool = False):
+        """
+        Initialisiert die Feature-Engineering-Klasse.
+        
+        Args:
+            use_llm: Nicht mehr verwendet, nur für Kompatibilität
+        """
         # Bestimme den absoluten Pfad zur JSON-Datei relativ zum aktuellen Skript
         current_dir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(current_dir, "position_level.json")
@@ -20,35 +23,9 @@ class featureEngineering:
         # Lade die Position-Level-Zuordnungen
         with open(json_path, "r", encoding="utf-8") as f:
             self.position_levels = json.load(f)
-
-        self.branch_mapping = self._create_branch_mapping()
-        
-        # Erwartete Verweildauer pro Level und Branche (in Monaten)
-        self.expected_duration = {
-            # Sales
-            ("sales", 1): 12,     # Junior Sales: 1 Jahr
-            ("sales", 2): 24,     # Regular Sales: 2 Jahre
-            ("sales", 3): 36,     # Senior Sales: 3 Jahre
-            ("sales", 4): 48,     # Lead Sales: 4 Jahre
             
-            # Engineering
-            ("engineering", 1): 18,    # Junior Dev: 1.5 Jahre
-            ("engineering", 2): 30,    # Regular Dev: 2.5 Jahre
-            ("engineering", 3): 42,    # Senior Dev: 3.5 Jahre
-            ("engineering", 4): 54,    # Lead Dev: 4.5 Jahre
-            
-            # Marketing
-            ("marketing", 1): 15,      # Junior Marketing: 1.25 Jahre
-            ("marketing", 2): 27,      # Regular Marketing: 2.25 Jahre
-            ("marketing", 3): 39,      # Senior Marketing: 3.25 Jahre
-            ("marketing", 4): 51,      # Lead Marketing: 4.25 Jahre
-            
-            # Default für andere Branchen
-            ("default", 1): 15,        # Junior: 1.25 Jahre
-            ("default", 2): 27,        # Regular: 2.25 Jahre
-            ("default", 3): 39,        # Senior: 3.25 Jahre
-            ("default", 4): 51,        # Lead: 4.25 Jahre
-        }
+        # Initialisiere den PositionClassifier
+        self.classifier = PositionClassifier()  # Kein API-Key mehr nötig
         
         # Erstelle eine Liste aller Positionen mit ihren Eigenschaften
         self.all_positions = []
@@ -56,142 +33,114 @@ class featureEngineering:
             self.all_positions.append({
                 'position': entry['position'].lower(),
                 'level': entry['level'],
-                'branche': entry['branche'].lower()
+                'branche': entry['branche']
             })
         
         # Sortiere Positionen nach Länge (längere zuerst)
         self.all_positions.sort(key=lambda x: len(x['position']), reverse=True)
-
-    def _create_branch_mapping(self) -> Dict[str, int]:
-        return {
-            "marketing": 1,
-            "engineering": 2,
-            "finance": 3,
-            "product": 4,
-            "it": 5,
-            "consulting": 6,
-            "hr": 7,
-            "daten & analyse": 8,
-            "customer success": 9,
-            "management": 10,
-            "sales": 12,
+        
+        # Erwartete Verweildauer pro Level und Branche (in Monaten)
+        self.expected_duration = {
+            # Sales (Branche 1)
+            (1, 1): 12,     # Junior Sales: 1 Jahr
+            (1, 2): 24,     # Regular Sales: 2 Jahre
+            (1, 3): 36,     # Senior Sales: 3 Jahre
+            (1, 4): 48,     # Lead Sales: 4 Jahre
+            
+            # Engineering (Branche 2)
+            (2, 1): 18,    # Junior Dev: 1.5 Jahre
+            (2, 2): 30,    # Regular Dev: 2.5 Jahre
+            (2, 3): 42,    # Senior Dev: 3.5 Jahre
+            (2, 4): 54,    # Lead Dev: 4.5 Jahre
+            
+            # Consulting (Branche 3)
+            (3, 1): 15,      # Junior Consulting: 1.25 Jahre
+            (3, 2): 27,      # Regular Consulting: 2.25 Jahre
+            (3, 3): 39,      # Senior Consulting: 3.25 Jahre
+            (3, 4): 51,      # Lead Consulting: 4.25 Jahre
+            
+            # Default für andere Branchen (Branche 0)
+            (0, 1): 15,        # Junior: 1.25 Jahre
+            (0, 2): 27,        # Regular: 2.25 Jahre
+            (0, 3): 39,        # Senior: 3.25 Jahre
+            (0, 4): 51,        # Lead: 4.25 Jahre
         }
 
-    def build_position_mapping(self, entries):
-        mapping = {}
-        for entry in entries:
-            branche = entry["branche"].lower()
-            title = entry["position"].lower()
-            level = entry["level"]
-
-            if branche not in mapping:
-                mapping[branche] = {}
-            mapping[branche][title] = level
-        return mapping
-
-    def get_branch_code(self, branche: str) -> int:
-        return self.branch_mapping.get(branche.lower(), 0)
-
     def similarity(self, a: str, b: str) -> float:
-        """Berechnet die Ähnlichkeit zwischen zwei Strings"""
+        """
+        Berechnet die Ähnlichkeit zwischen zwei Strings
+        Verbesserte Version mit Wortübereinstimmung
+        """
+        # Exakte Übereinstimmung
+        if a == b:
+            return 1.0
+            
+        # Teilstring-Übereinstimmung
+        if a in b or b in a:
+            return 0.9
+            
+        # Wortweise Übereinstimmung
+        words_a = set(a.split())
+        words_b = set(b.split())
+        common_words = words_a.intersection(words_b)
+        
+        if common_words:
+            return len(common_words) / max(len(words_a), len(words_b))
+            
+        # Sequence Matcher als Fallback
         return SequenceMatcher(None, a, b).ratio()
 
-    def find_best_match(self, title: str) -> Tuple[int, str]:
-        """Findet die beste Übereinstimmung für einen Positionstitel"""
+    def find_best_match(self, title: str) -> Tuple[int, int]:
+        """
+        Findet die beste Übereinstimmung für einen Positionstitel und gibt (level, branche) zurück.
+        Nutzt den PositionClassifier für die Klassifizierung.
+        """
         if not title:
-            return 2, "other"  # Default: Mid-Level, Other
+            return 2, 0  # Default: Mid-Level, Other
 
-        title = title.lower()
-        best_match = None
-        best_score = 0.7
-
-        for pos in self.all_positions:
-            if pos['position'] in title:
-                return pos['level'], pos['branche']
-
-        for pos in self.all_positions:
-            score = self.similarity(title, pos['position'])
-            if score > best_score:
-                best_score = score
-                best_match = pos
-
-        if best_match:
-            return best_match['level'], best_match['branche']
+        # Nutze den PositionClassifier für die Klassifizierung
+        level, branche = self.classifier.classify_position(title)
         
-        return 2, self._determine_branch(title)
-
-    def _determine_branch(self, title: str) -> str:
-        """Bestimmt die Branche basierend auf Keywords im Titel"""
-        title = title.lower()
-        
-        if any(kw in title for kw in ["sales", "account", "business"]):
-            return "sales"
-        elif any(kw in title for kw in ["engineer", "developer", "programming"]):
-            return "engineering"
-        elif any(kw in title for kw in ["marketing", "brand", "content"]):
-            return "marketing"
-        elif any(kw in title for kw in ["finance", "accounting", "controlling"]):
-            return "finance"
-        elif any(kw in title for kw in ["product", "project"]):
-            return "product"
-        elif any(kw in title for kw in ["hr", "human resources", "recruiting"]):
-            return "hr"
-        elif any(kw in title for kw in ["data", "analytics", "analysis"]):
-            return "daten & analyse"
-        
-        return "other"
+        # Validiere die Werte
+        if not (1 <= level <= 8):  # Wir haben jetzt 8 Level
+            print(f"Warnung: Ungültiges Level für '{title}': {level}")
+            level = 2  # Default: Regular Level
+            
+        if not (0 <= branche <= 3):
+            print(f"Warnung: Ungültige Branche für '{title}': {branche}")
+            branche = 0  # Default: Other
+            
+        return level, branche
 
     def months_between(self, start, end):
+        """Berechnet die Anzahl der Monate zwischen zwei Datumswerten"""
         delta = relativedelta(end, start)
         return delta.years * 12 + delta.months
 
     def parse_date_safe(self, date_str):
         """
         Versucht ein Datum aus verschiedenen Formaten zu parsen.
-        Handhabt auch None, leere Strings und Dictionary-Formate.
         """
-        if date_str is None:
+        if not date_str or date_str == 'Present':
             return None
         
-        if isinstance(date_str, dict):
-            # Wenn es ein Dictionary ist, versuche die relevanten Felder zu extrahieren
-            if 'year' in date_str and 'month' in date_str:
+        try:
+            # Versuche verschiedene Datumsformate
+            formats = ['%d/%m/%Y', '%m/%Y', '%Y']
+            
+            for fmt in formats:
                 try:
-                    return datetime(int(date_str['year']), int(date_str['month']), 1)
-                except (ValueError, TypeError):
-                    return None
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+                    
+            # Wenn kein Format passt, extrahiere das Jahr
+            if date_str.isdigit() and len(date_str) == 4:
+                return datetime.strptime(date_str, '%Y')
+                
             return None
-        
-        if not isinstance(date_str, str) or not date_str.strip():
+        except Exception:
             return None
-        
-        # Entferne führende/folgende Leerzeichen
-        date_str = date_str.strip()
-        
-        # Liste der möglichen Datumsformate
-        date_formats = [
-            '%Y-%m-%d',    # ISO Format
-            '%d.%m.%Y',    # Deutsches Format
-            '%m/%d/%Y',    # Amerikanisches Format
-            '%Y-%m',       # Nur Jahr und Monat
-            '%Y'           # Nur Jahr
-        ]
-        
-        for fmt in date_formats:
-            try:
-                return datetime.strptime(date_str, fmt)
-            except ValueError:
-                continue
-            
-        # Wenn kein Format passt, versuche das Jahr zu extrahieren
-        year_match = re.search(r'\d{4}', date_str)
-        if year_match:
-            try:
-                return datetime(int(year_match.group()), 1, 1)
-            except ValueError:
-                return None
-            
-        return None
 
     def extract_features_from_single_user(self, user_doc: dict) -> np.ndarray:
         """Extrahiert Features für die aktuelle Position"""
@@ -235,12 +184,11 @@ class featureEngineering:
         # Position Features
         position_title = current_position.get("position", "").strip()
         level, branche = self.find_best_match(position_title)
-        branche_code = self.get_branch_code(branche)
         
         # Hole erwartete Verweildauer für Position und Branche
         expected = self.expected_duration.get(
-            (branche.lower(), level),
-            self.expected_duration.get(("default", level), 24)  # Default: 2 Jahre
+            (branche, level),
+            self.expected_duration.get((0, level), 24)  # Default: 2 Jahre
         )
         
         # Normalisiere Dauer basierend auf erwarteter Dauer
@@ -249,8 +197,8 @@ class featureEngineering:
         # Erstelle Feature-Vektor
         features = np.array([
             normalized_duration,  # Normalisierte Dauer (0-1, branchenspezifisch)
-            float(level),        # Level (1-4)
-            float(branche_code)  # Branche (1-12)
+            float(level),        # Level (1-8)
+            float(branche)       # Branche (0-3)
         ], dtype=np.float32)
         
         print(f"""
@@ -260,8 +208,8 @@ class featureEngineering:
         Start: {start_date.strftime('%Y-%m-%d')}
         Dauer: {duration_months:.1f} Monate
         Normalisierte Dauer: {normalized_duration:.2f}
-        Level: {level}
-        Branche: {branche} (Code: {branche_code})
+        Level: {level} ({self.classifier.get_level_description(level)})
+        Branche: {self.classifier.get_branch_description(branche)} (Code: {branche})
         Erwartete Dauer: {expected} Monate
         """)
         
@@ -318,12 +266,11 @@ class featureEngineering:
                 # Berechne Basisdaten
                 duration_months = self.months_between(start_date, end_date)
                 level, branche = self.find_best_match(job.get("position", "").strip())
-                branche_code = self.get_branch_code(branche)
                 
                 # Hole erwartete Verweildauer
                 expected = self.expected_duration.get(
-                    (branche.lower(), level),
-                    self.expected_duration.get(("default", level), 24)
+                    (branche, level),
+                    self.expected_duration.get((0, level), 24)
                 )
                 
                 # Normalisiere Dauer
@@ -333,7 +280,7 @@ class featureEngineering:
                 position_feature = [
                     normalized_duration,  # Relative Dauer zur erwarteten Dauer
                     float(level),        # Position Level
-                    float(branche_code)  # Branche
+                    float(branche)       # Branche
                 ]
                 
                 position_features.append(position_feature)
@@ -360,7 +307,7 @@ class featureEngineering:
                         print(f"""
                         Position {i+1}: {job.get('position')}
                         Dauer: {duration_months:.1f} Monate (normalisiert: {normalized_duration:.2f})
-                        Level: {level}, Branche: {branche}
+                        Level: {level}, Branche: {job.get('position')}
                         Nächste Position: {next_job.get('position')}
                         Branchenwechsel: {changed_branch}, Lange geblieben: {stayed_long}
                         Label: {label}
@@ -437,12 +384,11 @@ class featureEngineering:
                 # Position Features
                 position_title = exp.get("position", "").strip()
                 level, branche = self.find_best_match(position_title)
-                branche_code = self.get_branch_code(branche)
                 
                 # Hole erwartete Verweildauer für Position und Branche
                 expected = self.expected_duration.get(
-                    (branche.lower(), level),
-                    self.expected_duration.get(("default", level), 24)  # Default: 2 Jahre
+                    (branche, level),
+                    self.expected_duration.get((0, level), 24)
                 )
                 
                 # Normalisiere Dauer basierend auf erwarteter Dauer
@@ -452,7 +398,7 @@ class featureEngineering:
                 base_idx = i * 3
                 features[base_idx] = normalized_duration    # Normalisierte Dauer
                 features[base_idx + 1] = float(level)      # Level
-                features[base_idx + 2] = float(branche_code)  # Branche
+                features[base_idx + 2] = float(branche)  # Branche
             except Exception as e:
                 print(f"Fehler bei der Verarbeitung von Position {i}: {str(e)}")
                 continue
@@ -506,12 +452,11 @@ class featureEngineering:
                 # Position Features
                 position_title = exp.get("position", "").strip()
                 level, branche = self.find_best_match(position_title)
-                branche_code = self.get_branch_code(branche)
                 
                 # Hole erwartete Verweildauer für Position und Branche
                 expected = self.expected_duration.get(
-                    (branche.lower(), level),
-                    self.expected_duration.get(("default", level), 24)  # Default: 2 Jahre
+                    (branche, level),
+                    self.expected_duration.get((0, level), 24)
                 )
                 
                 # Normalisiere Dauer basierend auf erwarteter Dauer
@@ -521,7 +466,7 @@ class featureEngineering:
                 base_idx = i * 3
                 features[base_idx] = normalized_duration    # Normalisierte Dauer
                 features[base_idx + 1] = float(level)      # Level
-                features[base_idx + 2] = float(branche_code)  # Branche
+                features[base_idx + 2] = float(branche)  # Branche
             except Exception as e:
                 print(f"Fehler bei der Verarbeitung von Position {i}: {str(e)}")
                 continue
