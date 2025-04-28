@@ -1,40 +1,43 @@
 import pymongo
+from bson import ObjectId
+from pymongo.errors import ConfigurationError
 import logging
-import os
-from pymongo import MongoClient
-from bson.objectid import ObjectId
+import certifi
 
 # Initialize logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+import pymongo
+from pymongo.errors import ConnectionFailure, ConfigurationError, ServerSelectionTimeoutError
+
 class MongoDb:
-    def __init__(self, user = 'florianrunkel', password='ur04mathesis', db_name='Database', url='cluster0.1lgrrsw.mongodb.net'):
+    def __init__(self, user='florianrunkel', password='ur04mathesis', db_name='Database', url='cluster0.1lgrrsw.mongodb.net'):
         self.user = user
         self.password = password
         self.db_name = db_name
         self.url = url
         self.client = None
-        self.db = None # Standard Collection für Kandidaten
+        self.db = None
 
-    '''MongoDB-Verbindung'''
     def get_mongo_client(self):
         if self.client is None:
             try:
-                # Standard MongoDB Atlas URI
-                mongo_uri = f"mongodb+srv://{self.user}:{self.password}@{self.url}/{self.db_name}?retryWrites=true&w=majority&ssl=true&tlsAllowInvalidCertificates=true"
-                
-                # Setze Umgebungsvariable für SSL-Zertifikatsprüfung
-                os.environ['PYMONGO_SSL_CERT_REQS'] = 'CERT_NONE'
-                
-                self.client = pymongo.MongoClient(mongo_uri)
+                mongo_uri = f"mongodb+srv://{self.user}:{self.password}@{self.url}/{self.db_name}?retryWrites=true&w=majority"
+                self.client = pymongo.MongoClient(
+                    mongo_uri,
+                    tls=True,
+                    tlsCAFile=certifi.where(),  # Verwendet certifi für SSL-Zertifikate
+                    serverSelectionTimeoutMS=5000
+                )
                 self.db = self.client[self.db_name]
-                
-                # Test the connection
-                self.client.server_info()
-                print("MongoDB Verbindung erfolgreich hergestellt!")
-            except Exception as e:
-                print(f"MongoDB Verbindungsfehler: {e}")
+                # Trigger erste Abfrage, um Verbindungsfehler sofort zu erkennen
+                self.client.admin.command('ping')
+            except ConfigurationError as e:
+                print(f"MongoDB Konfigurationsfehler: {e}")
+                raise
+            except (ConnectionFailure, ServerSelectionTimeoutError) as e:
+                print(f"Verbindung zu MongoDB fehlgeschlagen: {e}")
                 raise
         return self.db
 

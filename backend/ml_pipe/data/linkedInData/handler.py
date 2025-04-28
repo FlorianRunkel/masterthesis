@@ -194,17 +194,17 @@ def extract_education_data(profile_info):
 
 def extract_additional_features(career_history, education_data, fe, age_category):
     """
-    Extrahiert zusätzliche Features aus dem Karriereverlauf und der Bildung.
-    Verarbeitet die tatsächliche Sequenzlänge ohne künstliches Auffüllen.
+    Extrahiert Features aus dem Karriereverlauf und der Bildung.
+    Berücksichtigt nur die Karrierehistorie bis zum betrachteten Zeitpunkt.
     """
     features = {}
     
-    # Anzahl der Stationen
+    # Anzahl der Stationen bis zu diesem Zeitpunkt
     features['total_positions'] = len(career_history)
     
-    # Zeitbezogene Features für die Sequenz - keine feste Länge mehr
+    # Zeitbezogene Features für die Sequenz
     features['career_sequence'] = []
-    for entry in career_history:  # Alle Positionen verwenden
+    for entry in career_history:  # Nur die Positionen bis zum betrachteten Zeitpunkt
         sequence_entry = {
             'level': entry['level'],
             'branche': entry['branche'],
@@ -228,21 +228,21 @@ def extract_additional_features(career_history, education_data, fe, age_category
         total_duration_months += entry['duration_months']
         position_durations.append(entry['duration_months'])
     
-    # Firmenwechsel und Stationen
+    # Firmenwechsel und Stationen bis zu diesem Zeitpunkt
     features['company_changes'] = len(companies) - 1
     features['total_experience_years'] = round(total_duration_months / 12, 2)
     
-    # Standortwechsel
+    # Standortwechsel bis zu diesem Zeitpunkt
     features['location_changes'] = len(locations) - 1 if len(locations) > 0 else 0
     features['unique_locations'] = len(locations)
     
-    # Durchschnittliche Verweildauer pro Position
+    # Durchschnittliche Verweildauer pro Position bis zu diesem Zeitpunkt
     features['avg_position_duration_months'] = (
         sum(position_durations) / len(position_durations)
         if position_durations else 0
     )
     
-    # Höchster Bildungsabschluss
+    # Höchster Bildungsabschluss (bleibt konstant)
     degree_ranking = {
         'phd': 5,
         'master': 4,
@@ -265,9 +265,9 @@ def extract_additional_features(career_history, education_data, fe, age_category
     
     features['highest_degree'] = highest_degree
     
-    # Aktuelle Position
+    # Aktuelle Position zum betrachteten Zeitpunkt
     if career_history:
-        current_position = career_history[0]  # Erste Position ist die aktuellste
+        current_position = career_history[0]  # Erste Position in der Teilsequenz
         features['current_position'] = {
             'level': current_position['level'],
             'branche': current_position['branche'],
@@ -275,280 +275,292 @@ def extract_additional_features(career_history, education_data, fe, age_category
             'time_since_start': current_position['time_since_start']
         }
     
-    # Alterskategorie (mit Fallback auf 0)
-    features['age_category'] = age_category if age_category is not None else 0
+    # Alterskategorie (wird für jeden Zeitpunkt neu berechnet)
+    features['age_category'] = age_category
     
     return features
 
+def generate_career_sequences(career_history, education_data, fe, age_category):
+    """
+    Generiert sowohl das vollständige Profil als auch einzelne Teilsequenzen als Trainingsbeispiele.
+    Die career_sequence enthält IMMER alle Felder der Karrierestationen.
+    Returns:
+        tuple: (full_profile, sequence_examples)
+    """
+    def enrich_entry(entry):
+        # Stelle sicher, dass alle relevanten Felder enthalten sind und is_current immer 0 oder 1 ist
+        return {
+            'level': entry.get('level', 0),
+            'branche': entry.get('branche', 0),
+            'duration_months': entry.get('duration_months', 0),
+            'time_since_start': entry.get('time_since_start', 0),
+            'time_until_end': entry.get('time_until_end', 0),
+            'is_current': 1 if entry.get('is_current', 0) else 0
+        }
+
+    # 1. Erstelle das vollständige Profil
+    full_profile = {
+        "features": {
+            "total_positions": len(career_history),
+            "career_sequence": [enrich_entry(e) for e in career_history],
+            "company_changes": len(set(pos['company'] for pos in career_history)) - 1,
+            "total_experience_years": round(sum(pos['duration_months'] for pos in career_history) / 12, 2),
+            "location_changes": len(set(pos['location'] for pos in career_history if pos['location'])) - 1,
+            "unique_locations": len(set(pos['location'] for pos in career_history if pos['location'])),
+            "avg_position_duration_months": sum(pos['duration_months'] for pos in career_history) / len(career_history),
+            "highest_degree": extract_additional_features(career_history, education_data, fe, age_category)['highest_degree'],
+            "current_position": {
+                "level": career_history[0]['level'],
+                "branche": career_history[0]['branche'],
+                "duration_months": career_history[0]['duration_months'],
+                "time_since_start": career_history[0]['time_since_start']
+            },
+            "age_category": age_category
+        },
+        "label": 1
+    }
+    
+    # 2. Erstelle die einzelnen Teilsequenzen
+    sequence_examples = []
+    for i in range(len(career_history) - 1):
+        current_sequence = career_history[:(i+1)]
+        sequence_features = {
+            "total_positions": len(current_sequence),
+            "career_sequence": [enrich_entry(e) for e in current_sequence],
+            "company_changes": len(set(pos['company'] for pos in current_sequence)) - 1,
+            "total_experience_years": round(sum(pos['duration_months'] for pos in current_sequence) / 12, 2),
+            "location_changes": len(set(pos['location'] for pos in current_sequence if pos['location'])) - 1,
+            "unique_locations": len(set(pos['location'] for pos in current_sequence if pos['location'])),
+            "avg_position_duration_months": sum(pos['duration_months'] for pos in current_sequence) / len(current_sequence),
+            "highest_degree": extract_additional_features(current_sequence, education_data, fe, age_category)['highest_degree'],
+            "current_position": {
+                "level": current_sequence[-1]['level'],
+                "branche": current_sequence[-1]['branche'],
+                "duration_months": current_sequence[-1]['duration_months'],
+                "time_since_start": current_sequence[-1]['time_since_start']
+            },
+            "age_category": age_category
+        }
+        sequence_example = {
+            "features": sequence_features,
+            "label": 1
+        }
+        sequence_examples.append(sequence_example)
+    
+    return full_profile, sequence_examples
+
+def is_valid_sequence(seq_features):
+    # Prüfe, ob alle Karrierestationen gültige Werte haben
+    for entry in seq_features["career_sequence"]:
+        if (
+            entry["level"] == 0 or
+            entry["branche"] == 0 
+        ):
+            return False
+    # Prüfe globale Features
+    if seq_features.get("age_category", 0) == 0:
+        return False
+    return True
+
 def import_candidates_from_csv(csv_file):
     try:
-        # MongoDB-Verbindung herstellen
         mongo = MongoDb()
-        
-        # Feature Engineering Instanz erstellen
         fe = featureEngineering()
         
-        # CSV-Datei einlesen
+        logger.info("Lese CSV-Datei...")
         df = pd.read_csv(csv_file)
-        
+        logger.info(f"CSV geladen. {len(df)} Zeilen gefunden.")
+
+        # Prüfe die aktuelle Label-Verteilung in der MongoDB
+        all_data = mongo.get_all('training_data2').get('data', [])
+        label_ones = sum(1 for d in all_data if d.get('label', 0) == 1)
+        label_zeros = sum(1 for d in all_data if d.get('label', 0) == 0)
+        logger.info(f"Aktuelle Label-Verteilung in MongoDB:")
+        logger.info(f"- label=1: {label_ones}")
+        logger.info(f"- label=0: {label_zeros}")
+        ratio = (label_ones / label_zeros) if label_zeros > 0 else float('inf')
+        logger.info(f"- Verhältnis label=1/label=0: {ratio:.2f}")
+
+        # Definiere die erlaubte Ratio (60:40 bis 40:60)
+        min_ratio = 0.6
+        max_ratio = 1.67
+        allow_sequences = min_ratio <= ratio <= max_ratio
+        if allow_sequences:
+            logger.info("Label-Verteilung ist ausgeglichen. Importiere Profile UND Sequenzen.")
+        else:
+            logger.warning("Label-Verteilung ist unausgeglichen! Importiere NUR Profile, KEINE Sequenzen.")
+
         successful_imports = 0
         failed_imports = 0
         skipped_empty_career = 0
-        label_ones_count = 0
-        
-        for _, row in df.iterrows():
+        total_sequences_processed = 0
+        unique_profiles = 0
+        profile_ids = []
+
+        for index, row in df.iterrows():
             try:
                 if 'linkedinProfileInformation' in row and pd.notna(row['linkedinProfileInformation']):
-                    # Bereinige die JSON-Daten
                     json_str = row['linkedinProfileInformation']
-                    
-                    # Korrigiere Encoding-Probleme
                     try:
-                        # Versuche UTF-8 Dekodierung
                         json_str = json_str.encode('latin1').decode('utf-8')
                     except UnicodeError:
-                        # Falls das fehlschlägt, behalte den Original-String
                         pass
-                    
-                    # Entferne ungültige Steuerzeichen
                     json_str = ''.join(char for char in json_str if ord(char) >= 32 or char in '\n\r\t')
-                    
-                    # Entferne Escaping von Anführungszeichen innerhalb des JSON
-                    json_str = json_str.replace('\\"', '"')
-                    
-                    # Entferne zusätzliche Escapes
-                    json_str = json_str.replace('\\\\', '\\')
-                    
-                    # Entferne BOM und andere spezielle Unicode-Marker
-                    json_str = json_str.replace('\ufeff', '')
-                    
                     try:
-                        # Versuche das JSON zu parsen
                         profile_info = json.loads(json_str)
-                    except json.JSONDecodeError as je:
-                        try:
-                            # Zweiter Versuch: Bereinige JSON noch gründlicher
-                            import re
-                            # Entferne alle nicht-druckbaren Zeichen außer Whitespace
-                            json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
-                            profile_info = json.loads(json_str)
-                        except json.JSONDecodeError as je2:
-                            logger.error(f"JSON Parsing Fehler nach zweitem Versuch: {str(je2)}")
-                            logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
-                            failed_imports += 1
-                            continue
-                    
-                    # Extrahiere Karriere- und Bildungsdaten
+                    except json.JSONDecodeError:
+                        import re
+                        json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
+                        profile_info = json.loads(json_str)
                     career_history = extract_career_data(profile_info, fe)
                     education_data = extract_education_data(profile_info)
-                    
-                    # Prüfe auf leere Career History
-                    if not career_history:
+                    if not career_history or len(career_history) < 2:
                         skipped_empty_career += 1
                         continue
-                    
-                    # Schätze Alterskategorie mit Fallback auf 0
                     age_category = estimate_age_category(profile_info)
                     if age_category is None:
-                        age_category = 0  # Default-Wert für nicht bestimmbare Alterskategorie
-                        logger.info(f"Keine Alterskategorie bestimmbar - setze auf 0")
-                    
-                    # Extrahiere zusätzliche Features
-                    features = extract_additional_features(career_history, education_data, fe, age_category)
-                    
-                    # Bestimme Wechselbereitschaft basierend auf den Status
-                    communication_status = str(row.get('communicationStatus', '')).lower()
-                    candidate_status = str(row.get('candidateStatus', '')).lower()
-                    
-                    # Prüfe ob es ein positives Label ist
-                    is_positive = (
-                        'interviewbooked' in communication_status.replace(' ', '') or 
-                        'accepted' in candidate_status or 
-                        'interested' in candidate_status
-                    )
-                    
-                    # Fahre nur fort, wenn es ein positives Label ist
-                    if not is_positive:
+                        skipped_empty_career += 1
                         continue
-                        
-                    label = 1  # Wir speichern nur noch die positiven Fälle
-                    label_ones_count += 1
-                    
-                    # Erstelle bereinigte Kandidatendaten
-                    candidate_data = {
-                        "features": features,
-                        "label": label
-                    }
-                    
-                    # Validiere numerische Werte
-                    if features['age_category'] is None:
-                        features['age_category'] = 0
-                    
-                    # Speichere in MongoDB
-                    result = mongo.create(candidate_data, 'training_data')
-                    
-                    if result and result.get('statusCode') == 200:
-                        successful_imports += 1
+                    candidate_status = str(row.get('candidateStatus', '')).lower()
+                    is_positive = ('accepted' in candidate_status) or ('interested' in candidate_status)
+                    is_negative = ('declined' in candidate_status) or ('future prospect' in candidate_status)
+                    full_profile, sequence_examples = generate_career_sequences(
+                        career_history, 
+                        education_data, 
+                        fe, 
+                        age_category
+                    )
+                    # Importiere Profile und ggf. Sequenzen
+                    if is_positive and is_valid_sequence(full_profile["features"]):
+                        try:
+                            profile_to_save = {k: v for k, v in full_profile.items() if k in ["features", "label"]}
+                            profile_to_save["label"] = 1
+                            result = mongo.create(profile_to_save, 'training_data2')
+                            if result and result.get('statusCode') == 200:
+                                successful_imports += 1
+                                profile_ids.append(result.get('_id'))
+                                logger.debug(f"Vollständiges Profil {index} erfolgreich gespeichert")
+                            else:
+                                failed_imports += 1
+                                logger.error(f"Fehler beim Speichern des vollständigen Profils {index}")
+                        except Exception as e:
+                            logger.error(f"Fehler beim Import des vollständigen Profils {index}: {str(e)}")
+                            failed_imports += 1
+                        # Sequenzen nur speichern, wenn erlaubt
+                        if allow_sequences:
+                            for seq_num, sequence_data in enumerate(sequence_examples, 1):
+                                if is_valid_sequence(sequence_data["features"]):
+                                    try:
+                                        sequence_to_save = {k: v for k, v in sequence_data.items() if k in ["features", "label"]}
+                                        sequence_to_save["label"] = 1
+                                        result = mongo.create(sequence_to_save, 'training_data2')
+                                        if result and result.get('statusCode') == 200:
+                                            total_sequences_processed += 1
+                                            successful_imports += 1
+                                            logger.debug(f"Sequenz {seq_num} von Profil {index} erfolgreich gespeichert")
+                                        else:
+                                            failed_imports += 1
+                                            logger.error(f"Fehler beim Speichern der Sequenz {seq_num} von Profil {index}")
+                                    except Exception as e:
+                                        logger.error(f"Fehler beim Import der Sequenz {seq_num} von Profil {index}: {str(e)}")
+                                        failed_imports += 1
+                                else:
+                                    logger.info(f"Sequenz {seq_num} von Profil {index} übersprungen wegen ungültiger Werte.")
+                        if sequence_examples:
+                            unique_profiles += 1
+                            logger.debug(f"Profil {index} mit {len(sequence_examples)} Sequenzen verarbeitet")
+                    elif is_negative and is_valid_sequence(full_profile["features"]):
+                        try:
+                            profile_to_save = {k: v for k, v in full_profile.items() if k in ["features", "label"]}
+                            profile_to_save["label"] = 0
+                            result = mongo.create(profile_to_save, 'training_data2')
+                            if result and result.get('statusCode') == 200:
+                                successful_imports += 1
+                                profile_ids.append(result.get('_id'))
+                                logger.debug(f"Negatives Profil {index} erfolgreich gespeichert")
+                            else:
+                                failed_imports += 1
+                                logger.error(f"Fehler beim Speichern des negativen Profils {index}")
+                        except Exception as e:
+                            logger.error(f"Fehler beim Import des negativen Profils {index}: {str(e)}")
+                            failed_imports += 1
                     else:
-                        failed_imports += 1
-                        logger.error(f"MongoDB Import fehlgeschlagen für Kandidat")
-                # break  # Diese Zeile wird entfernt, da sie die Schleife nach dem ersten Eintrag beendet
-
+                        logger.info(f"Profil {index} übersprungen (Status: {candidate_status})")
             except Exception as e:
-                logger.error(f"Fehler beim Import des Kandidaten: {str(e)}")
+                logger.error(f"Fehler beim Import des Kandidaten {index}: {str(e)}")
                 failed_imports += 1
-                
-        logger.info(f"CSV-Import abgeschlossen:")
-        logger.info(f"- Erfolgreich importiert: {successful_imports}")
-        logger.info(f"- Davon mit Label 1 (wechselbereit): {label_ones_count}")
+
+        # Verifiziere die Imports
+        logger.info("\nVerifiziere Imports...")
+        try:
+            # Prüfe ob alle Profile in der DB sind
+            for profile_id in profile_ids:
+                result = mongo.read_one({'_id': profile_id}, 'training_data2')
+                if not result or result.get('statusCode') != 200:
+                    logger.warning(f"Profil {profile_id} konnte nicht in der DB gefunden werden!")
+        except Exception as e:
+            logger.error(f"Fehler bei der Verifikation: {str(e)}")
+
+        # Detaillierte Zusammenfassung
+        logger.info(f"\nCSV-Import abgeschlossen:")
+        logger.info(f"- Verarbeitete Profile: {unique_profiles}")
+        logger.info(f"- Vollständige Profile importiert: {unique_profiles}")
+        logger.info(f"- Zusätzliche Sequenzen importiert: {total_sequences_processed}")
+        logger.info(f"- Gesamt Datenpunkte: {unique_profiles + total_sequences_processed}")
         logger.info(f"- Fehlgeschlagen: {failed_imports}")
-        logger.info(f"- Übersprungen (keine Career History): {skipped_empty_career}")
-        return successful_imports, failed_imports, skipped_empty_career, label_ones_count
+        logger.info(f"- Übersprungen: {skipped_empty_career}")
         
+        # Zähle die Label-Verteilung in der Datenbank
+        try:
+            all_data = mongo.get_all('training_data2').get('data', [])
+            label_ones = sum(1 for d in all_data if d.get('label', 0) == 1)
+            label_zeros = sum(1 for d in all_data if d.get('label', 0) == 0)
+            logger.info(f"Label-Verteilung in training_data2:")
+            logger.info(f"- label=1: {label_ones}")
+            logger.info(f"- label=0: {label_zeros}")
+        except Exception as e:
+            logger.error(f"Fehler beim Auslesen der Label-Verteilung: {str(e)}")
+        
+        return successful_imports, failed_imports, skipped_empty_career, total_sequences_processed
+
     except Exception as e:
-        logger.error(f"Fehler beim CSV-Import: {str(e)}")
+        logger.error(f"Kritischer Fehler beim CSV-Import: {str(e)}")
         return 0, 0, 0, 0
 
 def handler(filename):
     """
     Verarbeitet CSV-Dateien und importiert die Kandidatendaten in die MongoDB.
-    Stellt sicher, dass alle Features gültige numerische Werte haben.
     """
+    logger.info(f"Starte Verarbeitung der Datei: {filename}")
+    
     csv_folder = "backend/ml_pipe/data/datafiles/"
     
     if not os.path.exists(csv_folder):
-        print(f"Ordner nicht gefunden: {csv_folder}")
+        logger.error(f"Ordner nicht gefunden: {csv_folder}")
         return
         
     file_path = os.path.join(csv_folder, filename)
     if not os.path.exists(file_path):
-        print(f"Datei nicht gefunden: {filename}")
+        logger.error(f"Datei nicht gefunden: {file_path}")
         return
         
-    print(f"Verarbeite Datei: {filename}")
+    logger.info(f"Verarbeite Datei: {file_path}")
     
     try:
-        # MongoDB-Verbindung herstellen
-        mongo = MongoDb()
+        # Rufe die Import-Funktion auf
+        successful, failed, skipped, sequences = import_candidates_from_csv(file_path)
         
-        # Feature Engineering Instanz erstellen
-        fe = featureEngineering()
-        
-        # CSV-Datei einlesen
-        df = pd.read_csv(file_path, 
-                        sep=',',              # Komma als Trennzeichen
-                        quoting=csv.QUOTE_ALL,  # Alle Felder sind in Anführungszeichen
-                        encoding='utf-8'        # UTF-8 Encoding
-                        )
-        
-        successful_imports = 0
-        failed_imports = 0
-        skipped_empty_career = 0
-        label_ones_count = 0
-        
-        for _, row in df.iterrows():
-            try:
-                if 'linkedinProfileInformation' in row and pd.notna(row['linkedinProfileInformation']):
-                    # Bereinige die JSON-Daten
-                    json_str = row['linkedinProfileInformation']
-                    
-                    # Korrigiere Encoding-Probleme
-                    try:
-                        # Versuche UTF-8 Dekodierung
-                        json_str = json_str.encode('latin1').decode('utf-8')
-                    except UnicodeError:
-                        # Falls das fehlschlägt, behalte den Original-String
-                        pass
-                    
-                    # Entferne ungültige Steuerzeichen
-                    json_str = ''.join(char for char in json_str if ord(char) >= 32 or char in '\n\r\t')
-                    
-                    try:
-                        # Versuche das JSON zu parsen
-                        profile_info = json.loads(json_str)
-                    except json.JSONDecodeError as je:
-                        try:
-                            # Zweiter Versuch: Bereinige JSON noch gründlicher
-                            import re
-                            # Entferne alle nicht-druckbaren Zeichen außer Whitespace
-                            json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
-                            profile_info = json.loads(json_str)
-                        except json.JSONDecodeError as je2:
-                            logger.error(f"JSON Parsing Fehler nach zweitem Versuch: {str(je2)}")
-                            logger.error(f"Problematische JSON-Daten: {json_str[:100]}...")
-                            failed_imports += 1
-                            continue
-                    
-                    # Extrahiere Karriere- und Bildungsdaten
-                    career_history = extract_career_data(profile_info, fe)
-                    education_data = extract_education_data(profile_info)
-                    
-                    # Prüfe auf leere Career History
-                    if not career_history:
-                        skipped_empty_career += 1
-                        continue
-                    
-                    # Schätze Alterskategorie mit Fallback auf 0
-                    age_category = estimate_age_category(profile_info)
-                    if age_category is None:
-                        age_category = 0  # Default-Wert für nicht bestimmbare Alterskategorie
-                        logger.info(f"Keine Alterskategorie bestimmbar - setze auf 0")
-                    
-                    # Extrahiere zusätzliche Features
-                    features = extract_additional_features(career_history, education_data, fe, age_category)
-                    
-                    # Bestimme Wechselbereitschaft basierend auf den Status
-                    communication_status = str(row.get('communicationStatus', '')).lower()
-                    candidate_status = str(row.get('candidateStatus', '')).lower()
-                    
-                    # Prüfe ob es ein positives Label ist
-                    is_positive = (
-                        'interviewbooked' in communication_status.replace(' ', '') or 
-                        'accepted' in candidate_status or 
-                        'interested' in candidate_status
-                    )
-                    
-                    # Fahre nur fort, wenn es ein positives Label ist
-                    if not is_positive:
-                        continue
-                        
-                    label = 1  # Wir speichern nur noch die positiven Fälle
-                    label_ones_count += 1
-                    
-                    # Erstelle bereinigte Kandidatendaten
-                    candidate_data = {
-                        "features": features,
-                        "label": label
-                    }
-                    
-                    # Validiere numerische Werte
-                    if features['age_category'] is None:
-                        features['age_category'] = 0
-                    
-                    # Speichere in MongoDB
-                    result = mongo.create(candidate_data, 'training_data')
-                    
-                    if result and result.get('statusCode') == 200:
-                        successful_imports += 1
-                    else:
-                        failed_imports += 1
-                        logger.error(f"MongoDB Import fehlgeschlagen für Kandidat")
-                        
-            except Exception as e:
-                logger.error(f"Fehler beim Import des Kandidaten: {str(e)}")
-                failed_imports += 1
-        
-        # Zusammenfassung ausgeben
-        print(f"\nImport abgeschlossen:")
-        print(f"- Erfolgreich importiert: {successful_imports}")
-        print(f"- Davon mit Label 1 (wechselbereit): {label_ones_count}")
-        print(f"- Fehlgeschlagen: {failed_imports}")
-        print(f"- Übersprungen (keine Career History): {skipped_empty_career}")
+        logger.info("\nFinaler Import-Status:")
+        logger.info(f"✓ Erfolgreich importierte Datenpunkte: {successful}")
+        logger.info(f"✗ Fehlgeschlagene Imports: {failed}")
+        logger.info(f"- Übersprungene Profile: {skipped}")
+        logger.info(f"+ Zusätzliche Sequenzen: {sequences}")
         
     except Exception as e:
-        logger.error(f"Fehler beim CSV-Import: {str(e)}")
-        print(f"Import fehlgeschlagen: {str(e)}")
+        logger.error(f"Kritischer Fehler beim Verarbeiten der Datei: {str(e)}")
         return
 
 if __name__ == "__main__":
+    logger.info("Starte Import-Prozess...")
     handler('CID224.csv')  # Änderung des Dateinamens auf die bereinigte Version
+    logger.info("Import-Prozess beendet.")

@@ -96,7 +96,7 @@ class featureEngineering:
         Nutzt den PositionClassifier für die Klassifizierung.
         """
         if not title:
-            return 2, 0  # Default: Mid-Level, Other
+            return 0, 0  # Dummywert für Level und Branche
 
         # Nutze den PositionClassifier für die Klassifizierung
         level, branche = self.classifier.classify_position(title)
@@ -104,12 +104,10 @@ class featureEngineering:
         # Validiere die Werte
         if not (1 <= level <= 8):  # Wir haben jetzt 8 Level
             print(f"Warnung: Ungültiges Level für '{title}': {level}")
-            level = 2  # Default: Regular Level
-            
+            level = 0  # Dummywert
         if not (0 <= branche <= 3):
             print(f"Warnung: Ungültige Branche für '{title}': {branche}")
-            branche = 0  # Default: Other
-            
+            branche = 0  # Dummywert
         return level, branche
 
     def months_between(self, start, end):

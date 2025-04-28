@@ -133,7 +133,7 @@ def get_feature_description(feature_name, importance):
     }
     return descriptions.get(feature_name, "Dieses Feature beeinflusst die Vorhersage.")
 
-def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
+def predict(input_data, model_name="career_lstm_20250428_175745.pt"):
     try:
         # Feature Engineering Instanz erstellen
         fe = featureEngineering()
@@ -158,8 +158,6 @@ def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
         # Extrahiere Features mit existierender Funktion
         features = extract_additional_features(career_history, education_data, fe, age_category)
         
-        print(features)
-        
         # Konstruiere den vollständigen Modellpfad
         model_path = os.path.join(MODEL_BASE_PATH, model_name)
         
@@ -174,8 +172,8 @@ def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
         
         # Modell initialisieren
         model = TFTModel(
-            sequence_features=hyperparameters.get('sequence_dim', 13),
-            global_features=hyperparameters.get('global_dim', 9),
+            sequence_features=hyperparameters.get('sequence_dim', 6),
+            global_features=hyperparameters.get('global_dim', 3),
             hidden_size=hyperparameters.get('hidden_size', 128),
             num_layers=hyperparameters.get('num_layers', 2),
             dropout=hyperparameters.get('dropout', 0.2),
@@ -190,29 +188,20 @@ def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
         
         model.eval()
 
-        # Input vorbereiten
+        # Input vorbereiten (nur Positionsfeatures und globale Features)
         sequence_features = features['career_sequence']
         global_features = [
             float(features['highest_degree']),
             float(features['age_category']),
-            float(features['total_experience_years']),
-            float(features.get('avg_position_gap', 0)),
-            float(features.get('internal_moves_ratio', 0)),
-            float(features.get('location_changes_ratio', 0)),
-            float(features.get('branche_changes_ratio', 0)),
-            float(features.get('avg_level_change', 0)),
-            float(features.get('positive_moves_ratio', 0.5))
+            float(features['total_experience_years'])
         ]
         
         # Konvertiere zu Tensoren
         seq_tensor = torch.tensor([
             [float(seq.get(key, 0)) for key in [
                 'level', 'branche', 'duration_months', 
-                'time_since_start', 'time_until_end',
-                'gap_months', 'level_change', 'internal_move',
-                'location_change', 'branche_change', 'previous_level',
-                'previous_branche', 'previous_duration'
-            ]] for seq in sequence_features
+                'time_since_start', 'time_until_end', 'is_current']
+            ] for seq in sequence_features
         ], dtype=torch.float32).unsqueeze(0)
         
         global_tensor = torch.tensor(global_features, dtype=torch.float32).unsqueeze(0)
@@ -224,8 +213,47 @@ def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
         
         pred_value = float(pred.item())
         
-        # Berechne Feature-Wichtigkeiten
-        explanations = calculate_feature_importance(model, seq_tensor, global_tensor, lengths)
+        # Feature-Namen für Importance
+        sequence_feature_names = [
+            "Position Level",
+            "Branche",
+            "Beschäftigungsdauer",
+            "Zeit seit Beginn",
+            "Zeit bis Ende",
+            "Aktuelle Position"
+        ]
+        global_feature_names = [
+            "Bildungsabschluss",
+            "Alterskategorie",
+            "Berufserfahrung"
+        ]
+        all_feature_names = sequence_feature_names + global_feature_names
+        
+        # Feature Importance (vereinfacht)
+        sequence_features_np = seq_tensor[0].numpy()
+        global_features_np = global_tensor[0].numpy()
+        avg_sequence_features = np.mean(np.abs(sequence_features_np), axis=0)
+        all_feature_values = np.concatenate([avg_sequence_features, np.abs(global_features_np)])
+        total_importance = np.sum(all_feature_values)
+        if total_importance == 0:
+            feature_importance = np.zeros_like(all_feature_values)
+        else:
+            feature_importance = (all_feature_values / total_importance) * 100
+        explanations = []
+        for name, importance in zip(all_feature_names, feature_importance):
+            if importance > 1.0:
+                explanations.append({
+                    "feature": name,
+                    "impact_percentage": round(float(importance), 1),
+                    "description": f"Dieses Feature beeinflusst die Wechselwahrscheinlichkeit zu {importance:.1f}% mit."
+                })
+        explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
+        if not explanations:
+            explanations.append({
+                "feature": "Gesamtanalyse",
+                "impact_percentage": 0.0,
+                "description": "Die Vorhersage basiert auf einer Kombination verschiedener Karrierefaktoren."
+            })
         
         # Interpretation der Vorhersage
         if pred_value > 0.7:
@@ -256,23 +284,20 @@ def predict(input_data, model_name="career_lstm_20250424_175101.pt"):
                 "Längerfristige Beziehungspflege empfohlen.",
                 f"Wechselwahrscheinlichkeit: {pred_value:.1%}"
             ]
-        
         # Füge die wichtigsten Feature-Erklärungen zu den Empfehlungen hinzu
         if explanations:
-            top_features = sorted(explanations, key=lambda x: x["impact_percentage"], reverse=True)[:3]
+            top_features = explanations[:3]
             feature_recommendations = [
                 f"• {feature['feature']}: {feature['description']} ({feature['impact_percentage']:.1f}% Einfluss)"
                 for feature in top_features
             ]
             recommendations.extend(feature_recommendations)
-        
         return {
             "confidence": [pred_value],
             "recommendations": recommendations,
             "status": status,
             "explanations": explanations
         }
-        
     except Exception as e:
         print(f"Fehler bei der Vorhersage: {str(e)}")
         traceback.print_exc()

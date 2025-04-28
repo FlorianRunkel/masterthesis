@@ -4,37 +4,6 @@ import numpy as np
 from pytorch_lightning import LightningDataModule
 import logging
 
-# Default-Werte für Features
-DEFAULTS = {
-    # Position Features
-    'level': 2,           # Regular/Mid Level als Default
-    'branche': 0,         # Other als Default
-    'duration_months': 24, # 2 Jahre als typische Verweildauer
-    'time_since_start': 0,
-    'time_until_end': 0,
-    
-    # Transition Features
-    'gap_months': 0,      # Keine Lücke als Default
-    'level_change': 0,    # Kein Level-Change als Default
-    'internal_move': 0,   # Kein interner Wechsel als Default
-    'location_change': 0, # Kein Standortwechsel als Default
-    'branche_change': 0,  # Kein Branchenwechsel als Default
-    'previous_level': 2,  # Regular/Mid Level als Default
-    'previous_branche': 0,# Other als Default
-    'previous_duration': 24, # 2 Jahre als Default
-    
-    # Globale Features
-    'highest_degree': 2,  # Bachelor als Default
-    'age_category': 2,    # Mid-Career als Default
-    'total_experience_years': 5, # 5 Jahre als Default
-    'avg_position_gap': 0,
-    'internal_moves_ratio': 0,
-    'location_changes_ratio': 0,
-    'branche_changes_ratio': 0,
-    'avg_level_change': 0,
-    'positive_moves_ratio': 0.5  # 50% positive Wechsel als Default
-}
-
 class CareerDataset(Dataset):
     def __init__(self, data):
         self.data = data
@@ -44,11 +13,12 @@ class CareerDataset(Dataset):
         return len(self.data)
     
     def _safe_get(self, dict_obj, key, prefix=""):
-        """Sicheres Abrufen von Werten mit Logging bei fehlenden Features"""
-        value = dict_obj.get(key, DEFAULTS[key])
+        """Sicheres Abrufen von Werten. Werfe Exception, wenn ein Wert fehlt."""
         if key not in dict_obj:
-            self.logger.debug(f"{prefix}Feature '{key}' fehlt, verwende Default: {value}")
-        return float(value)
+            msg = f"{prefix}Feature '{key}' fehlt im Datensatz!"
+            self.logger.error(msg)
+            raise KeyError(msg)
+        return float(dict_obj[key])
     
     def __getitem__(self, idx):
         item = self.data[idx]
@@ -58,52 +28,31 @@ class CareerDataset(Dataset):
         career_sequence = features.get('career_sequence', [])
         
         if not career_sequence:
-            self.logger.warning(f"Keine Karriere-Sequenz für Index {idx}")
-            # Erstelle eine Dummy-Sequenz mit einem Eintrag
-            career_sequence = [{}]
+            self.logger.error(f"Keine Karriere-Sequenz für Index {idx}")
+            raise ValueError(f"Keine Karriere-Sequenz für Index {idx}")
         
-        # Erstelle Tensoren für die tatsächliche Sequenzlänge
-        position_features = torch.tensor([[
-            self._safe_get(seq, 'level', f"Seq {i}: "),
-            self._safe_get(seq, 'branche', f"Seq {i}: "),
-            self._safe_get(seq, 'duration_months', f"Seq {i}: "),
-            self._safe_get(seq, 'time_since_start', f"Seq {i}: "),
-            self._safe_get(seq, 'time_until_end', f"Seq {i}: ")
-        ] for i, seq in enumerate(career_sequence)], dtype=torch.float32)
+        # Erstelle Tensoren für die tatsächliche Sequenzlänge (nur Positionsfeatures)
+        position_features = torch.tensor([
+            [
+                self._safe_get(seq, 'level', f"Seq {i}: "),
+                self._safe_get(seq, 'branche', f"Seq {i}: "),
+                self._safe_get(seq, 'duration_months', f"Seq {i}: "),
+                self._safe_get(seq, 'time_since_start', f"Seq {i}: "),
+                self._safe_get(seq, 'time_until_end', f"Seq {i}: "),
+                self._safe_get(seq, 'is_current', f"Seq {i}: ")
+            ] for i, seq in enumerate(career_sequence)], dtype=torch.float32)
         
-        # Wechsel-Features als separate Sequenz
-        transition_features = torch.tensor([[
-            self._safe_get(seq, 'gap_months', f"Seq {i}: "),
-            self._safe_get(seq, 'level_change', f"Seq {i}: "),
-            self._safe_get(seq, 'internal_move', f"Seq {i}: "),
-            self._safe_get(seq, 'location_change', f"Seq {i}: "),
-            self._safe_get(seq, 'branche_change', f"Seq {i}: "),
-            self._safe_get(seq, 'previous_level', f"Seq {i}: "),
-            self._safe_get(seq, 'previous_branche', f"Seq {i}: "),
-            self._safe_get(seq, 'previous_duration', f"Seq {i}: ")
-        ] for i, seq in enumerate(career_sequence)], dtype=torch.float32)
-        
-        # Kombiniere alle sequentiellen Features
-        x_sequence = torch.cat([position_features, transition_features], dim=1)
-        
-        # Globale Features (nicht sequentiell)
-        career_patterns = features.get('career_patterns', {})
+        # Globale Features (nur die erlaubten)
         global_features = torch.tensor([
             self._safe_get(features, 'highest_degree'),
             self._safe_get(features, 'age_category'),
-            self._safe_get(features, 'total_experience_years'),
-            self._safe_get(career_patterns, 'avg_position_gap'),
-            self._safe_get(career_patterns, 'internal_moves_ratio'),
-            self._safe_get(career_patterns, 'location_changes_ratio'),
-            self._safe_get(career_patterns, 'branche_changes_ratio'),
-            self._safe_get(career_patterns, 'avg_level_change'),
-            self._safe_get(career_patterns, 'positive_moves_ratio')
+            self._safe_get(features, 'total_experience_years')
         ], dtype=torch.float32)
         
         # Label (Default 0 für "kein Wechsel")
         y = torch.tensor(float(item.get('label', 0)), dtype=torch.float32)
         
-        return (x_sequence, global_features), y
+        return (position_features, global_features), y
 
 def collate_fn(batch):
     """
@@ -140,8 +89,8 @@ class DataModule(LightningDataModule):
         self.train_data = None
         self.val_data = None
         self.test_data = None
-        self.sequence_dim = 13  # 5 Position + 8 Transition Features
-        self.global_dim = 9     # Globale Features
+        self.sequence_dim = 6  # 6 Position Features
+        self.global_dim = 3     # Globale Features
         
     def prepare_data(self):
         # Diese Methode wird nur auf einem GPU ausgeführt
@@ -152,7 +101,7 @@ class DataModule(LightningDataModule):
         # Diese Methode wird auf jedem GPU ausgeführt
         if self.train_data is None:
             # Hole alle Trainingsdaten aus MongoDB
-            result = self.mongo_client.get_all('training_data')
+            result = self.mongo_client.get_all('training_data2')
             all_data = result.get('data', [])
             
             if not all_data:
