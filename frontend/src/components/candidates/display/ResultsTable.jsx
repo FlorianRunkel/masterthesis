@@ -74,8 +74,8 @@ const ResultsTable = ({ results, onSave, isSaving }) => {
   };
 
   const getProbabilityClass = (confidence) => {
-    if (confidence < 50) return 'probability-low';
-    if (confidence < 75) return 'probability-medium';
+    if (confidence < 60) return 'probability-low';
+    if (confidence < 80) return 'probability-medium';
     return 'probability-high';
   };
 
@@ -302,50 +302,84 @@ const ResultsTable = ({ results, onSave, isSaving }) => {
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
                             maxWidth: '95%'
                           }}>
-                            <Typography sx={{ 
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              color: '#1a1a1a',
-                              mb: 3
-                            }}>
-                              {(result.recommendations || [])[0]}
-                            </Typography>
+
                             <Box sx={{ color: '#666' }}>
-                              {(result.explanations || []).map((explanation, i) => (
-                                <Box key={i} sx={{ mb: 2 }}>
-                                  <Box sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: 1.5,
-                                    mb: 1,
-                                    margin: '20px auto',
-                                  }}>
-                                    <Typography sx={{ 
-                                      fontWeight: 600,
-                                      minWidth: 200
-                                    }}>
-                                      {explanation.feature}
+                              {(() => {
+                                // Sortiere und filtere die wichtigsten Features
+                                const explanations = (result.explanations || [])
+                                  .sort((a, b) => parseFloat(b.impact_percentage) - parseFloat(a.impact_percentage));
+                                const top3 = explanations.slice(0, 3);
+                                const sonstigeSumme = explanations.slice(3).reduce((sum, f) => sum + parseFloat(f.impact_percentage), 0);
+
+                                // Farben wie in PredictionResult.jsx
+                                const getBarColors = [
+                                  '#28a745', // grün
+                                  '#ffc107', // gelb
+                                  '#dc3545', // rot
+                                  '#b0b0b0'  // grau für Sonstiges
+                                ];
+
+                                // Daten für den gestapelten Balken
+                                const barData = [
+                                  ...top3.map((f, i) => ({
+                                    ...f,
+                                    color: getBarColors[i]
+                                  })),
+                                  ...(sonstigeSumme > 0 ? [{
+                                    feature: 'Sonstiges',
+                                    impact_percentage: sonstigeSumme,
+                                    color: getBarColors[3]
+                                  }] : [])
+                                ];
+
+                                if (barData.length === 0) {
+                                  return (
+                                    <Typography sx={{ color: '#666' }}>
+                                      Keine Feature-Erklärungen verfügbar.
                                     </Typography>
-                                    <Typography sx={{
-                                      fontWeight: 600
-                                    }}>
-                                      {explanation.impact_percentage}% Einfluss
+                                  );
+                                }
+
+                                return (
+                                  <Box>
+                                    {/* Überschrift für die Erklärung */}
+                                    <Typography sx={{ fontWeight: 600, fontSize: '1.15rem', color: '#001B41', mb: 2 }}>
+                                      Vorhersage-Erklärung
                                     </Typography>
+                                    {/* Gestapelter Balken */}
+                                    <Box sx={{ display: 'flex', width: '100%', height: 28, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
+                                      {barData.map((item, idx) => (
+                                        <Box
+                                          key={item.feature}
+                                          sx={{
+                                            width: `${item.impact_percentage}%`,
+                                            bgcolor: item.color,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#fff',
+                                            fontWeight: 600,
+                                            fontSize: '0.95rem',
+                                            borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
+                                            transition: 'width 0.3s ease'
+                                          }}
+                                        >
+                                          {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                    {/* Legende */}
+                                    <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
+                                      {barData.map(item => (
+                                        <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                          <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
+                                          <Typography variant="body2">{item.feature}</Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
                                   </Box>
-                                  <Typography sx={{ 
-                                    ml: 3,
-                                    fontSize: '0.9rem',
-                                    color: '#666'
-                                  }}>
-                                    {explanation.description}
-                                  </Typography>
-                                </Box>
-                              ))}
-                              {(!result.explanations || result.explanations.length === 0) && (
-                                <Typography sx={{ color: '#666' }}>
-                                  Keine Feature-Erklärungen verfügbar
-                                </Typography>
-                              )}
+                                );
+                              })()}
                             </Box>
                           </Box>
                         </td>

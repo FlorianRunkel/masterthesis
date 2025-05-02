@@ -37,21 +37,46 @@ const LinkedInInput = () => {
       const profile = await profileResponse.json();
       setProfileData(profile);
 
-      // Karriere-Vorhersage
-      const careerHistory = profile.experience.map(exp => ({
-        position: exp.title,
+      // Namen extrahieren
+      const [firstName, ...rest] = profile.name.split(' ');
+      const lastName = rest.join(' ');
+
+      // Berufserfahrung aufbereiten
+      const workExperience = profile.experience.map(exp => ({
         company: exp.company,
+        position: exp.title,
         startDate: exp.duration.split(' - ')[0],
-        endDate: exp.duration.split(' - ')[1] === 'Present' ? null : exp.duration.split(' - ')[1]
+        endDate: exp.duration.split(' - ')[1] === 'Present' ? null : exp.duration.split(' - ')[1],
+        type: "fullTime",
+        location: "",
+        description: ""
       }));
 
+      // Optional: education, skills etc. ergänzen, falls vorhanden
+      const education = profile.education || [];
+
+      const profile_data = {
+        firstName: firstName || "Unbekannt",
+        lastName: lastName || "Unbekannt",
+        profileLink: linkedinUrl,
+        modelType: "tft",
+        linkedinProfileInformation: JSON.stringify({
+          firstName: firstName || "Unbekannt",
+          lastName: lastName || "Unbekannt",
+          workExperience,
+          education,
+          skills: [],
+          location: profile.location || "",
+          headline: profile.currentTitle || "",
+          languageSkills: {}
+        })
+      };
+
+      // Karriere-Vorhersage
       const predictionResponse = await fetch('/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          experiences: careerHistory,
-          modelType: 'tft'
-        })
+        body: JSON.stringify(profile_data)
       });
 
       if (!predictionResponse.ok) {

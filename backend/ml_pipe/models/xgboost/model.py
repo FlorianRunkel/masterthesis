@@ -1,6 +1,5 @@
 import xgboost as xgb
 from sklearn.metrics import f1_score, accuracy_score, classification_report
-import numpy as np
 
 class XGBoostModel:
     def __init__(self, params=None):

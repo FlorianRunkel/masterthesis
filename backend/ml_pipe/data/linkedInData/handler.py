@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import csv
+import random
 
 import sys
 sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
@@ -362,6 +363,51 @@ def is_valid_sequence(seq_features):
         return False
     return True
 
+def generate_random_negative_sequence(career_history, education_data, fe, age_category, mongo):
+    """Erstellt eine zufällige Teilsequenz aus dem vollständigen Profil und gibt sie als declined Sequenz (label=0) zurück."""
+    if len(career_history) <= 1:
+        return None
+    # Wähle eine zufällige Länge für die Teilsequenz (mindestens 1, maximal len(career_history)-1)
+    seq_length = random.randint(1, len(career_history) - 1)
+    current_sequence = career_history[:seq_length]
+    # Passe die Zeitdaten an: Wähle einen zufälligen Zeitpunkt innerhalb der tatsächlichen Dauer
+    for entry in current_sequence:
+        actual_duration = entry.get('duration_months', 0)
+        if actual_duration > 0:
+            # Wähle einen zufälligen Zeitpunkt (in Monaten) innerhalb der tatsächlichen Dauer
+            random_point = random.randint(0, actual_duration)
+            entry['duration_months'] = random_point
+            # time_since_start ist die Zeit seit Beginn der Position bis zum zufälligen Zeitpunkt
+            entry['time_since_start'] = random_point
+            entry['time_until_end'] = actual_duration - random_point
+    sequence_features = {
+        "total_positions": len(current_sequence),
+        "career_sequence": [{
+            'level': entry.get('level', 0),
+            'branche': entry.get('branche', 0),
+            'duration_months': entry.get('duration_months', 0),
+            'time_since_start': entry.get('time_since_start', 0),
+            'time_until_end': entry.get('time_until_end', 0),
+            'is_current': 1 if entry.get('is_current', 0) else 0
+        } for entry in current_sequence],
+        "company_changes": len(set(pos['company'] for pos in current_sequence)) - 1,
+        "total_experience_years": round(sum(pos['duration_months'] for pos in current_sequence) / 12, 2),
+        "location_changes": len(set(pos['location'] for pos in current_sequence if pos['location'])) - 1,
+        "unique_locations": len(set(pos['location'] for pos in current_sequence if pos['location'])),
+        "avg_position_duration_months": sum(pos['duration_months'] for pos in current_sequence) / len(current_sequence),
+        "highest_degree": extract_additional_features(current_sequence, education_data, fe, age_category)['highest_degree'],
+        "current_position": {
+            "level": current_sequence[-1]['level'],
+            "branche": current_sequence[-1]['branche'],
+            "duration_months": current_sequence[-1]['duration_months'],
+            "time_since_start": current_sequence[-1]['time_since_start']
+        },
+        "age_category": age_category
+    }
+    if is_valid_sequence(sequence_features):
+        return {"features": sequence_features, "label": 0}
+    return None
+
 def import_candidates_from_csv(csv_file):
     try:
         mongo = MongoDb()
@@ -384,9 +430,9 @@ def import_candidates_from_csv(csv_file):
         # Definiere die erlaubte Ratio (60:40 bis 40:60)
         min_ratio = 0.6
         max_ratio = 1.67
-        allow_sequences = min_ratio <= ratio <= max_ratio
+        allow_sequences = (min_ratio <= ratio <= max_ratio) or (label_ones == 0 and label_zeros == 0)
         if allow_sequences:
-            logger.info("Label-Verteilung ist ausgeglichen. Importiere Profile UND Sequenzen.")
+            logger.info("Label-Verteilung ist ausgeglichen oder leer. Importiere Profile UND Sequenzen.")
         else:
             logger.warning("Label-Verteilung ist unausgeglichen! Importiere NUR Profile, KEINE Sequenzen.")
 
@@ -422,8 +468,12 @@ def import_candidates_from_csv(csv_file):
                         skipped_empty_career += 1
                         continue
                     candidate_status = str(row.get('candidateStatus', '')).lower()
-                    is_positive = ('accepted' in candidate_status) or ('interested' in candidate_status)
-                    is_negative = ('declined' in candidate_status) or ('future prospect' in candidate_status)
+                    communicationStatus = str(row.get('communicationStatus', '')).lower()
+                    is_positive = ('accepted' in candidate_status) or ('interested' in candidate_status) or ('interviewBooked' in communicationStatus)
+                    is_negative = ('declined' in candidate_status) or ('futureProspect' in candidate_status) or ('followUpSent' in communicationStatus) or ('secondFollowUpSent' in communicationStatus)
+                    # Wenn der Status nan ist, aber gültige Features vorhanden sind, importiere als negativ (label=0)
+                    if pd.isna(candidate_status) and is_valid_sequence(full_profile["features"]):
+                        is_negative = True
                     full_profile, sequence_examples = generate_career_sequences(
                         career_history, 
                         education_data, 
@@ -436,7 +486,7 @@ def import_candidates_from_csv(csv_file):
                             profile_to_save = {k: v for k, v in full_profile.items() if k in ["features", "label"]}
                             profile_to_save["label"] = 1
                             result = mongo.create(profile_to_save, 'training_data2')
-                            if result and result.get('statusCode') == 200:
+                            if result and result.get('statusCode') == 200 and result.get('_id'):
                                 successful_imports += 1
                                 profile_ids.append(result.get('_id'))
                                 logger.debug(f"Vollständiges Profil {index} erfolgreich gespeichert")
@@ -451,6 +501,7 @@ def import_candidates_from_csv(csv_file):
                             for seq_num, sequence_data in enumerate(sequence_examples, 1):
                                 if is_valid_sequence(sequence_data["features"]):
                                     try:
+                                        # Speichere Sequenz mit label=1
                                         sequence_to_save = {k: v for k, v in sequence_data.items() if k in ["features", "label"]}
                                         sequence_to_save["label"] = 1
                                         result = mongo.create(sequence_to_save, 'training_data2')
@@ -464,8 +515,18 @@ def import_candidates_from_csv(csv_file):
                                     except Exception as e:
                                         logger.error(f"Fehler beim Import der Sequenz {seq_num} von Profil {index}: {str(e)}")
                                         failed_imports += 1
-                                else:
-                                    logger.info(f"Sequenz {seq_num} von Profil {index} übersprungen wegen ungültiger Werte.")
+                                    # Erstelle eine declined Sequenz (label=0) für jede Sequenz mit label=1
+                                    declined_sequence = generate_random_negative_sequence(career_history, education_data, fe, age_category, mongo)
+                                    if declined_sequence:
+                                        result = mongo.create(declined_sequence, 'training_data2')
+                                        if result and result.get('statusCode') == 200:
+                                            total_sequences_processed += 1
+                                            successful_imports += 1
+                                            logger.debug(f"Declined Sequenz {seq_num} von Profil {index} erfolgreich gespeichert")
+                                        else:
+                                            failed_imports += 1
+                                            logger.error(f"Fehler beim Speichern der declined Sequenz {seq_num} von Profil {index}")
+
                         if sequence_examples:
                             unique_profiles += 1
                             logger.debug(f"Profil {index} mit {len(sequence_examples)} Sequenzen verarbeitet")
@@ -495,7 +556,9 @@ def import_candidates_from_csv(csv_file):
         try:
             # Prüfe ob alle Profile in der DB sind
             for profile_id in profile_ids:
-                result = mongo.read_one({'_id': profile_id}, 'training_data2')
+                if profile_id is None:
+                    continue
+                result = mongo.find_one({'_id': profile_id}, 'training_data2')
                 if not result or result.get('statusCode') != 200:
                     logger.warning(f"Profil {profile_id} konnte nicht in der DB gefunden werden!")
         except Exception as e:
@@ -562,5 +625,5 @@ def handler(filename):
 
 if __name__ == "__main__":
     logger.info("Starte Import-Prozess...")
-    handler('CID224.csv')  # Änderung des Dateinamens auf die bereinigte Version
+    handler('CID103 (1).csv')  # Änderung des Dateinamens auf die bereinigte Version
     logger.info("Import-Prozess beendet.")

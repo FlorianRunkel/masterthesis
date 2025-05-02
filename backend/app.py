@@ -92,11 +92,20 @@ def get_all_candidates():
 def predict_career():
     try:
         data = request.get_json()
-
-        experiences = data.get('experiences', [])
-        model_type = data.get('modelType', 'tft')
-
         app.logger.info(f"Eingehende Daten: {data}")
+
+        # Extrahiere die Profilinformationen
+        if "linkedinProfileInformation" in data:
+            try:
+                profile_data = json.loads(data["linkedinProfileInformation"])
+            except Exception as json_err:
+                app.logger.error(f"JSON parsing error: {str(json_err)}")
+                return jsonify({'error': f'Ungültiges JSON-Format: {str(json_err)}'}), 400
+        else:
+            profile_data = data
+
+        model_type = data.get('modelType', 'tft').lower()
+        app.logger.info(f"Verwende Modell: {model_type}")
 
         # Dynamisches Laden des Modell-Moduls
         model_predictors = {
@@ -106,21 +115,25 @@ def predict_career():
         }
 
         if model_type not in model_predictors:
+            app.logger.error(f"Unbekannter Modelltyp: {model_type}")
             return jsonify({'error': f"Unbekannter Modelltyp: {model_type}"}), 400
 
         module = __import__(model_predictors[model_type], fromlist=['predict'])
+        app.logger.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
 
-        # Richtige Input-Struktur für die Modelle
-        prediction = module.predict({
-            "career_history": experiences
-        })
-
+        # Vorhersage mit den Profildaten
+        prediction = module.predict(profile_data)
+        
         # Formatiere Vorhersage
         formatted_prediction = {
-            'confidence': prediction['confidence'][0],
-            'recommendations': prediction['recommendations'][0]
+            'confidence': max(0.0, prediction['confidence'][0]),
+            'recommendations': prediction['recommendations'][0],
+            'status': prediction.get('status', ''),
+            'explanations': prediction.get('explanations', [])
         }
-
+        
+        app.logger.info(f"Formatted Prediction: {formatted_prediction}")
+        
         return jsonify(formatted_prediction)
 
     except Exception as e:
@@ -265,7 +278,8 @@ def scrape_linkedin():
                 'currentTitle': profile.get('headline', ''),
                 'location': profile.get('locationName', ''),
                 'imageUrl': profile.get('displayPictureUrl', '') + profile.get('img_400_400', ''),
-                'experience': []
+                'experience': [],
+                'education': []
             }
 
             # Formatiere die Berufserfahrung
@@ -281,6 +295,18 @@ def scrape_linkedin():
             # Füge zusätzliche Informationen hinzu
             profile_data['industry'] = profile.get('industry', '')
             profile_data['summary'] = profile.get('summary', '')
+
+            # Ausbildung extrahieren
+            education_list = []
+            for edu in profile.get('education', []):
+                edu_data = {
+                    'degree': edu.get('degreeName', ''),
+                    'school': edu.get('schoolName', ''),
+                    'startDate': str(edu.get('timePeriod', {}).get('startDate', {}).get('year', '')) if edu.get('timePeriod', {}).get('startDate') else '',
+                    'endDate': str(edu.get('timePeriod', {}).get('endDate', {}).get('year', '')) if edu.get('timePeriod', {}).get('endDate') else ''
+                }
+                education_list.append(edu_data)
+            profile_data['education'] = education_list
 
             app.logger.info(f"Profildaten erfolgreich extrahiert für: {profile_data['name']}")
             return jsonify(profile_data)

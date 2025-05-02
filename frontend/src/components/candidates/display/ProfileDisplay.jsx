@@ -108,6 +108,35 @@ const ProfileDisplay = ({ profile }) => {
         ))}
       </Box>
 
+      {/* Ausbildung anzeigen */}
+      {profile.education && profile.education.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h3" sx={{
+            fontSize: '1.3rem',
+            fontWeight: 600,
+            color: '#1a1a1a',
+            mb: 2,
+            pb: 1,
+            borderBottom: '2px solid #e0e0e0'
+          }}>
+            Ausbildung
+          </Typography>
+          {profile.education.map((edu, idx) => (
+            <Box key={idx} sx={{ py: 2.5, borderBottom: idx < profile.education.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
+              <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+                {edu.degree || 'Kein Abschluss angegeben'}
+              </Typography>
+              <Typography sx={{ fontSize: '1rem', color: '#666', mb: 0.5 }}>
+                {edu.school || 'Keine Schule/Hochschule angegeben'}
+              </Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>
+                {edu.startDate || ''}{(edu.startDate && edu.endDate) ? ' - ' : ''}{edu.endDate || ''}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
+
       {profile.summary && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h3" sx={{

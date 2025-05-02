@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button} from '@mui/material';
+import { Box, Typography, Button, TextField } from '@mui/material';
 import PredictionResult from '../prediction/PredictionResult';
 
 const ManualInput = () => {
@@ -13,6 +13,13 @@ const ManualInput = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [education, setEducation] = useState([{
+    school: '',
+    degree: '',
+    fieldOfStudy: '',
+    startDate: '',
+    endDate: ''
+  }]);
 
   const handleAddExperience = () => {
     setExperiences([...experiences, {
@@ -39,29 +46,89 @@ const ManualInput = () => {
     setExperiences(newExperiences);
   };
 
+  const handleAddEducation = () => {
+    setEducation([...education, {
+      school: '',
+      degree: '',
+      fieldOfStudy: '',
+      startDate: '',
+      endDate: ''
+    }]);
+  };
+
+  const handleEducationChange = (index, field, value) => {
+    const newEducation = [...education];
+    newEducation[index] = {
+      ...newEducation[index],
+      [field]: value
+    };
+    setEducation(newEducation);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
     setPrediction(null);
 
     try {
       const formData = {
-        experiences: experiences.map(exp => ({
+        workExperience: experiences.map(exp => ({
           company: exp.company,
           position: exp.position,
           startDate: exp.startDate,
           endDate: exp.endDate || null
         })),
+        education: education.map(edu => ({
+          school: edu.school,
+          degree: edu.degree,
+          fieldOfStudy: edu.fieldOfStudy,
+          startDate: edu.startDate,
+          endDate: edu.endDate
+        })),
         modelType: selectedModel.toLowerCase()
       };
 
-      const response = await fetch('/predict', {
+      // Erstelle das Profil im gleichen Format wie beim Batch-Upload
+      const profile_data = {
+        firstName: formData.firstName || "Unbekannt",
+        lastName: formData.lastName || "Unbekannt",
+        profileLink: "",
+        modelType: selectedModel.toLowerCase(),
+        linkedinProfileInformation: JSON.stringify({
+          firstName: formData.firstName || "Unbekannt",
+          lastName: formData.lastName || "Unbekannt",
+          workExperience: experiences.map(exp => ({
+            company: exp.company || "",
+            position: exp.position || "",
+            startDate: exp.startDate || "",
+            endDate: exp.endDate || "Present",
+            type: "fullTime",
+            location: "",
+            description: ""
+          })),
+          education: education.map(edu => ({
+            school: edu.school,
+            degree: edu.degree,
+            fieldOfStudy: edu.fieldOfStudy,
+            startDate: edu.startDate,
+            endDate: edu.endDate
+          })),
+          skills: [],
+          location: "",
+          headline: "",
+          languageSkills: {}
+        })
+      };
+
+      console.log("Sende Daten:", profile_data); // Debug-Log
+
+      const response = await fetch('http://localhost:5100/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(profile_data),
       });
 
       if (!response.ok) {
@@ -72,6 +139,7 @@ const ManualInput = () => {
       const data = await response.json();
       setPrediction(data);
     } catch (err) {
+      console.error("Fehler:", err); // Debug-Log
       setError(err.message);
     } finally {
       setLoading(false);
@@ -119,96 +187,55 @@ const ManualInput = () => {
             color: '#1a1a1a',
             mb: 3
           }}>
-            Berufserfahrung
+            Ausbildung
           </Typography>
 
-          <Box id="experiences" sx={{ width: '100%', mb: 3 }}>
-            {experiences.map((exp, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: '12px',
-                  mb: '16px',
-                  pb: '16px',
-                  borderBottom: index < experiences.length - 1 ? '1px solid rgba(0, 0, 0, 0.1)' : 'none',
-                  width: '100%'
-                }}
-              >
-                <input
-                  type="text"
-                  value={exp.company}
-                  onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
-                  placeholder="Firma"
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s ease',
-                    outline: 'none'
-                  }}
-                />
-                <input
-                  type="text"
-                  value={exp.position}
-                  onChange={(e) => handleExperienceChange(index, 'position', e.target.value)}
-                  placeholder="Position"
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s ease',
-                    outline: 'none'
-                  }}
-                />
-                <input
-                  type="date"
-                  value={exp.startDate}
-                  onChange={(e) => handleExperienceChange(index, 'startDate', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s ease',
-                    outline: 'none'
-                  }}
-                />
-                <input
-                  type="date"
-                  value={exp.endDate}
-                  onChange={(e) => handleExperienceChange(index, 'endDate', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s ease',
-                    outline: 'none'
-                  }}
-                />
+          <Box id="education" sx={{ width: '100%', mb: 3 }}>
+            {education.map((edu, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    label="Schule/Hochschule"
+                    value={edu.school}
+                    onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
+                  />
+                  <TextField
+                    label="Abschluss"
+                    value={edu.degree}
+                    onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
+                  />
+                  <TextField
+                    label="Studienfach"
+                    value={edu.fieldOfStudy}
+                    onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
+                  />
+                  <TextField
+                    label="Startdatum"
+                    type="date"
+                    value={edu.startDate}
+                    onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    helperText={!edu.startDate ? "Bitte Startdatum wählen" : ""}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Enddatum"
+                    type="date"
+                    value={edu.endDate}
+                    onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
+                    fullWidth
+                  />
+                </Box>
                 {index > 0 && (
                   <Button
-                    onClick={() => handleRemoveExperience(index)}
+                    onClick={() => {
+                      const newEducation = education.filter((_, i) => i !== index);
+                      setEducation(newEducation);
+                    }}
                     sx={{
-                      gridColumn: '1 / -1',
-                      width: '100px',
-                      marginRight: 'auto',
+                      minWidth: '100px',
                       padding: '8px 16px',
                       borderRadius: '8px',
                       border: 'none',
@@ -217,6 +244,8 @@ const ManualInput = () => {
                       fontSize: '0.9rem',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
+                      mt: 1,
+                      mb: 1,
                       '&:hover': {
                         bgcolor: '#dc3545',
                         color: 'white'
@@ -226,32 +255,129 @@ const ManualInput = () => {
                     Entfernen
                   </Button>
                 )}
+                {index < education.length - 1 && (
+                  <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />
+                )}
               </Box>
             ))}
+            <Button
+              onClick={handleAddEducation}
+              sx={{
+                width: '100%',
+                bgcolor: '#001B41',
+                color: 'white',
+                border: 'none',
+                p: '14px',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textTransform: 'none',
+                mb: 3,
+                '&:hover': {
+                  bgcolor: '#FF5F00'
+                }
+              }}
+            >
+              WEITERE AUSBILDUNG HINZUFÜGEN
+            </Button>
           </Box>
 
-          <Button
-            onClick={handleAddExperience}
-            sx={{
-              width: '100%',
-              bgcolor: '#001B41',
-              color: 'white',
-              border: 'none',
-              p: '14px',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              textTransform: 'none',
-              mb: 3,
-              '&:hover': {
-                bgcolor: '#FF5F00'
-              }
-            }}
-          >
-            WEITERE POSITION HINZUFÜGEN
-          </Button>
+          <Typography variant="h2" sx={{
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            color: '#1a1a1a',
+            mb: 3
+          }}>
+            Berufserfahrung
+          </Typography>
+
+          <Box id="experiences" sx={{ width: '100%', mb: 3 }}>
+            {experiences.map((exp, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    label="Firma"
+                    value={exp.company}
+                    onChange={e => handleExperienceChange(index, 'company', e.target.value)}
+                  />
+                  <TextField
+                    label="Position"
+                    value={exp.position}
+                    onChange={e => handleExperienceChange(index, 'position', e.target.value)}
+                  />
+                  <TextField
+                    label="Startdatum"
+                    type="date"
+                    value={exp.startDate}
+                    onChange={e => handleExperienceChange(index, 'startDate', e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Enddatum"
+                    type="date"
+                    value={exp.endDate}
+                    onChange={e => handleExperienceChange(index, 'endDate', e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
+                    fullWidth
+                  />
+                </Box>
+                {index > 0 && (
+                  <Button
+                    onClick={() => handleRemoveExperience(index)}
+                    sx={{
+                      minWidth: '100px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      bgcolor: '#f8f9fa',
+                      color: '#666',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      mt: 1,
+                      mb: 1,
+                      '&:hover': {
+                        bgcolor: '#dc3545',
+                        color: 'white'
+                      }
+                    }}
+                  >
+                    Entfernen
+                  </Button>
+                )}
+                {index < experiences.length - 1 && (
+                  <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />
+                )}
+              </Box>
+            ))}
+            <Button
+              onClick={handleAddExperience}
+              sx={{
+                width: '100%',
+                bgcolor: '#001B41',
+                color: 'white',
+                border: 'none',
+                p: '14px',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textTransform: 'none',
+                mb: 3,
+                '&:hover': {
+                  bgcolor: '#FF5F00'
+                }
+              }}
+            >
+              WEITERE POSITION HINZUFÜGEN
+            </Button>
+          </Box>
 
           <Typography variant="h2" sx={{
             fontSize: '1.5rem',
