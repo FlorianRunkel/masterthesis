@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade } from '@mui/material';
+import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProfileDisplay from '../display/ProfileDisplay';
@@ -13,6 +13,7 @@ const LinkedInInput = () => {
   const [predictionData, setPredictionData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gru'); // Standardwert z.B. GRU
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,7 +60,7 @@ const LinkedInInput = () => {
         firstName: firstName || "Unbekannt",
         lastName: lastName || "Unbekannt",
         profileLink: linkedinUrl,
-        modelType: "tft",
+        modelType: selectedModel,
         linkedinProfileInformation: JSON.stringify({
           firstName: firstName || "Unbekannt",
           lastName: lastName || "Unbekannt",
@@ -190,6 +191,9 @@ const LinkedInInput = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#fff',
+                fontSize: '1.3rem',
+                minHeight: '40px',
+                padding: '5px 0',
                 '& fieldset': {
                   borderColor: '#e0e0e0',
                   borderWidth: 1
@@ -200,9 +204,38 @@ const LinkedInInput = () => {
                 '&.Mui-focused fieldset': {
                   borderColor: '#1a1a1a'
                 }
+              },
+              input: {
+                fontSize: '1.3rem',
+                padding: '18px 14px'
               }
             }}
           />
+
+        <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 1 }}>
+          Modelltyp auswählen
+        </Typography>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel id="model-type-label">Modelltyp</InputLabel>
+          <Select
+            labelId="model-type-label"
+            value={selectedModel}
+            label="Modelltyp"
+            onChange={(e) => setSelectedModel(e.target.value)}
+            sx={{
+              '&:hover': {
+                borderColor: 'transparent'
+              },
+              '&.Mui-focused': {
+                borderColor: 'transparent'
+              }
+            }}
+          >
+            <MenuItem value="gru">Gated Recurrent Units (GRU)</MenuItem>
+            <MenuItem value="xgboost">Extrem Gradient Boosting (XGBoost)</MenuItem>
+            <MenuItem value="tft">Temporal Fusion Transformer (TFT)</MenuItem>
+          </Select>
+        </FormControl>
 
           <button
             type="submit"

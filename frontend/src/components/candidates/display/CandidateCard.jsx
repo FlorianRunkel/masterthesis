@@ -22,28 +22,56 @@ const CandidateCard = ({ candidate }) => {
       flexDirection: 'column',
       gap: 2
     }}>
-      <Typography variant="h3" sx={{
-        fontSize: '1.2rem',
-        fontWeight: 600,
-        color: '#1a1a1a'
-      }}>
-        {name}
-      </Typography>
+      {/* Bild und Name/Link nebeneinander */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+        {candidate.imageUrl && candidate.imageUrl !== '' && (
+          <img
+            src={candidate.imageUrl}
+            alt={name}
+            style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee' }}
+          />
+        )}
+        <Box>
+          <Typography variant="h3" sx={{
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            color: '#1a1a1a'
+          }}>
+            {name}
+          </Typography>
+          <Link 
+            href={candidate.linkedinProfile} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            sx={{
+              color: '#001B41',
+              textDecoration: 'none',
+              '&:hover': {
+                color: '#FF5F00'
+              }
+            }}
+          >
+            LinkedIn Profil
+          </Link>
+        </Box>
+      </Box>
 
-      <Link 
-        href={candidate.linkedinProfile} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        sx={{
-          color: '#001B41',
-          textDecoration: 'none',
-          '&:hover': {
-            color: '#FF5F00'
-          }
-        }}
-      >
-        LinkedIn Profil
-      </Link>
+      {/* Zusätzliche Infos */}
+      {candidate.currentPosition && (
+        <Typography sx={{ color: '#666', fontSize: '1rem', mt: 1 }}>
+          <b>Aktuelle Position:</b> {candidate.currentPosition}
+        </Typography>
+      )}
+      {candidate.location && (
+        <Typography sx={{ color: '#666', fontSize: '1rem' }}>
+          <b>Standort:</b> {candidate.location}
+        </Typography>
+      )}
+      {candidate.industry && (
+        <Typography sx={{ color: '#666', fontSize: '1rem' }}>
+          <b>Branche:</b> {candidate.industry}
+        </Typography>
+      )}
 
       <Box sx={{ mt: 2 }}>
         <Typography sx={{
@@ -51,8 +79,8 @@ const CandidateCard = ({ candidate }) => {
           fontWeight: 600,
           mb: 1
         }}>
-          {confidence <= 50 ? 'Geringe Wechselwahrscheinlichkeit' :
-           confidence <= 75 ? 'Mittlere Wechselwahrscheinlichkeit' :
+          {confidence <= 60 ? 'Geringe Wechselwahrscheinlichkeit' :
+           confidence <= 80 ? 'Mittlere Wechselwahrscheinlichkeit' :
            'Hohe Wechselwahrscheinlichkeit'}
         </Typography>
 

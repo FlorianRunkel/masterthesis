@@ -27,7 +27,7 @@ const ProfileDisplay = ({ profile }) => {
               width: '100px',
               height: '100px',
               borderRadius: '50%',
-              objectFit: 'cover'
+              objectFit: 'cover',
             }}
           />
         )}
@@ -60,60 +60,54 @@ const ProfileDisplay = ({ profile }) => {
         </Box>
       </Box>
 
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{
-          fontSize: '1.3rem',
-          fontWeight: 600,
-          color: '#1a1a1a',
-          mb: 2,
-          pb: 1,
-          borderBottom: '2px solid #e0e0e0'
-        }}>
-          Berufserfahrung
-        </Typography>
-
-        {profile.experience && profile.experience.map((exp, index) => (
-          <Box
-            key={index}
-            sx={{
-              py: 2.5,
-              borderBottom: index < profile.experience.length - 1 ? '1px solid #e0e0e0' : 'none'
-            }}
-          >
-            <Typography sx={{
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              color: '#1a1a1a',
-              mb: 0.5
-            }}>
-              {exp.title || 'Keine Position angegeben'}
-            </Typography>
-            
-            <Typography sx={{
-              fontSize: '1rem',
-              color: '#666',
-              mb: 0.5
-            }}>
-              {exp.company || 'Kein Unternehmen angegeben'}
-            </Typography>
-            
-            <Typography sx={{
-              fontSize: '0.9rem',
-              color: '#666',
-              opacity: 0.8
-            }}>
-              {exp.duration || 'Kein Zeitraum angegeben'}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-
-      {/* Ausbildung anzeigen */}
-      {profile.education && profile.education.length > 0 && (
-        <Box sx={{ mb: 4 }}>
+      {/* Berufserfahrung und Ausbildung nebeneinander */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        gap: 4,
+        mb: 4
+      }}>
+        {/* Berufserfahrung */}
+        <Box>
           <Typography variant="h3" sx={{
-            fontSize: '1.3rem',
-            fontWeight: 600,
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1a1a1a',
+            mb: 2,
+            pb: 1,
+            borderBottom: '2px solid #e0e0e0'
+          }}>
+            Berufserfahrung
+          </Typography>
+          {profile.experience && profile.experience.length > 0 ? (
+            profile.experience.map((exp, index) => (
+              <Box
+                key={index}
+                sx={{
+                  py: 1.5,
+                  borderBottom: index < profile.experience.length - 1 ? '1px solid #e0e0e0' : 'none'
+                }}
+              >
+                <Typography sx={{ fontSize: '1.05rem', fontWeight: 600, color: '#1a1a1a', mb: 0.2 }}>
+                  {exp.title || 'Keine Position angegeben'}
+                </Typography>
+                <Typography sx={{ fontSize: '0.98rem', color: '#666', mb: 0.2 }}>
+                  {exp.company || 'Kein Unternehmen angegeben'}
+                </Typography>
+                <Typography sx={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>
+                  {exp.duration || 'Kein Zeitraum angegeben'}
+                </Typography>
+              </Box>
+            ))
+          ) : (
+            <Typography sx={{ color: '#aaa', fontSize: '0.98rem' }}>Keine Berufserfahrung angegeben</Typography>
+          )}
+        </Box>
+        {/* Ausbildung */}
+        <Box>
+          <Typography variant="h3" sx={{
+            fontSize: '1.5rem',
+            fontWeight: 700,
             color: '#1a1a1a',
             mb: 2,
             pb: 1,
@@ -121,26 +115,30 @@ const ProfileDisplay = ({ profile }) => {
           }}>
             Ausbildung
           </Typography>
-          {profile.education.map((edu, idx) => (
-            <Box key={idx} sx={{ py: 2.5, borderBottom: idx < profile.education.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
-              <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
-                {edu.degree || 'Kein Abschluss angegeben'}
-              </Typography>
-              <Typography sx={{ fontSize: '1rem', color: '#666', mb: 0.5 }}>
-                {edu.school || 'Keine Schule/Hochschule angegeben'}
-              </Typography>
-              <Typography sx={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>
-                {edu.startDate || ''}{(edu.startDate && edu.endDate) ? ' - ' : ''}{edu.endDate || ''}
-              </Typography>
-            </Box>
-          ))}
+          {profile.education && profile.education.length > 0 ? (
+            profile.education.map((edu, idx) => (
+              <Box key={idx} sx={{ py: 1.5, borderBottom: idx < profile.education.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
+                <Typography sx={{ fontSize: '1.05rem', fontWeight: 600, color: '#1a1a1a', mb: 0.2 }}>
+                  {edu.degree || 'Kein Abschluss angegeben'}
+                </Typography>
+                <Typography sx={{ fontSize: '0.98rem', color: '#666', mb: 0.2 }}>
+                  {edu.school || 'Keine Schule/Hochschule angegeben'}
+                </Typography>
+                <Typography sx={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>
+                  {edu.startDate || ''}{(edu.startDate && edu.endDate) ? ' - ' : ''}{edu.endDate || ''}
+                </Typography>
+              </Box>
+            ))
+          ) : (
+            <Typography sx={{ color: '#aaa', fontSize: '0.98rem' }}>Keine Ausbildung angegeben</Typography>
+          )}
         </Box>
-      )}
+      </Box>
 
       {profile.summary && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h3" sx={{
-            fontSize: '1.3rem',
+            fontSize: '1.15rem',
             fontWeight: 600,
             color: '#1a1a1a',
             mb: 2,

@@ -122,7 +122,7 @@ def predict_career():
         app.logger.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
 
         # Vorhersage mit den Profildaten
-        prediction = module.predict(profile_data)
+        prediction = module.predict(profile_data, with_llm_explanation=True)
         
         # Formatiere Vorhersage
         formatted_prediction = {
@@ -206,9 +206,9 @@ def predict_batch():
                         "error": f"Ungültiges JSON-Format: {str(json_err)}"
                     })
                     continue
-                
+                    
                 # Make prediction with complete profile data
-                prediction = module.predict(profile_data)
+                prediction = module.predict(profile_data, with_llm_explanation=False)
                 
                 if "error" in prediction:
                     results.append({
@@ -226,7 +226,6 @@ def predict_batch():
                         "recommendations": prediction["recommendations"],
                         "status": prediction.get("status", ""),
                         "explanations": prediction.get("explanations", []),
-                        "llm_explanation": prediction.get("llm_explanation", "")
                     })
                     print(results)
 
@@ -351,6 +350,7 @@ def save_candidates():
         saved_count = 0
         skipped_count = 0
         for candidate in candidates:
+            print(candidate)
             # Prüfe auf Duplikate anhand der LinkedIn-URL
             if 'linkedinProfile' in candidate and candidate['linkedinProfile']:
                 existing = mongo_db.find_one({'linkedinProfile': candidate['linkedinProfile']}, 'candidates')
@@ -358,6 +358,17 @@ def save_candidates():
                     skipped_count += 1
                     continue
             candidate['created_at'] = datetime.now().isoformat()
+            
+            # Setze aktuelle Position aus dem ersten experience-Eintrag, falls vorhanden
+            if 'experience' in candidate and isinstance(candidate['experience'], list) and len(candidate['experience']) > 0:
+                first_exp = candidate['experience'][0]
+                title = first_exp.get('title', '')
+                company = first_exp.get('company', '')
+                candidate['currentPosition'] = f"{title} @ {company}".strip(' @')
+                
+            candidate['location'] = candidate.get('location', '')
+            candidate['imageUrl'] = candidate.get('imageUrl', '')
+
             result = mongo_db.create(candidate, 'candidates')
             if result['statusCode'] == 200:
                 saved_count += 1

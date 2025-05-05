@@ -201,17 +201,52 @@ const ManualInput = () => {
                     label="Schule/Hochschule"
                     value={edu.school}
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
                   <TextField
                     label="Abschluss"
                     value={edu.degree}
                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
                   <TextField
                     label="Studienfach"
                     value={edu.fieldOfStudy}
                     onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
                   <TextField
                     label="Startdatum"
                     type="date"
@@ -220,16 +255,47 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!edu.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
-                  <TextField
-                    label="Enddatum"
-                    type="date"
-                    value={edu.endDate}
-                    onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
-                    fullWidth
-                  />
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Enddatum"
+                      type={edu.endDate === 'Present' ? 'text' : 'date'}
+                      value={edu.endDate}
+                      onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontSize: '1.1rem',
+                          minHeight: '48px',
+                          padding: '5px 0',
+                        },
+                        input: {
+                          fontSize: '1.1rem',
+                          padding: '14px 12px'
+                        }
+                      }}
+                    />
+                    <Button
+                      variant={edu.endDate === 'Present' ? 'contained' : 'outlined'}
+                      onClick={() => handleEducationChange(index, 'endDate', edu.endDate === 'Present' ? '' : 'Present')}
+                      sx={{ minWidth: 80, minHeight: '48px', height: '57px', p: 0, fontSize: '0.9rem' }}
+                    >
+                      Present
+                    </Button>
+                  </Box>
                 </Box>
                 {index > 0 && (
                   <Button
@@ -304,12 +370,36 @@ const ManualInput = () => {
                     label="Firma"
                     value={exp.company}
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
                   <TextField
                     label="Position"
                     value={exp.position}
                     onChange={e => handleExperienceChange(index, 'position', e.target.value)}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
                   <TextField
                     label="Startdatum"
                     type="date"
@@ -318,16 +408,47 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '1.1rem',
+                        minHeight: '48px',
+                        padding: '5px 0',
+                      },
+                      input: {
+                        fontSize: '1.1rem',
+                        padding: '14px 12px'
+                      }
+                    }}
                   />
-                  <TextField
-                    label="Enddatum"
-                    type="date"
-                    value={exp.endDate}
-                    onChange={e => handleExperienceChange(index, 'endDate', e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
-                    fullWidth
-                  />
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Enddatum"
+                      type={exp.endDate === 'Present' ? 'text' : 'date'}
+                      value={exp.endDate}
+                      onChange={e => handleExperienceChange(index, 'endDate', e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontSize: '1.1rem',
+                          minHeight: '48px',
+                          padding: '5px 0',
+                        },
+                        input: {
+                          fontSize: '1.1rem',
+                          padding: '14px 12px'
+                        }
+                      }}
+                    />
+                    <Button
+                      variant={exp.endDate === 'Present' ? 'contained' : 'outlined'}
+                      onClick={() => handleExperienceChange(index, 'endDate', exp.endDate === 'Present' ? '' : 'Present')}
+                      sx={{ minWidth: 80, minHeight: '48px', height: '57px', p: 0, fontSize: '0.9rem' }}
+                    >
+                      Present
+                    </Button>
+                  </Box>
                 </Box>
                 {index > 0 && (
                   <Button

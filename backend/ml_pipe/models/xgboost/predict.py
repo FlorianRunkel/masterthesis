@@ -55,7 +55,7 @@ def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Ma
     latest_model = max(model_files, key=os.path.getmtime)
     return latest_model
 
-def predict(profile_dict, model_path=None):
+def predict(profile_dict, model_path=None, with_llm_explanation=False):
     if model_path is None:
         model_path = get_latest_model_path()
     if not os.path.exists(model_path):
@@ -114,7 +114,9 @@ def predict(profile_dict, model_path=None):
 
     # Score als Prozentwert für die Erklärung übergeben
     score_percent = round(prob[1] * 100, 1)
-    llm_explanation = generate_llm_explanation(profile_dict, explanations, recommendations=recommendations)
+    llm_explanation = ""
+    if with_llm_explanation: 
+        llm_explanation = generate_llm_explanation(profile_dict, explanations, recommendations=recommendations)
     return {
         "confidence": [float(prob[1])],
         "recommendations": recommendations,

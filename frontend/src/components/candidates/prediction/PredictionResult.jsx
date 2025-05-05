@@ -127,53 +127,59 @@ const PredictionResult = ({ prediction }) => {
         </Box>
       </Paper>
 
-      {/* Vorhersage-Erklärung separat und als gestapelter Balken */}
       {barData.length > 0 && (
-        <Box sx={{ mt: 4, mb: 2 }}>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mb: 2, fontSize: '1.2rem' }}>
+        <>
+          <Typography variant="h1" color="primary" gutterBottom sx={{ mt: 8, mb: 4, fontSize: '1.8rem', fontWeight: 700}}>
             Vorhersage-Erklärung
           </Typography>
-          {/* Gestapelter Balken */}
-          <Box sx={{ display: 'flex', width: '100%', height: 28, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
-            {barData.map((item, idx) => (
-              <Box
-                key={item.feature}
-                sx={{
-                  width: `${item.impact_percentage}%`,
-                  bgcolor: item.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                  borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
-                  transition: 'width 0.3s ease'
-                }}
-              >
-                {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
-              </Box>
-            ))}
+          <Box sx={{ p: 3, pt: 0, pb: 0 }}>
+            <Typography sx={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.9, textAlign: 'justify', mb: 2 }}>
+              Der folgende Balken zeigt, welche Merkmale das Ergebnis am stärksten beeinflusst haben. Je größer der farbige Anteil, desto wichtiger war dieses Merkmal für die Prognose. Die Legende darunter erklärt, wofür die Farben stehen.
+            </Typography>
           </Box>
-          {/* Legende */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
-            {barData.map(item => (
-              <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                <Typography variant="body2">{item.feature}</Typography>
-              </Box>
-            ))}
+          <Box sx={{ mt: 6, mb: 3, px: { xs:1, sm: 2, md: 4 } }}>
+            {/* Gestapelter Balken */}
+            <Box sx={{ display: 'flex', width: '100%', height: 32, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
+              {barData.map((item, idx) => (
+                <Box
+                  key={item.feature}
+                  sx={{
+                    width: `${item.impact_percentage}%`,
+                    bgcolor: item.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
+                    transition: 'width 0.3s ease'
+                  }}
+                >
+                  {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
+                </Box>
+              ))}
+            </Box>
+            {/* Legende */}
+            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+              {barData.map(item => (
+                <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
+                  <Typography variant="body2">{item.feature}</Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
-        </Box>
+        </>
       )}
 
       {/* KI-Erklärung anzeigen, falls vorhanden */}
       {prediction.llm_explanation && (
-        <Box sx={{ mt: 3, bgcolor: '#F8FAFC', p: 3, borderRadius: 2, border: '1px solid #E0E7EF' }}>
-          <Typography sx={{ fontWeight: 600, mb: 1, color: '#001B41' }}>
-            Erklärung der Vorhersage
-          </Typography>
-          <Typography sx={{ color: '#444', fontSize: '1.05rem' }}>
+        <Box sx={{
+          mb: 3,
+          p: 3,
+        }}>
+          <Typography sx={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.9, textAlign: 'justify' }}>
             {prediction.llm_explanation}
           </Typography>
         </Box>

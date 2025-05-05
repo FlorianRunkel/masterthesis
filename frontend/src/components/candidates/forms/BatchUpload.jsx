@@ -178,7 +178,7 @@ const BatchUpload = () => {
             >
               DATEI AUSWÄHLEN
             </Button>
-            <Typography sx={{ fontSize: '0.9rem', color: '#666', textAlign: 'center' }}>
+            <Typography sx={{ fontSize: '1rem', color: '#666', textAlign: 'center', paddingTop: '10px' }}>
               {file ? file.name : 'Keine ausgewählt'}
             </Typography>
           </Box>
