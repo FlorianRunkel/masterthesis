@@ -74,10 +74,13 @@ const ManualInput = () => {
     try {
       const formData = {
         workExperience: experiences.map(exp => ({
-          company: exp.company,
-          position: exp.position,
-          startDate: exp.startDate,
-          endDate: exp.endDate || null
+          company: exp.company || "",
+          position: exp.position || "",
+          startDate: exp.startDate || "",
+          endDate: exp.endDate || "Present",
+          type: "fullTime",
+          location: "",
+          description: ""
         })),
         education: education.map(edu => ({
           school: edu.school,

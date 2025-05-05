@@ -129,7 +129,8 @@ def predict_career():
             'confidence': max(0.0, prediction['confidence'][0]),
             'recommendations': prediction['recommendations'][0],
             'status': prediction.get('status', ''),
-            'explanations': prediction.get('explanations', [])
+            'explanations': prediction.get('explanations', []),
+            'llm_explanation': prediction.get('llm_explanation', '')
         }
         
         app.logger.info(f"Formatted Prediction: {formatted_prediction}")
@@ -161,7 +162,17 @@ def predict_batch():
 
         # Import model dynamically
         try:
-            module = __import__("ml_pipe.models.tft.predict", fromlist=['predict'])
+            model_type = request.form.get('modelType', 'xgboost').lower()
+            model_predictors = {
+                "gru": "backend.ml_pipe.models.gru.predict",
+                "xgboost": "backend.ml_pipe.models.xgboost.predict",
+                "tft": "backend.ml_pipe.models.tft.predict"
+            }
+
+            if model_type not in model_predictors:
+                return jsonify({'error': f"Unbekannter Modelltyp: {model_type}"}), 400
+
+            module = __import__(model_predictors[model_type], fromlist=['predict'])
             app.logger.info("Model module imported successfully")
         except Exception as import_err:
             app.logger.error(f"Model import error: {str(import_err)}")
@@ -214,7 +225,8 @@ def predict_batch():
                         "confidence": prediction["confidence"],
                         "recommendations": prediction["recommendations"],
                         "status": prediction.get("status", ""),
-                        "explanations": prediction.get("explanations", [])
+                        "explanations": prediction.get("explanations", []),
+                        "llm_explanation": prediction.get("llm_explanation", "")
                     })
                     print(results)
 

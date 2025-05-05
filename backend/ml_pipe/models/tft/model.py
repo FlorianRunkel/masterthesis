@@ -13,10 +13,10 @@ class TFTModel(pl.LightningModule):
                  lr=1e-3):
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.lr = lr
         self.loss_fn = nn.BCELoss()
-        
+
         # Sequenz-Verarbeitung
         self.sequence_encoder = nn.LSTM(
             input_size=sequence_features,
@@ -26,7 +26,7 @@ class TFTModel(pl.LightningModule):
             dropout=dropout if num_layers > 1 else 0,
             bidirectional=bidirectional
         )
-        
+
         # Attention für Sequenz
         self.attention = nn.MultiheadAttention(
             embed_dim=hidden_size * 2 if bidirectional else hidden_size,
@@ -67,7 +67,7 @@ class TFTModel(pl.LightningModule):
             nn.Linear(hidden_size // 4, 1),
             nn.Sigmoid()
         )
-        
+
         # Initialisiere Gewichte
         self.apply(self._init_weights)
         
@@ -164,7 +164,7 @@ class TFTModel(pl.LightningModule):
             self.log("learning_rate", self.optimizers().param_groups[0]['lr'])
             
         return loss
-    
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
             self.parameters(),

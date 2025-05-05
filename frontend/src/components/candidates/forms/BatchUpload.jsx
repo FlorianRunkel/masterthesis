@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Alert } from '@mui/material';
+import { Box, Typography, Button, Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import ResultsTable from '../display/ResultsTable';
 import LoadingSpinner from '../../common/LoadingSpinner';
 
@@ -11,6 +11,7 @@ const BatchUpload = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [modelType, setModelType] = useState('xgboost');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -33,6 +34,7 @@ const BatchUpload = () => {
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('modelType', modelType);
     
     try {
       const response = await fetch('http://localhost:5100/predict-batch', {
@@ -152,13 +154,6 @@ const BatchUpload = () => {
             gap: 3
           }}
         >
-          <input
-            type="file"
-            id="csvFile"
-            accept=".csv"
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-          />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
             <Button
               component="label"
@@ -187,6 +182,31 @@ const BatchUpload = () => {
               {file ? file.name : 'Keine ausgewählt'}
             </Typography>
           </Box>
+
+          <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 1 }}>
+              Modelltyp auswählen
+          </Typography>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="model-type-label">Modelltyp</InputLabel>
+            <Select
+              labelId="model-type-label"
+              value={modelType}
+              label="Modelltyp"
+              onChange={(e) => setModelType(e.target.value)}
+            >
+              <MenuItem value="xgboost">Gated Recurrent Units (GRU)</MenuItem>
+              <MenuItem value="gru">Extrem Gradient Boosting (XGBoost)</MenuItem>
+              <MenuItem value="tft">Temporal Fusion Transformer (TFT)</MenuItem>
+            </Select>
+          </FormControl>
+          <input
+            type="file"
+            id="csvFile"
+            accept=".csv"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
 
           <Button
             onClick={handleUpload}

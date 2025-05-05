@@ -166,6 +166,18 @@ const PredictionResult = ({ prediction }) => {
           </Box>
         </Box>
       )}
+
+      {/* KI-Erklärung anzeigen, falls vorhanden */}
+      {prediction.llm_explanation && (
+        <Box sx={{ mt: 3, bgcolor: '#F8FAFC', p: 3, borderRadius: 2, border: '1px solid #E0E7EF' }}>
+          <Typography sx={{ fontWeight: 600, mb: 1, color: '#001B41' }}>
+            Erklärung der Vorhersage
+          </Typography>
+          <Typography sx={{ color: '#444', fontSize: '1.05rem' }}>
+            {prediction.llm_explanation}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

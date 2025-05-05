@@ -7,7 +7,6 @@ from typing import Tuple
 from difflib import SequenceMatcher
 import os
 from .position_classifier import PositionClassifier
-
 class featureEngineering:
     def __init__(self, use_llm: bool = False):
         """

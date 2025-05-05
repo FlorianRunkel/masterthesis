@@ -412,7 +412,7 @@ def import_candidates_from_csv(csv_file):
     try:
         mongo = MongoDb()
         fe = featureEngineering()
-        
+
         logger.info("Lese CSV-Datei...")
         df = pd.read_csv(csv_file)
         logger.info(f"CSV geladen. {len(df)} Zeilen gefunden.")
@@ -465,8 +465,8 @@ def import_candidates_from_csv(csv_file):
                         continue
                     age_category = estimate_age_category(profile_info)
                     if age_category is None:
-                        skipped_empty_career += 1
-                        continue
+                            skipped_empty_career += 1
+                            continue
                     candidate_status = str(row.get('candidateStatus', '')).lower()
                     communicationStatus = str(row.get('communicationStatus', '')).lower()
                     is_positive = ('accepted' in candidate_status) or ('interested' in candidate_status) or ('interviewBooked' in communicationStatus)
@@ -523,7 +523,7 @@ def import_candidates_from_csv(csv_file):
                                             total_sequences_processed += 1
                                             successful_imports += 1
                                             logger.debug(f"Declined Sequenz {seq_num} von Profil {index} erfolgreich gespeichert")
-                                        else:
+                        else:
                                             failed_imports += 1
                                             logger.error(f"Fehler beim Speichern der declined Sequenz {seq_num} von Profil {index}")
 
@@ -544,8 +544,8 @@ def import_candidates_from_csv(csv_file):
                                 logger.error(f"Fehler beim Speichern des negativen Profils {index}")
                         except Exception as e:
                             logger.error(f"Fehler beim Import des negativen Profils {index}: {str(e)}")
-                            failed_imports += 1
-                    else:
+                        failed_imports += 1
+                else:
                         logger.info(f"Profil {index} übersprungen (Status: {candidate_status})")
             except Exception as e:
                 logger.error(f"Fehler beim Import des Kandidaten {index}: {str(e)}")
@@ -602,7 +602,7 @@ def handler(filename):
         logger.error(f"Ordner nicht gefunden: {csv_folder}")
         return
         
-    file_path = os.path.join(csv_folder, filename)
+        file_path = os.path.join(csv_folder, filename)
     if not os.path.exists(file_path):
         logger.error(f"Datei nicht gefunden: {file_path}")
         return

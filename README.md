@@ -129,7 +129,7 @@ npm start
 
 - **Backend**:
   - Python 3.x
-  - Flask
+- Flask
   - PyTorch (TFT, GRU)
   - XGBoost
   - MongoDB
