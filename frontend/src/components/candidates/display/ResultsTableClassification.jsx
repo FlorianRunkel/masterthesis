@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Button, Checkbox, CircularProgress, Link } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 
-const ResultsTable = ({ results, onSave, isSaving }) => {
+const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
 

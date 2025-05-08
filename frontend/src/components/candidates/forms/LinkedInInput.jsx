@@ -3,7 +3,8 @@ import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade, Form
 import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProfileDisplay from '../display/ProfileDisplay';
-import PredictionResult from '../prediction/PredictionResult';
+import PredictionResultClassification from '../prediction/PredictionResultClassification';
+import PredictionResultTime from '../prediction/PredictionResultTime';
 
 const LinkedInInput = () => {
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -297,7 +298,11 @@ const LinkedInInput = () => {
       {profileData && <ProfileDisplay profile={profileData} />}
       {predictionData && (
         <>
-          <PredictionResult prediction={predictionData} />
+          {selectedModel === 'tft' ? (
+            <PredictionResultTime prediction={predictionData} />
+          ) : (
+            <PredictionResultClassification prediction={predictionData} />
+          )}
           <Box sx={{
             display: 'flex',
             flexDirection: 'column',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, TextField } from '@mui/material';
-import PredictionResult from '../prediction/PredictionResult';
+import PredictionResultTime from '../prediction/PredictionResultTime';
+import PredictionResultClassification from '../prediction/PredictionResultClassification';
 
 const ManualInput = () => {
   const [experiences, setExperiences] = useState([{
@@ -603,7 +604,13 @@ const ManualInput = () => {
         </Box>
       )}
 
-      {prediction && <PredictionResult prediction={prediction} />}
+      {prediction && selectedModel === 'tft' && (
+        <>
+          <PredictionResultTime prediction={prediction} />
+        </>
+      )}
+      {prediction && selectedModel === 'gru' && <PredictionResultClassification prediction={prediction} />}
+      {prediction && selectedModel === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
     </Box>
   );
 };

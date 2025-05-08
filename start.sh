@@ -59,6 +59,17 @@ cd "$MAIN_DIR/frontend"
 npm start &
 FRONTEND_PID=$!
 
+# Öffne Frontend im Browser
+if which xdg-open > /dev/null; then
+  xdg-open http://localhost:3000
+elif which open > /dev/null; then
+  open http://localhost:3000
+elif which start > /dev/null; then
+  start http://localhost:3000
+else
+  echo -e "${RED}Konnte Browser nicht automatisch öffnen. Bitte öffne http://localhost:3000 manuell.${NC}"
+fi
+
 echo -e "${BLUE}Beide Server wurden gestartet${NC}"
 echo -e "${GREEN}Backend läuft auf: ${NC}http://localhost:5100"
 echo -e "${GREEN}Frontend läuft auf: ${NC}http://localhost:3000"

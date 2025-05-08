@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import ResultsTable from '../display/ResultsTable';
+import ResultsTableClassification from '../display/ResultsTableClassification';
 import LoadingSpinner from '../../common/LoadingSpinner';
+import ResultsTableTime from '../display/ResultsTableTime';
 
 const BatchUpload = () => {
   const [file, setFile] = useState(null);
@@ -259,11 +260,11 @@ const BatchUpload = () => {
       
       {results && !loading && (
         <Box sx={{ mt: 3 }}>
-          <ResultsTable 
-            results={results} 
-            onSave={handleSaveCandidates}
-            isSaving={isSaving}
-          />
+          {modelType === 'tft' ? (
+            <ResultsTableTime results={results} />
+          ) : (
+            <ResultsTableClassification results={results} />
+          )}
         </Box>
       )}
     </Box>

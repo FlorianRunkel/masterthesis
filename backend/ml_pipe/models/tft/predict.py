@@ -1,309 +1,122 @@
 import torch
-import os
+import json
+from datetime import datetime
 import sys
-import traceback
-import numpy as np
-import shap
-from backend.ml_pipe.data.featureEngineering.featureEngineering import featureEngineering
-from backend.ml_pipe.data.linkedInData.handler import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
+import os
+
+sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
 from backend.ml_pipe.models.tft.model import TFTModel
 
-# Füge den Backend-Ordner zum Python-Path hinzu
-backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-sys.path.append(backend_dir)
+# Zeiträume wie in classify_change
+ZEITRAUM_LABELS = {
+    0: "0-6 Monate",
+    1: "7-12 Monate",
+    2: "13-24 Monate",
+    3: "über 24 Monate"
+}
 
-# Definiere den Basispfad für die Modelle
-MODEL_BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_models")
-
-class ModelWrapper(torch.nn.Module):
-    def __init__(self, model):
-        super().__init__()
-        self.model = model
-    
-    def forward(self, x):
-        seq_tensor, global_tensor, lengths = x
-        return self.model((seq_tensor, global_tensor, lengths))
-
-def calculate_feature_importance(model, seq_tensor, global_tensor, lengths):
-    """Berechnet Feature-Wichtigkeiten basierend auf den Modelleingaben"""
+def parse_date(date_str):
+    if date_str == "Present":
+        return datetime.now()
     try:
-        # Erstelle Feature-Namen und deren Beiträge basierend auf den tatsächlichen Daten
-        sequence_features = seq_tensor[0].numpy()  # [sequence_length, features]
-        global_features = global_tensor[0].numpy()  # [global_features]
-        
-        # Berechne die durchschnittlichen Werte für Sequenz-Features
-        avg_sequence_features = np.mean(np.abs(sequence_features), axis=0)
-        
-        # Kombiniere alle Feature-Werte
-        all_feature_values = np.concatenate([avg_sequence_features, np.abs(global_features)])
-        
-        # Normalisiere die Werte
-        total_importance = np.sum(all_feature_values)
-        if total_importance == 0:
-            feature_importance = np.zeros_like(all_feature_values)
-        else:
-            feature_importance = (all_feature_values / total_importance) * 100
-        
-        # Feature-Namen definieren
-        sequence_feature_names = [
-            "Position Level",
-            "Branche",
-            "Beschäftigungsdauer",
-            "Zeit seit Beginn",
-            "Zeit bis Ende",
-            "Lücke zwischen Positionen",
-            "Level-Änderung",
-            "Interner Wechsel",
-            "Standortwechsel",
-            "Branchenwechsel",
-            "Vorheriges Level",
-            "Vorherige Branche",
-            "Vorherige Dauer"
-        ]
-        
-        global_feature_names = [
-            "Bildungsabschluss",
-            "Alterskategorie",
-            "Berufserfahrung",
-            "Durchschnittliche Positionslücke",
-            "Interne Wechsel Rate",
-            "Standortwechsel Rate",
-            "Branchenwechsel Rate",
-            "Durchschnittliche Level-Änderung",
-            "Positive Wechsel Rate"
-        ]
-        
-        # Kombiniere alle Feature-Namen
-        all_feature_names = sequence_feature_names + global_feature_names
-        
-        # Erstelle Feature-Erklärungen
-        explanations = []
-        for name, importance in zip(all_feature_names, feature_importance):
-            if importance > 1.0:  # Nur Features mit mehr als 1% Einfluss
-                description = get_feature_description(name, importance)
-                explanations.append({
-                    "feature": name,
-                    "impact_percentage": round(float(importance), 1),
-                    "description": description
-                })
-        
-        # Sortiere nach Wichtigkeit
-        explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
-        
-        # Wenn keine Erklärungen gefunden wurden, füge eine Standard-Erklärung hinzu
-        if not explanations:
-            explanations.append({
-                "feature": "Gesamtanalyse",
-                "impact_percentage": 0.0,
-                "description": "Die Vorhersage basiert auf einer Kombination verschiedener Karrierefaktoren."
-            })
-        
-        return explanations
-        
-    except Exception as e:
-        print(f"Fehler bei der Feature-Wichtigkeitsberechnung: {str(e)}")
-        return [{
-            "feature": "Karriereverlauf",
-            "impact_percentage": 0.0,
-            "description": "Die Vorhersage basiert auf der Analyse des gesamten Karriereverlaufs."
-        }]
+        return datetime.strptime(date_str, "%d/%m/%Y")
+    except Exception:
+        try:
+            return datetime.strptime(date_str, "%m/%Y")
+        except Exception:
+            try:
+                return datetime.strptime(date_str, "%Y")
+            except Exception:
+                try:
+                    return datetime.strptime(date_str, "%Y-%m-%d")  # ISO-Format!
+                except Exception:
+                    return None
 
-def get_feature_description(feature_name, importance):
-    """Generiert Beschreibungen für Features basierend auf ihrer Wichtigkeit"""
-    descriptions = {
-        "Position Level": "Die Hierarchieebene der aktuellen und vorherigen Positionen hat einen signifikanten Einfluss auf die Wechselbereitschaft.",
-        "Branche": "Die Branchenzugehörigkeit und deren Entwicklung sind wichtige Indikatoren für potenzielle Wechsel.",
-        "Beschäftigungsdauer": "Die Verweildauer in Positionen gibt Aufschluss über das Wechselverhalten.",
-        "Zeit seit Beginn": "Die Zeit seit Beginn der aktuellen Position beeinflusst die Wechselwahrscheinlichkeit.",
-        "Zeit bis Ende": "Die Dauer bis zum Ende einer Position zeigt Muster im Wechselverhalten.",
-        "Lücke zwischen Positionen": "Zeitliche Lücken zwischen Positionen können auf Wechselbereitschaft hinweisen.",
-        "Level-Änderung": "Veränderungen in der Hierarchieebene zeigen Karriereentwicklung.",
-        "Interner Wechsel": "Die Häufigkeit interner Wechsel gibt Aufschluss über Loyalität.",
-        "Standortwechsel": "Die Bereitschaft zu Standortwechseln zeigt Flexibilität.",
-        "Branchenwechsel": "Wechsel zwischen Branchen deuten auf Anpassungsfähigkeit hin.",
-        "Bildungsabschluss": "Der höchste Bildungsabschluss beeinflusst Karrieremöglichkeiten.",
-        "Alterskategorie": "Das Alter und die Karrierephase sind wichtige Faktoren.",
-        "Berufserfahrung": "Die Gesamtdauer der Berufserfahrung prägt Wechselentscheidungen.",
-        "Durchschnittliche Positionslücke": "Regelmäßige Wechsel können ein Muster aufzeigen.",
-        "Interne Wechsel Rate": "Das Verhältnis interner zu externen Wechseln ist aufschlussreich.",
-        "Standortwechsel Rate": "Die Häufigkeit von Standortwechseln zeigt Mobilität.",
-        "Branchenwechsel Rate": "Häufige Branchenwechsel können auf Flexibilität hinweisen.",
-        "Durchschnittliche Level-Änderung": "Der Karrierefortschritt beeinflusst Wechselentscheidungen.",
-        "Positive Wechsel Rate": "Aufwärtsbewegungen in der Karriere sind wichtige Indikatoren."
-    }
-    return descriptions.get(feature_name, "Dieses Feature beeinflusst die Vorhersage.")
+def get_latest_model_path(saved_models_dir):
+    # Finde die neueste .pt-Datei im Verzeichnis
+    pt_files = [f for f in os.listdir(saved_models_dir) if f.endswith('.pt')]
+    if not pt_files:
+        raise FileNotFoundError("Kein Modell im Verzeichnis gefunden.")
+    pt_files = [os.path.join(saved_models_dir, f) for f in pt_files]
+    latest_file = max(pt_files, key=os.path.getmtime)
+    return latest_file
 
-def predict(input_data, model_name="career_lstm_20250502_111126.pt"):
+def predict(profile, model_path=None, mapping_path=None, with_llm_explanation=False):
     try:
-        # Feature Engineering Instanz erstellen
-        fe = featureEngineering()
-        
-        # Extrahiere Karriere- und Bildungsdaten mit den Handler-Methoden
-        career_history = extract_career_data(input_data, fe)
-        education_data = extract_education_data(input_data)
-        
-        if not career_history:
-            return {
-                "confidence": [0.0],
-                "recommendations": ["Keine gültigen Karrieredaten vorhanden"],
-                "status": "unbekannt",
-                "explanations": []
-            }
-        
-        # Schätze Alterskategorie
-        age_category = estimate_age_category(input_data)
-        if age_category is None:
-            age_category = 0
-        
-        # Extrahiere Features mit existierender Funktion
-        features = extract_additional_features(career_history, education_data, fe, age_category)
-        
-        # Konstruiere den vollständigen Modellpfad
-        model_path = os.path.join(MODEL_BASE_PATH, model_name)
-        
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Modell nicht gefunden unter: {model_path}")
-            
-        # Lade den Checkpoint
-        checkpoint = torch.load(model_path)
-        
-        # Extrahiere die Hyperparameter
-        hyperparameters = checkpoint.get('hyperparameters', {})
-        
-        # Modell initialisieren
-        model = TFTModel(
-            sequence_features=hyperparameters.get('sequence_dim', 6),
-            global_features=hyperparameters.get('global_dim', 3),
-            hidden_size=hyperparameters.get('hidden_size', 128),
-            num_layers=hyperparameters.get('num_layers', 2),
-            dropout=hyperparameters.get('dropout', 0.2),
-            bidirectional=hyperparameters.get('bidirectional', True)
+        # Falls String, in Dict umwandeln
+        if isinstance(profile, str):
+            profile = json.loads(profile)
+        work_experience = profile["workExperience"]
+
+        # Nach Startdatum sortieren (neueste zuerst)
+        work_experience_sorted = sorted(
+            work_experience,
+            key=lambda x: parse_date(x["startDate"]) or datetime(1900, 1, 1),
+            reverse=True
         )
-        
-        # Lade die Modellgewichte
-        if 'model_state_dict' in checkpoint:
-            model.load_state_dict(checkpoint['model_state_dict'])
+
+        # Aktuellste Position extrahieren
+        last_position = work_experience_sorted[0]
+        positionsname = last_position["position"]
+        start = parse_date(last_position["startDate"])
+        end = parse_date(last_position["endDate"])
+        if end is None or end == "Present":
+            end = datetime.now()
+        wechselzeitraum = (end.year - start.year) * 12 + (end.month - start.month)
+
+        # Mapping laden
+        if mapping_path is None:
+            mapping_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/dataModule/tft/position_to_idx.json"
+        with open(mapping_path, "r") as f:
+            position_to_idx = json.load(f)
+
+        if positionsname not in position_to_idx:
+            pos_idx = position_to_idx.get("UNK", 0)
         else:
-            model.load_state_dict(checkpoint)
-        
+            pos_idx = position_to_idx[positionsname]
+
+        # Eingabevektor für das Modell bauen
+        x_seq = torch.tensor([[pos_idx, wechselzeitraum]], dtype=torch.float32)
+
+        # Modellpfad automatisch bestimmen, falls nicht angegeben
+        if model_path is None:
+            saved_models_dir = os.path.join(os.path.dirname(__file__), "saved_models")
+            model_path = get_latest_model_path(saved_models_dir)
+
+        # Modell laden
+        model = TFTModel(sequence_features=2, hidden_size=64, dropout=0.1)
+        model.load_state_dict(torch.load(model_path)["model_state_dict"])
         model.eval()
 
-        # Input vorbereiten (nur Positionsfeatures und globale Features)
-        sequence_features = features['career_sequence']
-        global_features = [
-            float(features['highest_degree']),
-            float(features['age_category']),
-            float(features['total_experience_years'])
-        ]
-        
-        # Konvertiere zu Tensoren
-        seq_tensor = torch.tensor([
-            [float(seq.get(key, 0)) for key in [
-                'level', 'branche', 'duration_months', 
-                'time_since_start', 'time_until_end', 'is_current']
-            ] for seq in sequence_features
-        ], dtype=torch.float32).unsqueeze(0)
-        
-        global_tensor = torch.tensor(global_features, dtype=torch.float32).unsqueeze(0)
-        lengths = torch.tensor([len(sequence_features)]).long()
-        
-        # Vorhersage machen
+        # Vorhersage
         with torch.no_grad():
-            pred = model((seq_tensor, global_tensor, lengths))
-        
-        pred_value = float(pred.item())
-        
-        # Feature-Namen für Importance
-        sequence_feature_names = [
-            "Position Level",
-            "Branche",
-            "Beschäftigungsdauer",
-            "Zeit seit Beginn",
-            "Zeit bis Ende",
-            "Aktuelle Position"
-        ]
-        global_feature_names = [
-            "Bildungsabschluss",
-            "Alterskategorie",
-            "Berufserfahrung"
-        ]
-        all_feature_names = sequence_feature_names + global_feature_names
-        
-        # Feature Importance (vereinfacht)
-        sequence_features_np = seq_tensor[0].numpy()
-        global_features_np = global_tensor[0].numpy()
-        avg_sequence_features = np.mean(np.abs(sequence_features_np), axis=0)
-        all_feature_values = np.concatenate([avg_sequence_features, np.abs(global_features_np)])
-        total_importance = np.sum(all_feature_values)
-        if total_importance == 0:
-            feature_importance = np.zeros_like(all_feature_values)
-        else:
-            feature_importance = (all_feature_values / total_importance) * 100
-        explanations = []
-        for name, importance in zip(all_feature_names, feature_importance):
-            if importance > 1.0:
-                explanations.append({
-                    "feature": name,
-                    "impact_percentage": round(float(importance), 1),
-                    "description": f"Dieses Feature beeinflusst die Wechselwahrscheinlichkeit zu {importance:.1f}% mit."
-                })
-        explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
-        if not explanations:
-            explanations.append({
-                "feature": "Gesamtanalyse",
-                "impact_percentage": 0.0,
-                "description": "Die Vorhersage basiert auf einer Kombination verschiedener Karrierefaktoren."
-            })
-        
-        # Interpretation der Vorhersage
-        if pred_value > 0.7:
-            status = "sehr wahrscheinlich wechselbereit"
-            recommendations = [
-                "Der Kandidat zeigt starke Anzeichen für einen bevorstehenden Wechsel.",
-                "Aktive Ansprache empfohlen.",
-                f"Wechselwahrscheinlichkeit: {pred_value:.1%}"
-            ]
-        elif pred_value > 0.5:
-            status = "wahrscheinlich wechselbereit"
-            recommendations = [
-                "Der Kandidat könnte für einen Wechsel offen sein.",
-                "Regelmäßige Kontaktaufnahme empfohlen.",
-                f"Wechselwahrscheinlichkeit: {pred_value:.1%}"
-            ]
-        elif pred_value > 0.3:
-            status = "möglicherweise wechselbereit"
-            recommendations = [
-                "Der Kandidat zeigt keine klaren Anzeichen für einen Wechsel.",
-                "Beobachtung der Situation empfohlen.",
-                f"Wechselwahrscheinlichkeit: {pred_value:.1%}"
-            ]
-        else:
-            status = "bleibt wahrscheinlich"
-            recommendations = [
-                "Der Kandidat zeigt wenig Interesse an einem Wechsel.",
-                "Längerfristige Beziehungspflege empfohlen.",
-                f"Wechselwahrscheinlichkeit: {pred_value:.1%}"
-            ]
-        # Füge die wichtigsten Feature-Erklärungen zu den Empfehlungen hinzu
-        if explanations:
-            top_features = explanations[:3]
-            feature_recommendations = [
-                f"• {feature['feature']}: {feature['description']} ({feature['impact_percentage']:.1f}% Einfluss)"
-                for feature in top_features
-            ]
-            recommendations.extend(feature_recommendations)
+            pred = model(x_seq)
+            pred_class = torch.argmax(pred, dim=1).item()  # 0-3
+            softmax_probs = torch.softmax(pred, dim=1).numpy()[0]
+            pred_value = float(softmax_probs[pred_class])
+
+        zeitraum = ZEITRAUM_LABELS.get(pred_class, "unbekannt")
+
         return {
-            "confidence": [pred_value],
-            "recommendations": recommendations,
-            "status": status,
-            "explanations": explanations
+            "confidence": softmax_probs.tolist(),
+            "recommendations": zeitraum,
+            "status": "success"
         }
-    except Exception as e:
+    except FileNotFoundError as e:
         print(f"Fehler bei der Vorhersage: {str(e)}")
-        traceback.print_exc()
         return {
-            "confidence": [0.0],
-            "recommendations": [f"Fehler bei der Vorhersage: {str(e)}"],
-            "status": "Fehler",
-            "explanations": []
+            "confidences": [0.0],
+            "zeitraum": "unbekannt",
+            "status": "error",
+            "error": str(e)
         }
+
+# Beispielaufruf:
+'''
+if __name__ == "__main__":
+    # Hier den JSON-String aus deiner CSV einfügen
+    profile_str = r{"skills":["Multitasking","Kundenservice","Interpersonelle Fähigkeiten","Kaltakquise","Hubspot CRM","Customer-Relationship-Management (CRM)"],"firstName":"Darya","lastName":"Chernuska","profilePicture":"https://media.licdn.com/dms/image/v2/D4E03AQE0yuZ6cg8f4A/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1670856025914?e=1749686400&v=beta&t=jI1mkiVnkD7teWPncsg8QtKAwZKB-az53_4ny7C7XvI","linkedinProfile":"https://www.linkedin.com/in/daryachernuska","education":[{"duration":"01/01/2017 - 01/01/2022","institution":"Ludwig-Maximilians-Universität München","endDate":"01/01/2022","degree":"","startDate":"01/01/2017"}],"providerId":"ACoAAD0rz_IBI0XfqqBDUscwHoFwuOqJa_c5T2I","workExperience":[{"duration":"01/03/2023 - Present","endDate":"Present","companyInformation":{"employee_count":515,"activities":["Telefonie","Internet","Vernetzung","Rechenzentrum","Glasfaser","Highspeed-Internet","Business-Internet","SIP-Trunk","Cloud-Lösungen","Connect-Cloud","Connect-LAN","Premium IP","Internet + Telefonie","Lösungen für Geschäftskunden"],"name":"M-net Telekommunikations GmbH","description":"Als regionaler Telekommunikationsanbieter versorgt M-net große Teile Bayerns, den Großraum Ulm sowie weite Teile des hessischen Landkreises Main-Kinzig mit zukunftssicherer Kommunikationstechnologie.","industry":["Telecommunications"]},"description":"","company":"M-net Telekommunikations GmbH","location":"München, Bayern, Deutschland · Hybrid","position":"Disponentin","startDate":"01/03/2023"},{"duration":"01/08/2022 - 01/12/2022","endDate":"01/12/2022","companyInformation":{"employee_count":2048,"activities":["HR Software","HR Management","Recruitung","Employee Management","Applicant Tracking System","Employee Selfservice","Time-Off Management","Cloud Software","Onboarding and Offboarding","HR Reporting","Performance Management","Payroll","HR","HR Tech","Human Resources"],"name":"Personio","description":"Personio's Intelligent HR Platform helps small and medium-sized organizations unlock the power of people by making complicated, time-consuming tasks simple and efficient.","industry":["Software Development"]},"description":"","company":"Personio","location":"München, Bayern, Deutschland","position":"Sales Development Representative","startDate":"01/08/2022"},{"duration":"01/11/2017 - 01/07/2022","endDate":"01/07/2022","companyInformation":{"employee_count":662,"activities":["Scandinavian design","Furniture","Design","Product design","Retail","Web","Steelcase partner","Wholesale","B2B","Contract sales","Online","Digital","Creativity"],"name":"BOLIA","description":"Our collection is inspired by the vivid Scandinavian nature","industry":["Retail Furniture and Home Furnishings"]},"description":"","company":"Bolia.com","location":"München, Bayern, Deutschland","position":"Sales Consultant","startDate":"01/11/2017"},{"duration":"01/10/2015 - 01/11/2017","endDate":"01/11/2017","companyInformation":{},"description":"","company":"Pepperminds","location":"München, Bayern, Deutschland","position":"Senior Team Lead","startDate":"01/10/2015"}],"location":"Munich, Bavaria, Germany","certifications":[],"headline":"-","languageSkills":{}}
+    # model_path=None sorgt dafür, dass das neueste Modell automatisch gewählt wird
+    result = predict(profile_str, model_path=None)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+'''

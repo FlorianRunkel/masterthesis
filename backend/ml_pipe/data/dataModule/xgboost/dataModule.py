@@ -37,16 +37,14 @@ class CareerDataset(Dataset):
                 self._safe_get(seq, 'level', f"Seq {i}: "),
                 self._safe_get(seq, 'branche', f"Seq {i}: "),
                 self._safe_get(seq, 'duration_months', f"Seq {i}: "),
-                self._safe_get(seq, 'time_since_start', f"Seq {i}: "),
-                self._safe_get(seq, 'time_until_end', f"Seq {i}: "),
-                self._safe_get(seq, 'is_current', f"Seq {i}: ")
             ] for i, seq in enumerate(career_sequence)], dtype=torch.float32)
         
         # Globale Features (nur die erlaubten)
         global_features = torch.tensor([
+            self._safe_get(features, 'total_positions'),
+            self._safe_get(features, 'total_experience_years'),
             self._safe_get(features, 'highest_degree'),
-            self._safe_get(features, 'age_category'),
-            self._safe_get(features, 'total_experience_years')
+            self._safe_get(features, 'age_category')
         ], dtype=torch.float32)
         
         # Label (Default 0 für "kein Wechsel")
