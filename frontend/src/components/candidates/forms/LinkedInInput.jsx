@@ -44,15 +44,34 @@ const LinkedInInput = () => {
       const lastName = rest.join(' ');
 
       // Berufserfahrung aufbereiten
-      const workExperience = profile.experience.map(exp => ({
-        company: exp.company,
-        position: exp.title,
-        startDate: exp.duration.split(' - ')[0],
-        endDate: exp.duration.split(' - ')[1] === 'Present' ? null : exp.duration.split(' - ')[1],
-        type: "fullTime",
-        location: "",
-        description: ""
-      }));
+      const workExperience = profile.experience.map(exp => {
+        // Versuche, das Datum zu parsen
+        let startDate = exp.startDate;
+        let endDate = exp.endDate;
+      
+        // Falls nur Jahr vorhanden, ergänze Monat
+        if (selectedModel === 'tft') {
+          if (startDate && /^\d{4}$/.test(startDate)) {
+            startDate = `01/${startDate}`;
+          }
+          if (endDate && /^\d{4}$/.test(endDate)) {
+            endDate = `01/${endDate}`;
+          }
+          if (!endDate || endDate === 'Present') {
+            endDate = 'Present';
+          }
+        }
+      
+        return {
+          company: exp.company,
+          position: exp.title,
+          startDate,
+          endDate,
+          type: "fullTime",
+          location: "",
+          description: ""
+        };
+      });
 
       // Optional: education, skills etc. ergänzen, falls vorhanden
       const education = profile.education || [];

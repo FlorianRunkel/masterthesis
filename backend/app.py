@@ -268,7 +268,7 @@ def scrape_linkedin():
             username = linkedin_url.split('/in/')[1].split('/')[0]
             username = username.split('?')[0]  # Entferne Query-Parameter
         except IndexError:
-            return jsonify({'error': 'Ungültiges LinkedIn-URL-Format'}), 400
+            print(f"Ungültiges LinkedIn-URL-Format: {username}")
 
         app.logger.info(f"Starte API-Abfrage für LinkedIn-Profil: {username}")
 
@@ -295,11 +295,24 @@ def scrape_linkedin():
 
             # Formatiere die Berufserfahrung
             for position in profile.get('experience', []):
+                # Startdatum
+                start = position.get('timePeriod', {}).get('startDate', {})
+                start_year = str(start.get('year', ''))
+                start_month = str(start.get('month', '')).zfill(2) if start.get('month') else '01'
+                start_date = f"{start_month}/{start_year}" if start_year else ''
+                # Enddatum
+                end = position.get('timePeriod', {}).get('endDate', {})
+                if end:
+                    end_year = str(end.get('year', ''))
+                    end_month = str(end.get('month', '')).zfill(2) if end.get('month') else '01'
+                    end_date = f"{end_month}/{end_year}" if end_year else ''
+                else:
+                    end_date = 'Present'
                 exp_data = {
                     'title': position.get('title', ''),
                     'company': position.get('companyName', ''),
-                    'duration': f"{position.get('timePeriod', {}).get('startDate', {}).get('year', '')} - "
-                              f"{position.get('timePeriod', {}).get('endDate', {}).get('year', 'Present')}"
+                    'startDate': start_date,
+                    'endDate': end_date
                 }
                 profile_data['experience'].append(exp_data)
 

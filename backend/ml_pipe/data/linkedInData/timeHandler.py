@@ -50,7 +50,16 @@ def random_point_for_category(current_end, cat_min, cat_max, current_start):
 def process_profile(row):
     try:
         profile_info = json.loads(row['linkedinProfileInformation'])
+        print(profile_info)
         experiences = profile_info.get('workExperience', [])
+        profile_id = profile_info.get('linkedinProfile', None)
+        if profile_id and isinstance(profile_id, str):
+            # Nur den letzten Teil der URL extrahieren
+            profile_id = profile_id.rstrip('/').split('/')[-1]
+        else:
+            # Fallback: Name + Zufallszahl
+            name = profile_info.get('firstName', 'unknown') + profile_info.get('lastName', '')
+            profile_id = f"{name.lower().replace(' ', '-')}-{random.randint(1000,9999)}"
     except Exception as e:
         print("Fehler beim Parsen:", e)
         return []
@@ -61,14 +70,6 @@ def process_profile(row):
         reverse=True
     )
 
-    # Kategorien: (min, max) Monate
-    categories = [
-        (0, 6, 1),
-        (7, 12, 2),
-        (13, 24, 3),
-        (25, 600, 4)  # 600 als "unendlich"
-    ]
-
     samples = []
     for idx in range(len(experiences) - 1):
         current_exp = experiences[idx]
@@ -78,22 +79,52 @@ def process_profile(row):
         if not current_start or not current_end or current_start >= current_end:
             continue
 
-        for cat_min, cat_max, cat_label in categories:
-            random_point = random_point_for_category(current_end, cat_min, cat_max, current_start)
-            if not random_point or random_point < current_start or random_point > current_end:
-                continue
-            diff_months = (current_end.year - random_point.year) * 12 + (current_end.month - random_point.month)
-            samples.append({
-                "aktuelle_position": current_exp.get("position", ""),
-                "zeitpunkt": random_point.strftime("%d/%m/%Y"),
-                "label": cat_label,
-                "wechselzeitraum": diff_months,
-            })
+        positionsdauer = (current_end - current_start).days
+        prozentpunkte = [0.25, 0.5, 0.75, 0.9]
 
+        for p in prozentpunkte:
+            sample_timepoint = current_start + timedelta(days=int(positionsdauer * p))
+            if sample_timepoint < current_start or sample_timepoint > current_end:
+                continue
+            label_days = (current_end - sample_timepoint).days
+
+            # a) Berufserfahrung bis zum Zeitpunkt
+            alle_starts = [parse_date(exp.get('startDate', '')) for exp in experiences if parse_date(exp.get('startDate', '')) and parse_date(exp.get('startDate', '')) < sample_timepoint]
+            if alle_starts:
+                berufserfahrung_bis_zeitpunkt = (sample_timepoint - min(alle_starts)).days
+            else:
+                berufserfahrung_bis_zeitpunkt = 0
+
+            # b) Anzahl Wechsel bisher (Anzahl Positionen mit Enddatum < sample_timepoint)
+            anzahl_wechsel_bisher = sum(1 for exp in experiences if parse_date(exp.get('endDate', '')) and parse_date(exp.get('endDate', '')) < sample_timepoint)
+
+            # c) Anzahl Jobs bisher (Anzahl Positionen mit Startdatum < sample_timepoint)
+            anzahl_jobs_bisher = sum(1 for exp in experiences if parse_date(exp.get('startDate', '')) and parse_date(exp.get('startDate', '')) < sample_timepoint)
+
+            # d) Durchschnittsdauer bisheriger Jobs
+            dauer_liste = []
+            for exp in experiences:
+                s = parse_date(exp.get('startDate', ''))
+                e = parse_date(exp.get('endDate', ''))
+                if s and e and e < sample_timepoint and s < e:
+                    dauer_liste.append((e - s).days)
+            durchschnittsdauer_bisheriger_jobs = sum(dauer_liste) / len(dauer_liste) if dauer_liste else 0
+
+            samples.append({
+                "profile_id": profile_id,
+                "aktuelle_position": current_exp.get("position", ""),
+                "zeitpunkt": sample_timepoint.timestamp(),
+                "label": label_days,
+                "berufserfahrung_bis_zeitpunkt": berufserfahrung_bis_zeitpunkt,
+                "anzahl_wechsel_bisher": anzahl_wechsel_bisher,
+                "anzahl_jobs_bisher": anzahl_jobs_bisher,
+                "durchschnittsdauer_bisheriger_jobs": durchschnittsdauer_bisheriger_jobs,
+            })
+ 
     return samples
 
 if __name__ == "__main__":
-    df = pd.read_csv("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/datafiles/CID224.csv")
+    df = pd.read_csv("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/datafiles/CID261.csv")
 
     # Nur das erste Profil testen
     first_row = df.iloc[0]
@@ -113,5 +144,5 @@ if __name__ == "__main__":
     mongo_db = MongoDb(user='florianrunkel', password='ur04mathesis', db_name='Database')
     for sample in all_samples:
         print(sample)
-        mongo_db.create(sample, 'career_labels_tft')
-    print(f"{len(all_samples)} Einträge erfolgreich in 'career_labels_tft' gespeichert.")
+        mongo_db.create(sample, 'time_dataset')
+    print(f"{len(all_samples)} Einträge erfolgreich in 'time_dataset' gespeichert.")

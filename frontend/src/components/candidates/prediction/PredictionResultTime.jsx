@@ -1,128 +1,110 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const zeitraumRanges = [
-    { label: "0-6 Monate", start: 0, end: 6, color: "#28a745" },
-    { label: "7-12 Monate", start: 7, end: 12, color: "#ffc107" },
-    { label: "13-24 Monate", start: 13, end: 24, color: "#dc3545" },
-    { label: "über 24 Monate", start: 25, end: 36, color: "#b0b0b0" }
-  ];
+  { label: "0-3 Monate", start: 0, end: 90, color: "#28a745" },
+  { label: "3-6 Monate", start: 91, end: 180, color: "#2ecc71" },
+  { label: "6-9 Monate", start: 181, end: 270, color: "#f1c40f" },
+  { label: "9-12 Monate", start: 271, end: 365, color: "#e67e22" },
+  { label: "12-18 Monate", start: 366, end: 545, color: "#e74c3c" },
+  { label: "über 18 Monate", start: 546, end: 730, color: "#b0b0b0" }
+];
+
+const MAE = 190.76;
+const RMSE = 368.66;
+
+function calculateAdjustedConfidence(prediction) {
+  if (!prediction.predictions || !prediction.predictions[0]) return prediction.confidence && prediction.confidence[0] ? prediction.confidence[0] * MAE : 0;
+  const vorhersage = prediction.predictions[0].vorhersage;
+  const uncertainty = vorhersage.unsicherheit;
+  const daysFromConfidence = (prediction.confidence && prediction.confidence[0] ? prediction.confidence[0] : 0) * MAE;
+  const rmseFactor = 1 - (uncertainty / RMSE);
+  const adjustedDays = daysFromConfidence * rmseFactor;
+  return adjustedDays;
+}
 
 const PredictionResultTime = ({ prediction }) => {
   if (!prediction) return null;
 
-  // Labels und Farben
-  const labels = ["0-6 Monate", "7-12 Monate", "13-24 Monate", "über 24 Monate"];
-  const confidences = Array.isArray(prediction.confidence) ? prediction.confidence : [0,0,0,0];
-  const topIdx = confidences.indexOf(Math.max(...confidences));
-  const confidencesCopy = [...confidences];
-  confidencesCopy[topIdx] = -1;
-  const secondIdx = confidencesCopy.indexOf(Math.max(...confidencesCopy));
-  const secondLabel = labels[secondIdx];
-  const secondProb = confidences[secondIdx];
-  const range = zeitraumRanges[topIdx] || zeitraumRanges[3];
-  const secondRange = zeitraumRanges[secondIdx];
+  // Berechne Werte
+  const adjustedDays = calculateAdjustedConfidence(prediction);
+  const heute = new Date();
+  const tageBisWechsel = Math.round(adjustedDays);
+  const wechseldatum = new Date(heute.getTime() + tageBisWechsel * 24 * 60 * 60 * 1000);
+  const wechseldatumStr = wechseldatum.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Zeitraum-Label
+  let zeitraumLabel = "-";
+  for (const r of zeitraumRanges) {
+    if (tageBisWechsel >= r.start && tageBisWechsel <= r.end) {
+      zeitraumLabel = r.label;
+      break;
+    }
+  }
+  const zeitraumColor = zeitraumRanges.find(r => r.label === zeitraumLabel)?.color || '#b0b0b0';
+
+  // Unsicherheit
+  let unsicherheit = null;
+  if (prediction.predictions && prediction.predictions[0] && prediction.predictions[0].vorhersage) {
+    unsicherheit = prediction.predictions[0].vorhersage.unsicherheit;
+  }
 
   return (
-    <Box sx={{ borderRadius: '16px', p: '30px', margin: '20px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', maxWidth: '100%', display: 'flex', flexDirection: 'column'}}>
-      
-        <Typography 
-          variant="h4" 
-          sx={{ 
-            fontWeight: 800, 
-            color: '#001B41', 
-            mb: 0.5, 
-            textAlign: 'left'
-          }}
-        >
-          Wechselwahrscheinlichkeit
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6, mb: 6 }}>
+      <Box sx={{
+        bgcolor: '#fff',
+        borderRadius: '22px',
+        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)',
+        p: { xs: 3, sm: 5 },
+        minWidth: { xs: '90vw', sm: 400 },
+        maxWidth: 520,
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+        border: '1.5px solid #e0e7ef',
+        minWidth: '1200px',
+      }}>
+        <Typography variant="h2" sx={{ fontSize: { xs: '1.3rem', sm: '1.7rem' }, fontWeight: 800, color: '#001B41', mb: 1, textAlign: 'left', letterSpacing: 0.2 }}>
+          Prognose zum nächsten Jobwechsel
         </Typography>
-        <Typography 
-          variant="subtitle1" 
-          sx={{ 
-            color: '#888', 
-            mb: 5, 
-            textAlign: 'left',
-            fontSize: '1.05rem',
-            fontWeight: 400
-          }}
-        >
-          Prognose für die Wechselbereitschaft des Kandidaten
-        </Typography>
-      {/* Zeitstrahl */}
-      <Box sx={{ width: '100%', mx: 'auto', mt: 1, mb: 1, position: 'relative', height: 28 }}>
-        {/* Zeitstrahl */}
-        <Box sx={{
-          height: 24,
-          borderRadius: 12,
-          background: '#fff',
-          border: '2px solid #e0e0e0',
-          width: '100%',
-          position: 'absolute',
-          top: 2,
-          left: 0,
-          zIndex: 1
-        }} />
-        {/* Zweitwahrscheinlichkeit Marker */}
-        {secondIdx !== topIdx && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: `${(secondIdx * 25)}%`,
-              width: '25%',
-              height: 24,
-              top: 2,
-              bgcolor: secondRange.color,
-              borderRadius: 12,
-              opacity: 0.25,
-              zIndex: 2,
-              pointerEvents: 'none'
-            }}
-          />
-        )}
-        {/* Hauptwahrscheinlichkeit Marker */}
-        <Box
-          sx={{
-            position: 'absolute',
-            left: `calc(${topIdx * 25}% - 1px)`,
-            width: 'calc(25% + 2px)',
-            height: 24,
-            top: 2,
-            bgcolor: range.color,
-            borderRadius: 12,
-            opacity: 0.85,
-            zIndex: 3
-          }}
-        />
-        {/* Achsenbeschriftung */}
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#888', fontWeight: 500, position: 'absolute', top: 28 }}>
-          <span style={{ width: '25%', textAlign: 'center' }}>6</span>
-          <span style={{ width: '25%', textAlign: 'center' }}>12</span>
-          <span style={{ width: '25%', textAlign: 'center' }}>24</span>
-          <span style={{ width: '25%', textAlign: 'center' }}>36+</span>
-        </Box>
-      </Box>
-      {/* Zweitwahrscheinlichkeit */}
-      {secondIdx !== topIdx && (
-        <Typography sx={{ color: secondRange.color, textAlign: 'center', fontSize: '1rem', mt: 5, fontWeight: 500 }}>
-          Zweitwahrscheinlichkeit: {secondLabel}
-        </Typography>
-      )}
-      {/* Empfehlungstext */}
-      <Typography sx={{ mt: 2, color: '#444', textAlign: 'center', fontSize: '1.08rem' }}>
-        {range.label === "0-6 Monate" && "Jetzt ist der ideale Zeitpunkt für eine Ansprache!"}
-        {range.label === "7-12 Monate" && "In den nächsten Monaten könnte ein Wechsel interessant werden."}
-        {range.label === "13-24 Monate" && "Mittelfristig beobachten, noch kein akuter Wechselbedarf."}
-        {range.label === "über 24 Monate" && "Aktuell wenig Wechselbereitschaft, langfristig in Kontakt bleiben."}
-      </Typography>
-      {/* LLM-Erklärung */}
-      {prediction.llm_explanation && (
-        <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-          <Typography sx={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.9 }}>
-            {prediction.llm_explanation}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <CalendarMonthIcon sx={{ color: '#075056', fontSize: 38 }} />
+          <Typography sx={{ fontSize: { xs: '1.15rem', sm: '1.35rem' }, fontWeight: 700, color: '#075056', letterSpacing: 0.2 }}>
+            {wechseldatumStr}
           </Typography>
         </Box>
-      )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <AccessTimeIcon sx={{ color: zeitraumColor, fontSize: 32 }} />
+          <Chip label={zeitraumLabel} sx={{ bgcolor: zeitraumColor, color: '#fff', fontWeight: 700, fontSize: '1.15rem', px: 2.5, py: 1, borderRadius: 2, minWidth: 120, textAlign: 'center' }} />
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <TrendingUpIcon sx={{ color: '#001B41', fontSize: 32 }} />
+          <Typography sx={{ fontSize: '1.15rem', color: '#001B41', fontWeight: 600, letterSpacing: 0.1 }}>
+            Prognose-Score: <b>{(prediction.confidence && prediction.confidence[0] ? (prediction.confidence[0]*100).toFixed(1) : '-')}%</b>
+          </Typography>
+        </Box>
+        {unsicherheit !== null && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <InfoOutlinedIcon sx={{ color: '#e67e22', fontSize: 28 }} />
+            <Typography sx={{ fontSize: '1.08rem', color: '#e67e22', fontWeight: 500 }}>
+              Unsicherheit: {unsicherheit.toFixed(1)} Tage
+            </Typography>
+          </Box>
+        )}
+        {prediction.llm_explanation && (
+          <Box sx={{ mt: 2, p: 2.5, bgcolor: '#f5f5f5', borderRadius: 2, width: '100%' }}>
+            <Typography sx={{ color: '#444', fontSize: '1.13rem', lineHeight: 1.8, textAlign: 'center' }}>
+              {prediction.llm_explanation}
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

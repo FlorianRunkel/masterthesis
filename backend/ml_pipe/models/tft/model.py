@@ -1,70 +1,49 @@
-import torch
-import torch.nn as nn
 import pytorch_lightning as pl
+from pytorch_forecasting import TemporalFusionTransformer, QuantileLoss
 
 class TFTModel(pl.LightningModule):
-    def __init__(self, sequence_features=2, hidden_size=64, dropout=0.1):
+    def __init__(self, training_dataset, learning_rate=0.03, hidden_size=32, attention_head_size=2,
+                 dropout=0.1, hidden_continuous_size=16, output_size=7, **kwargs):
         super().__init__()
-        self.save_hyperparameters()
-        self.position_embedding = nn.Embedding(1000, 32)
-        self.classifier = nn.Sequential(
-            nn.Linear(sequence_features - 1 + 32, hidden_size),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, 4)
+        self.save_hyperparameters(ignore=["training_dataset"])
+        self.tft = TemporalFusionTransformer.from_dataset(
+            training_dataset,
+            learning_rate=learning_rate,
+            hidden_size=hidden_size,
+            attention_head_size=attention_head_size,
+            dropout=dropout,
+            hidden_continuous_size=hidden_continuous_size,
+            output_size=output_size,
+            loss=QuantileLoss(),
+            log_interval=10,
+            reduce_on_plateau_patience=4,
+            **kwargs
         )
-        self.loss_fn = nn.CrossEntropyLoss()
+        print(f"Number of parameters in network: {self.tft.size()/1e3:.1f}k")
 
-    def forward(self, x_seq):
-        positions = x_seq[:, 0].long()
-        position_embeddings = self.position_embedding(positions)
-        wechselzeitraum = x_seq[:, 1].float().unsqueeze(-1)
-        combined_features = torch.cat([position_embeddings, wechselzeitraum], dim=-1)
-        return self.classifier(combined_features)
+    def forward(self, *args, **kwargs):
+        return self.tft(*args, **kwargs)
 
     def training_step(self, batch, batch_idx):
-        return self._shared_step(batch, "train")
-        
+        return self.tft.training_step(batch, batch_idx)
+
     def validation_step(self, batch, batch_idx):
-        return self._shared_step(batch, "val")
-    
+        return self.tft.validation_step(batch, batch_idx)
+
     def test_step(self, batch, batch_idx):
-        return self._shared_step(batch, "test")
-    
-    def _shared_step(self, batch, stage):
-        x_seq, y = batch
-        y_hat = self(x_seq)
-        loss = self.loss_fn(y_hat, y)
-        
-        # Metriken
-        preds = torch.argmax(y_hat, dim=1)
-        acc = (preds == y).float().mean()
-        
-        # Logging
-        self.log(f"{stage}_loss", loss, prog_bar=True)
-        self.log(f"{stage}_acc", acc, prog_bar=True)
-        
-        return loss
+        return self.tft.test_step(batch, batch_idx)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(
-            self.parameters(),
-            lr=1e-3,
-            weight_decay=0.01
-        )
-        
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer,
-            mode="min",
-            factor=0.5,
-            patience=3,
-            verbose=True
-        )
-        
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss"
-            }
-        }
+        return self.tft.configure_optimizers()
+
+    def predict(self, *args, **kwargs):
+        return self.tft.predict(*args, **kwargs)
+
+    def interpret_output(self, *args, **kwargs):
+        return self.tft.interpret_output(*args, **kwargs)
+
+    def plot_prediction(self, *args, **kwargs):
+        return self.tft.plot_prediction(*args, **kwargs)
+
+    def plot_interpretation(self, *args, **kwargs):
+        return self.tft.plot_interpretation(*args, **kwargs)

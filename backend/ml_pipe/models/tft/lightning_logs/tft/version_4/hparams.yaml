@@ -1,3 +1,0 @@
-dropout: 0.1
-hidden_size: 64
-sequence_features: 2

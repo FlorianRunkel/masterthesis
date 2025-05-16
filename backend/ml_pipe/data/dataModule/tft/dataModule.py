@@ -1,92 +1,142 @@
-import torch
+import pandas as pd
 import numpy as np
-import sys
-sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
-
-from backend.ml_pipe.data.database.mongodb import MongoDb
 import pytorch_lightning as pl
+from pytorch_forecasting import TimeSeriesDataSet, GroupNormalizer
 import json
-
-class CareerDataset(torch.utils.data.Dataset):
-    def __init__(self, samples, position_to_idx):
-        self.samples = samples
-        self.position_to_idx = position_to_idx
-
-    def __len__(self):
-        return len(self.samples)
-
-    def __getitem__(self, idx):
-        sample = self.samples[idx]
-        pos_idx = self.position_to_idx[sample['aktuelle_position']]
-        wechselzeitraum = sample['wechselzeitraum']
-        x_seq = torch.tensor([pos_idx, wechselzeitraum], dtype=torch.float32)
-        y = torch.tensor(sample['label'] - 1, dtype=torch.long)  # 0-3 statt 1-4
-        return x_seq, y
-    
-import torch
-import pytorch_lightning as pl
-import numpy as np
-import json
+from rapidfuzz import process, fuzz
 
 class CareerDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size=32):
+    def __init__(self, dataframe, batch_size=64, max_encoder_length=90, max_prediction_length=30):
         super().__init__()
+        self.dataframe = dataframe.copy()
         self.batch_size = batch_size
+        self.max_encoder_length = max_encoder_length
+        self.max_prediction_length = max_prediction_length
 
     def setup(self, stage=None):
-        # Daten aus MongoDB laden
-        mongo_client = MongoDb(user='florianrunkel', password='ur04mathesis', db_name='Database')
+        df = self.dataframe.copy()
+        df["date"] = pd.to_datetime(df["zeitpunkt"], unit="s")
+        df = df.sort_values(["profile_id", "date"])
+        df = df.reset_index(drop=True)
+        df["time_idx"] = df.groupby("profile_id").cumcount()
 
-        result = mongo_client.get_all('career_labels_tft')
-        raw_data = result.get('data', [])
-        len(raw_data)
-        print(raw_data[0])
+        # Zeitfeatures
+        df["weekday"] = df["date"].dt.weekday
+        df["weekday_sin"] = np.sin(2 * np.pi * df["weekday"] / 7)
+        df["weekday_cos"] = np.cos(2 * np.pi * df["weekday"] / 7)
+        df["month"] = df["date"].dt.month
+        df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
+        df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
 
-        # Aufteilen in Train/Val/Test (70/15/15)
-        n = len(raw_data)
-        train_size = int(0.7 * n)
-        val_size = int(0.15 * n)
+        # Numerische Spalten als float casten
+        float_cols = [
+            "label",
+            "berufserfahrung_bis_zeitpunkt",
+            "anzahl_wechsel_bisher",
+            "anzahl_jobs_bisher",
+            "durchschnittsdauer_bisheriger_jobs",
+            "zeitpunkt"
+        ]
+        for col in float_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce").astype(float)
 
-        np.random.shuffle(raw_data)
-        self.train_data = raw_data[:train_size]
-        self.val_data = raw_data[train_size:train_size + val_size]
-        self.test_data = raw_data[train_size + val_size:]
+        # Fehlende Werte entfernen
+        df = df.dropna(subset=float_cols + ["profile_id", "aktuelle_position"])
 
-        print(f"\nDatensatz aufgeteilt in:")
-        print(f"- Training: {len(self.train_data)} Einträge")
-        print(f"- Validierung: {len(self.val_data)} Einträge")
-        print(f"- Test: {len(self.test_data)} Einträge")
+        # --- Mapping vorbereiten ---
+        # Lade Mapping aus position_level.json
+        with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json", "r") as f:
+            position_entries = json.load(f)
+        # Dict: Position (klein) -> (Level, Branche)
+        position_map = {entry["position"].lower(): (entry["level"], entry["branche"]) for entry in position_entries}
+        all_positions = list(position_map.keys())
+        # Level-Zahl auf String
+        level_map = {
+            1: "Entry", 2: "Junior", 3: "Professional", 4: "Senior", 5: "Lead", 6: "Manager", 7: "Director", 8: "C-Level"
+        }
 
-        all_positions = set(s['aktuelle_position'] for s in raw_data)
-        self.position_to_idx = {pos: idx for idx, pos in enumerate(sorted(all_positions))}
+        def map_position_fuzzy(pos, threshold=65):
+            pos_clean = pos.lower().strip()
+            if pos_clean in position_map:
+                level, branche = position_map[pos_clean]
+                match = pos_clean
+                score = 100  # Maximale Ähnlichkeit, da exakter Treffer
+            else:
+                match, score, _ = process.extractOne(pos_clean, all_positions, scorer=fuzz.ratio)
+                if score >= threshold:
+                    level, branche = position_map[match]
+                else:
+                    return (None, None, None)
+            # Level-Zahl auf String mappen
+            level_str = level_map.get(level, str(level)) if isinstance(level, int) else str(level)
+            return (match, level_str, branche)
 
-        # Datasets erstellen (Mapping übergeben!)
-        self.train_dataset = CareerDataset(self.train_data, self.position_to_idx)
-        self.val_dataset = CareerDataset(self.val_data, self.position_to_idx)
-        self.test_dataset = CareerDataset(self.test_data, self.position_to_idx)
+        # Mapping anwenden
+        mapped = df["aktuelle_position"].map(map_position_fuzzy)
+        df[["mapped_position", "level_str", "branche"]] = pd.DataFrame(mapped.tolist(), index=df.index)
+        # Nur Zeilen mit gültigem Mapping behalten
+        df = df.dropna(subset=["mapped_position", "level_str", "branche"])
 
-        # Nach self.position_to_idx = ...
-        with open("backend/ml_pipe/data/dataModule/tft/position_to_idx.json", "w") as f:
-            json.dump(self.position_to_idx, f)
+        # 70/30 Split pro Profil
+        def split_profile(group):
+            n = len(group)
+            split_idx = int(n * 0.7)
+            group = group.sort_values("time_idx")
+            group["is_train"] = [True]*split_idx + [False]*(n-split_idx)
+            return group
+
+        df = df.groupby("profile_id", group_keys=False).apply(split_profile)
+
+        training = df[df["is_train"]].dropna()
+        validation = df[~df["is_train"]].dropna()
+
+        # Optional: Profile ohne Trainings- oder Val-Daten entfernen
+        valid_profiles = set(training["profile_id"]).intersection(validation["profile_id"])
+        training = training[training["profile_id"].isin(valid_profiles)]
+        validation = validation[validation["profile_id"].isin(valid_profiles)]
+
+        self.training = training
+        self.validation = validation
+
+        print("Train:", len(self.training), "Val:", len(self.validation))
+
+        # TimeSeriesDataSet für Training
+        self.training_dataset = TimeSeriesDataSet(
+            self.training,
+            time_idx="time_idx",
+            target="label",
+            group_ids=["profile_id"],
+            max_encoder_length=self.max_encoder_length,
+            min_encoder_length=self.max_encoder_length // 2,
+            max_prediction_length=self.max_prediction_length,
+            min_prediction_length=self.max_prediction_length,
+            time_varying_known_reals=["time_idx", "weekday_sin", "weekday_cos", "month_sin", "month_cos"],
+            time_varying_unknown_reals=[
+                "berufserfahrung_bis_zeitpunkt",
+                "anzahl_wechsel_bisher",
+                "anzahl_jobs_bisher",
+                "durchschnittsdauer_bisheriger_jobs",
+            ],
+            static_categoricals=["mapped_position", "level_str", "branche"],
+            target_normalizer=GroupNormalizer(groups=["profile_id"], transformation="softplus"),
+            add_relative_time_idx=True,
+            add_target_scales=True,
+            add_encoder_length=True,
+            allow_missing_timesteps=True,
+        )
+
+        # TimeSeriesDataSet für Validation
+        self.validation_dataset = TimeSeriesDataSet.from_dataset(
+            self.training_dataset,
+            self.validation,
+            predict=True,
+            stop_randomization=True,
+            allow_missing_timesteps=True,    
+        )
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(
-            self.train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=4
-        )
+        return self.training_dataset.to_dataloader(train=True, batch_size=self.batch_size, num_workers=4)
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            num_workers=4
-        )
-
-    def test_dataloader(self):
-        return torch.utils.data.DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            num_workers=4
-        )
+        return self.validation_dataset.to_dataloader(train=False, batch_size=self.batch_size * 2, num_workers=4)
