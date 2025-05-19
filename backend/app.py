@@ -12,32 +12,26 @@ import pandas as pd
 import logging
 import json
 from linkedin_api import Linkedin
-import numpy as np
 from datetime import datetime
 from backend.ml_pipe.data.database.mongodb import MongoDb
+from backend.config import Config
 
+'''
+Flask App - initialisation
+'''
 # Flask-App initialisieren mit korrektem Template-Verzeichnis
-template_dir = os.path.abspath('dashboard/templates')
-static_dir = os.path.abspath('dashboard/static')
-app = Flask(__name__, 
-            template_folder=template_dir,
-            static_folder=static_dir)
+app = Flask(__name__,
+            template_folder=Config.TEMPLATE_DIR,
+            static_folder=Config.STATIC_DIR)
 
 # CORS für alle Routen aktivieren
-CORS(app, resources={
-    r"/*": {
-        "origins": ["http://localhost:3000", "http://localhost:5173", "http://192.168.3.10:3000"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
-    }
-})
+CORS(app, resources=Config.CORS_RESOURCES)
 
 app.logger.setLevel(logging.INFO)
 
 # LinkedIn API Konfiguration
-LINKEDIN_EMAIL = 'f.runkel@yahoo.com'  # In Produktion über Umgebungsvariablen!
-LINKEDIN_PASSWORD = 'Cool0089!%'       # In Produktion über Umgebungsvariablen!
+LINKEDIN_EMAIL = Config.LINKEDIN_EMAIL
+LINKEDIN_PASSWORD = Config.LINKEDIN_PASSWORD
 
 # Globale Variable für die API
 linkedin_api = None
@@ -48,6 +42,9 @@ candidates_db = []
 # MongoDB Instanz erstellen
 mongo_db = MongoDb()
 
+'''
+Helper functions
+'''
 def initialize_linkedin_api():
     global linkedin_api
     try:
@@ -62,6 +59,33 @@ def initialize_linkedin_api():
         app.logger.error(f"Fehler bei der LinkedIn API Initialisierung: {str(e)}")
         return False
 
+def preprocess_dates_time(data):
+    import re
+    def to_mm_yyyy(date_str):
+        if not date_str or date_str == "Present":
+            return "Present"
+        if re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+            year, month, _ = date_str.split('-')
+            return f"{month}/{year}"
+        if re.match(r"^\d{4}$", date_str):
+            return f"01/{date_str}"
+        if re.match(r"^\d{2}/\d{4}$", date_str):
+            return date_str
+        return date_str
+
+    # Für verschiedene mögliche Feldnamen
+    for exp_key in ['experience', 'workExperience']:
+        for exp in data.get(exp_key, []):
+            exp['startDate'] = to_mm_yyyy(exp.get('startDate', ''))
+            exp['endDate'] = to_mm_yyyy(exp.get('endDate', ''))
+    for edu in data.get('education', []):
+        edu['startDate'] = to_mm_yyyy(edu.get('startDate', ''))
+        edu['endDate'] = to_mm_yyyy(edu.get('endDate', ''))
+    return data
+
+'''
+Routes
+'''
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -74,6 +98,9 @@ def batch():
 def linkedin():
     return render_template('linkedin.html')
 
+'''
+functions for pages
+'''
 @app.route('/candidates')
 def get_all_candidates():
     try:
@@ -122,25 +149,26 @@ def predict_career():
         app.logger.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
 
         # Vorhersage mit den Profildaten
+        if model_type == 'tft':
+            profile_data = preprocess_dates_time(profile_data)
+
         prediction = module.predict(profile_data, with_llm_explanation=True)
-        
+    
         # Formatiere Vorhersage
         formatted_prediction = {
             'confidence': max(0.0, prediction['confidence'][0]),
             'recommendations': prediction['recommendations'][0],
             'status': prediction.get('status', ''),
             'explanations': prediction.get('explanations', []),
-            'llm_explanation': prediction.get('llm_explanation', '')
         }
         
         app.logger.info(f"Formatted Prediction: {formatted_prediction}")
-        
+
         return jsonify(formatted_prediction)
 
     except Exception as e:
         app.logger.error(f"Fehler bei der Vorhersage: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/predict-batch', methods=['POST'])
 def predict_batch():
@@ -208,8 +236,13 @@ def predict_batch():
                     continue
                     
                 # Make prediction with complete profile data
+                if model_type == 'tft':
+                    profile_data = preprocess_dates_time(profile_data)
+
+                app.logger.info(f"Profile data: {profile_data}")
                 prediction = module.predict(profile_data, with_llm_explanation=False)
-                
+                app.logger.info(f"prediction: {prediction}")
+
                 if "error" in prediction:
                     results.append({
                         "firstName": row.get("firstName", ""),
@@ -359,33 +392,18 @@ def save_candidates():
             if mongo_db.db is None:
                 return jsonify({'error': 'Fehler bei der Verbindung zur Datenbank'}), 500
                 
-        # Füge Zeitstempel hinzu und speichere jeden Kandidaten einzeln
         saved_count = 0
         skipped_count = 0
         for candidate in candidates:
-            print(candidate)
-            # Prüfe auf Duplikate anhand der LinkedIn-URL
-            if 'linkedinProfile' in candidate and candidate['linkedinProfile']:
-                existing = mongo_db.find_one({'linkedinProfile': candidate['linkedinProfile']}, 'candidates')
-                if existing:
-                    skipped_count += 1
-                    continue
-            candidate['created_at'] = datetime.now().isoformat()
-            
-            # Setze aktuelle Position aus dem ersten experience-Eintrag, falls vorhanden
-            if 'experience' in candidate and isinstance(candidate['experience'], list) and len(candidate['experience']) > 0:
-                first_exp = candidate['experience'][0]
-                title = first_exp.get('title', '')
-                company = first_exp.get('company', '')
-                candidate['currentPosition'] = f"{title} @ {company}".strip(' @')
-                
-            candidate['location'] = candidate.get('location', '')
-            candidate['imageUrl'] = candidate.get('imageUrl', '')
-
+            app.logger.info(f"Speichere Kandidaten: {candidate}")
             result = mongo_db.create(candidate, 'candidates')
-            if result['statusCode'] == 200:
+            if result['statusCode'] == 200: 
                 saved_count += 1
-        
+                app.logger.info(f"Kandidat erfolgreich gespeichert: {candidate['linkedinProfile']}")
+            else:
+                skipped_count += 1
+                app.logger.info(f"Fehler beim Speichern des Kandidaten: {result['error']}")
+
         return jsonify({
             'message': 'Kandidaten erfolgreich gespeichert',
             'savedCount': saved_count,

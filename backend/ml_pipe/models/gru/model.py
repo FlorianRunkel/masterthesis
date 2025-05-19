@@ -7,7 +7,7 @@ class GRUModel(pl.LightningModule):
     def __init__(self, seq_input_size=6, static_input_size=6, hidden_size=128, num_layers=2, dropout=0.3, lr=0.001):
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.gru = nn.GRU(
             input_size=seq_input_size,
             hidden_size=hidden_size,
@@ -16,9 +16,9 @@ class GRUModel(pl.LightningModule):
             dropout=dropout if num_layers > 1 else 0
         )
         self.dropout = nn.Dropout(dropout)
-        
+
         self.fc = nn.Linear(hidden_size + static_input_size, 1)
-        
+
         self.loss_fn = nn.BCEWithLogitsLoss()  # Für Binärklassifikation
         self.lr = lr
 

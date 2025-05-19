@@ -150,9 +150,9 @@ class PositionClassifier:
     def get_branch_description(self, branch: int) -> str:
         """Gibt die Beschreibung für eine Branche zurück."""
         branches = {
-            0: "Other",
-            1: "Sales",
-            2: "Engineering/IT",
-            3: "Consulting"
+            0: "other",
+            1: "sales",
+            2: "engineering",
+            3: "consulting"
         }
         return branches.get(branch, "Unbekannte Branche") 

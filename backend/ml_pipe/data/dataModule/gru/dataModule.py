@@ -3,14 +3,13 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from pytorch_lightning import LightningDataModule
 import logging
-from backend.ml_pipe.data.featureEngineering.featureEngineering import featureEngineering
-from backend.ml_pipe.data.linkedInData.handler import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
+from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
 
 class CareerDataset(Dataset):
     def __init__(self, data):
         self.data = data
         self.logger = logging.getLogger(__name__)
-        self.fe = featureEngineering()
+        self.fe = FeatureEngineering()
         
     def __len__(self):
         return len(self.data)

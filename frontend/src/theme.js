@@ -4,7 +4,7 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#001B41', // aurio-blue
-      light: '#FF5F00', // aurio-orange
+      light: '#FF8000', // aurio-orange
     },
     background: {
       default: '#f6f6f6',  // Hellgrauer Haupthintergrund für alles
@@ -72,7 +72,7 @@ const theme = createTheme({
           fontWeight: 600,
           borderRadius: '8px',
           '&:hover': {
-            backgroundColor: '#FF5F00',
+            backgroundColor: '#FF8000',
             transform: 'translateY(-2px)',
           },
           transition: 'all 0.3s ease',
@@ -121,7 +121,7 @@ const theme = createTheme({
             backgroundColor: '#001B41',
             color: '#FFFFFF',
             '&:hover': {
-              backgroundColor: '#FF5F00',
+              backgroundColor: '#FF8000',
             },
           },
         },

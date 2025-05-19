@@ -2,10 +2,10 @@ import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 
 const getBarColors = [
-  '#28a745', // grün
-  '#ffc107', // gelb
-  '#dc3545', // rot
-  '#b0b0b0'  // grau für Sonstiges
+  '#8AD265', // grün
+  '#FFC03D', // gelb
+  '#FF2525', // rot
+  '#666'  // grau für Sonstiges
 ];
 
 const PredictionResult = ({ prediction }) => {
@@ -58,30 +58,9 @@ const PredictionResult = ({ prediction }) => {
             </Typography>
             <Box sx={{ flex: 1, position: 'relative', height: '16px', mr: 2 }}>
               <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  height: '100%',
-                  width: '100%',
-                  bgcolor: '#f0f0f0',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                }}
-              />
+                sx={{position: 'absolute',  top: 0,  left: 0,  height: '100%', width: '100%',  bgcolor: '#f0f0f0',  borderRadius: '6px', overflow: 'hidden', }} />
               <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  height: '100%',
-                  width: `${confidence}%`,
-                  bgcolor: probabilityClass === 'probability-low-single' ? '#dc3545' :
-                          probabilityClass === 'probability-medium-single' ? '#ffc107' : '#28a745',
-                  borderRadius: '6px',
-                  transition: 'width 0.3s ease',
-                }}
-              />
+                sx={{position: 'absolute', top: 0, left: 0,  height: '100%',  width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low-single' ? '#FF2525' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265', borderRadius: '6px', transition: 'width 0.3s ease',}} />
             </Box>
           </Box>
         </Box>
@@ -96,30 +75,14 @@ const PredictionResult = ({ prediction }) => {
                 <Box
                   component="li"
                   key={index}
-                  sx={{
-                    p: '12px 15px',
-                    bgcolor: '#f5f5f5',
-                    borderRadius: '8px',
-                    mb: 1,
-                    fontSize: '0.95rem',
-                    color: '#666',
-                    '&:last-child': { mb: 0 }
-                  }}
-                >
+                  sx={{  p: '12px 15px', bgcolor: '#f5f5f5',  borderRadius: '8px',  mb: 1, fontSize: '0.95rem',  color: '#666', '&:last-child': { mb: 0 } }} >
                   {rec}
                 </Box>
               ))
             ) : (
               <Box
                 component="li"
-                sx={{
-                  p: '12px 15px',
-                  bgcolor: '#f5f5f5',
-                  borderRadius: '8px',
-                  fontSize: '0.95rem',
-                  color: '#666'
-                }}
-              >
+                sx={{ p: '12px 15px', bgcolor: '#f5f5f5',borderRadius: '8px',fontSize: '0.95rem', color: '#666' }} >
                 Keine Empfehlungen verfügbar
               </Box>
             )}
@@ -143,18 +106,7 @@ const PredictionResult = ({ prediction }) => {
               {barData.map((item, idx) => (
                 <Box
                   key={item.feature}
-                  sx={{
-                    width: `${item.impact_percentage}%`,
-                    bgcolor: item.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
-                    transition: 'width 0.3s ease'
-                  }}
+                  sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}
                 >
                   {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
                 </Box>

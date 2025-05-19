@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Button, Checkbox, CircularProgress, Link } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 
-const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
+const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
 
@@ -20,6 +20,7 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
 
   const handleSaveSelected = () => {
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
+      ...(originalProfiles && originalProfiles[index] ? originalProfiles[index] : {}),
       ...results[index],
       savedAt: new Date().toISOString()
     }));
@@ -81,30 +82,12 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <Box sx={{ 
-        bgcolor: '#fff',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        mb: 4,
-        width: '100%'
-      }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, width: '100%' }}>
         <Box sx={{ p: '30px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <Typography variant="h2" sx={{ 
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              color: '#1a1a1a',
-              mb: 2
-            }}>
-              Zusammenfassung der Batch-Verarbeitung
-            </Typography>
-            <Typography sx={{ mb: 1, color: '#666' }}>
-              <strong>Erfolgreich verarbeitet:</strong> {successCount} Kandidaten
-            </Typography>
-            <Typography sx={{ color: '#666' }}>
-              <strong>Fehler:</strong> {errorCount} Kandidaten
-            </Typography>
+            <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a', mb: 2 }}>Zusammenfassung der Batch-Verarbeitung</Typography>
+            <Typography sx={{ mb: 1, color: '#666' }}><strong>Erfolgreich verarbeitet:</strong> {successCount} Kandidaten</Typography>
+            <Typography sx={{ color: '#666' }}><strong>Fehler:</strong> {errorCount} Kandidaten</Typography>
           </div>
           {selectedCandidates.size > 0 && (
             <Button
@@ -113,17 +96,7 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
               onClick={handleSaveSelected}
               disabled={isSaving}
               startIcon={isSaving ? <CircularProgress size={24} sx={{ color: 'white' }} /> : <SaveIcon />}
-              sx={{
-                bgcolor: '#001B41',
-                color: 'white',
-                p: '10px 20px',
-                borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#FF5F00'
-                }
-              }}
+              sx={{ bgcolor: '#13213C', color: 'white', p: '10px 20px', borderRadius: '8px', textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#FF8000' } }}
             >
               {isSaving ? 'Speichern...' : selectedCandidates.size + ' Kandidaten speichern'}
             </Button>
@@ -134,47 +107,11 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th style={{
-                  background: '#001B41',
-                  color: 'white',
-                  padding: '15px 30px',
-                  textAlign: 'left',
-                  fontWeight: 900,
-                  fontSize: '1.1rem',
-                  width: '40px'
-                }}></th>
-                <th style={{
-                  background: '#001B41',
-                  color: 'white',
-                  padding: '15px 30px',
-                  textAlign: 'left',
-                  fontWeight: 900,
-                  fontSize: '1.1rem'
-                }}>Name</th>
-                <th style={{
-                  background: '#001B41',
-                  color: 'white',
-                  padding: '15px 30px',
-                  textAlign: 'left',
-                  fontWeight: 600,
-                  fontSize: '1.1rem'
-                }}>LinkedIn</th>
-                <th style={{
-                  background: '#001B41',
-                  color: 'white',
-                  padding: '15px 30px',
-                  textAlign: 'left',
-                  fontWeight:900,
-                  fontSize: '1.1rem'
-                }}>Wechselwahrscheinlichkeit</th>
-                <th style={{
-                  background: '#001B41',
-                  color: 'white',
-                  padding: '15px 30px',
-                  textAlign: 'left',
-                  fontWeight: 900,
-                  fontSize: '1.1rem'
-                }}></th>
+                <th style={{ background: '#13213C', color: 'white', padding: '15px 30px', textAlign: 'left', fontWeight: 900, fontSize: '1.1rem', width: '40px' }}></th>
+                <th style={{ background: '#13213C', color: 'white', padding: '15px 30px', textAlign: 'left', fontWeight: 900, fontSize: '1.1rem' }}>Name</th>
+                <th style={{ background: '#13213C', color: 'white', padding: '15px 30px', textAlign: 'left', fontWeight: 600, fontSize: '1.1rem' }}>LinkedIn</th>
+                <th style={{ background: '#13213C', color: 'white', padding: '15px 30px', textAlign: 'left', fontWeight: 900, fontSize: '1.1rem' }}>Wechselwahrscheinlichkeit</th>
+                <th style={{ background: '#13213C', color: 'white', padding: '15px 30px', textAlign: 'left', fontWeight: 900, fontSize: '1.1rem' }}></th>
               </tr>
             </thead>
             <tbody>
@@ -188,27 +125,9 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}></td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>{name}</td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
-                        <Link 
-                          href={linkedin} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          sx={{
-                            color: '#666',
-                            textDecoration: 'none',
-                            fontSize: '0.85rem',
-                            opacity: 0.8,
-                            transition: 'opacity 0.2s ease',
-                            '&:hover': {
-                              opacity: 1
-                            }
-                          }}
-                        >
-                          {linkedin}
-                        </Link>
+                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
                       </td>
-                      <td colSpan="2" style={{ padding: '15px 30px', borderBottom: '1px solid #eee', color: '#dc3545' }}>
-                        {result.error}
-                      </td>
+                      <td colSpan="2" style={{ padding: '15px 30px', borderBottom: '1px solid #eee', color: '#FF2525' }}>{result.error}</td>
                     </tr>
                   );
                 }
@@ -220,73 +139,22 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
                   <React.Fragment key={index}>
                     <tr>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
-                        <Checkbox
-                          checked={selectedCandidates.has(index)}
-                          onChange={() => handleSelectCandidate(index)}
-                          sx={{
-                            color: '#666',
-                            '&.Mui-checked': {
-                              color: '#666',
-                            },
-                          }}
-                        />
+                        <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#666' } }} />
                       </td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>{name}</td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
-                        <Link 
-                          href={linkedin} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          sx={{
-                            color: '#666',
-                            textDecoration: 'none',
-                            fontSize: '1rem',
-                            opacity: 0.8,
-                            transition: 'opacity 0.2s ease',
-                            '&:hover': {
-                              opacity: 1
-                            }
-                          }}
-                        >
-                          {linkedin}
-                        </Link>
+                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '1rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
                       </td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Typography sx={{ fontWeight: 600, minWidth: 50, color: probabilityClass === 'probability-low' ? '#dc3545' : probabilityClass === 'probability-medium' ? '#ffc107' : '#28a745' }}>
-                            {confidence.toFixed(0)}%
-                          </Typography>
+                          <Typography sx={{ fontWeight: 600, minWidth: 50, color: probabilityClass === 'probability-low' ? '#FF2525' : probabilityClass === 'probability-medium' ? '#FFC03D' : '#8AD265' }}>{confidence.toFixed(0)}%</Typography>
                           <Box sx={{ flexGrow: 1, height: 8, bgcolor: '#eee', borderRadius: 1, overflow: 'hidden' }}>
-                            <Box
-                              sx={{
-                                height: '100%',
-                                width: `${confidence}%`,
-                                bgcolor: probabilityClass === 'probability-low' ? '#dc3545' :
-                                        probabilityClass === 'probability-medium' ? '#ffc107' : '#28a745',
-                                borderRadius: 1,
-                                transition: 'width 0.3s ease'
-                              }}
-                            />
+                            <Box sx={{ height: '100%', width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low' ? '#FF2525' : probabilityClass === 'probability-medium' ? '#FFC03D' : '#8AD265', borderRadius: 1, transition: 'width 0.3s ease' }} />
                           </Box>
                         </Box>
                       </td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
-                        <Button
-                          onClick={() => toggleDetails(index)}
-                          sx={{
-                            bgcolor: '#001B41',
-                            color: 'white',
-                            textTransform: 'none',
-                            px: 2,
-                            py: 1,
-                            borderRadius: '8px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            '&:hover': {
-                              bgcolor: '#FF5F00'
-                            }
-                          }}
-                        >
+                        <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, '&:hover': { bgcolor: '#FF8000' } }}>
                           {expandedRows.has(index) ? 'Hide Details' : 'Show Details'}
                         </Button>
                       </td>
@@ -294,81 +162,32 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
                     {expandedRows.has(index) && (
                       <tr>
                         <td colspan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
-                          <Box sx={{ 
-                            borderRadius: '16px',
-                            p: '30px',
-                            margin: '20px auto',
-                            bgcolor: '#fff',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
-                            maxWidth: '95%'
-                          }}>
-
+                          <Box sx={{ borderRadius: '16px', p: '30px', margin: '20px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)', maxWidth: '95%' }}>
                             <Box sx={{ color: '#666' }}>
                               {(() => {
-                                // Sortiere und filtere die wichtigsten Features
-                                const explanations = (result.explanations || [])
-                                  .sort((a, b) => parseFloat(b.impact_percentage) - parseFloat(a.impact_percentage));
+                                const explanations = (result.explanations || []).sort((a, b) => parseFloat(b.impact_percentage) - parseFloat(a.impact_percentage));
                                 const top3 = explanations.slice(0, 3);
                                 const sonstigeSumme = explanations.slice(3).reduce((sum, f) => sum + parseFloat(f.impact_percentage), 0);
-
-                                // Farben wie in PredictionResult.jsx
-                                const getBarColors = [
-                                  '#28a745', // grün
-                                  '#ffc107', // gelb
-                                  '#dc3545', // rot
-                                  '#b0b0b0'  // grau für Sonstiges
-                                ];
-
-                                // Daten für den gestapelten Balken
+                                const getBarColors = ['#8AD265', '#FFC03D', '#FF2525', '#e3e3e3'];
                                 const barData = [
-                                  ...top3.map((f, i) => ({
-                                    ...f,
-                                    color: getBarColors[i]
-                                  })),
-                                  ...(sonstigeSumme > 0 ? [{
-                                    feature: 'Sonstiges',
-                                    impact_percentage: sonstigeSumme,
-                                    color: getBarColors[3]
-                                  }] : [])
+                                  ...top3.map((f, i) => ({ ...f, color: getBarColors[i] })),
+                                  ...(sonstigeSumme > 0 ? [{ feature: 'Sonstiges', impact_percentage: sonstigeSumme, color: getBarColors[3] }] : [])
                                 ];
 
                                 if (barData.length === 0) {
-                                  return (
-                                    <Typography sx={{ color: '#666' }}>
-                                      Keine Feature-Erklärungen verfügbar.
-                                    </Typography>
-                                  );
+                                  return <Typography sx={{ color: '#666' }}>Keine Feature-Erklärungen verfügbar.</Typography>;
                                 }
 
                                 return (
                                   <Box>
-                                    {/* Überschrift für die Erklärung */}
-                                    <Typography sx={{ fontWeight: 600, fontSize: '1.15rem', color: '#001B41', mb: 2 }}>
-                                      Vorhersage-Erklärung
-                                    </Typography>
-                                    {/* Gestapelter Balken */}
+                                    <Typography sx={{ fontWeight: 600, fontSize: '1.15rem', color: '#13213C', mb: 2 }}>Vorhersage-Erklärung</Typography>
                                     <Box sx={{ display: 'flex', width: '100%', height: 28, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
                                       {barData.map((item, idx) => (
-                                        <Box
-                                          key={item.feature}
-                                          sx={{
-                                            width: `${item.impact_percentage}%`,
-                                            bgcolor: item.color,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: '#fff',
-                                            fontWeight: 600,
-                                            fontSize: '0.95rem',
-                                            borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
-                                            transition: 'width 0.3s ease'
-                                          }}
-                                        >
+                                        <Box key={item.feature} sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}>
                                           {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
                                         </Box>
                                       ))}
                                     </Box>
-                                    {/* Legende */}
                                     <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
                                       {barData.map(item => (
                                         <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -396,4 +215,4 @@ const ResultsTable = ({ results, onSave, isSaving, modelType }) => {
   );
 };
 
-export default ResultsTable; 
+export default ResultsTableClassification; 

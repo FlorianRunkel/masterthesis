@@ -129,7 +129,7 @@ const Sidebar = () => {
               <Box
                 className="nav-text"
                 sx={{
-                  color: location.pathname === item.path ? '#FF5F00' : '#333',
+                  color: location.pathname === item.path ? '#FF8000' : '#333',
                   fontWeight: location.pathname === item.path ? 600 : 500,
                   fontSize: '14px',
                   textAlign: 'center',

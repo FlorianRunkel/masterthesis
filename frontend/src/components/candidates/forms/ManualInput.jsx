@@ -3,6 +3,18 @@ import { Box, Typography, Button, TextField } from '@mui/material';
 import PredictionResultTime from '../prediction/PredictionResultTime';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  // Falls nur Jahr
+  if (/^\\d{4}$/.test(dateStr)) return `01/${dateStr}`;
+  // Falls ISO (yyyy-mm-dd)
+  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(dateStr)) {
+    const [year, month] = dateStr.split('-');
+    return `${month}/${year}`;
+  }
+  return dateStr;
+}
+
 const ManualInput = () => {
   const [experiences, setExperiences] = useState([{
     company: '',
@@ -152,48 +164,11 @@ const ManualInput = () => {
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <Typography variant="h1" sx={{
-        fontSize: '2.5rem',
-        fontWeight: 700,
-        color: '#1a1a1a',
-        mb: 2
-      }}>
-        Manuelle-Prognose
-      </Typography>
-
-      <Typography sx={{
-        color: '#666',
-        mb: 4,
-        fontSize: '1rem',
-        maxWidth: '800px'
-      }}>
-        Analysieren Sie die Wechselwahrscheinlichkeit eines einzelnen Kandidaten basierend auf dessen Berufserfahrung.
-      </Typography>
-
-      <Box 
-        component="form" 
-        onSubmit={handleSubmit}
-        sx={{ width: '100%' }}
-      >
-        <Box
-          sx={{
-            bgcolor: '#fff',
-            borderRadius: '16px',
-            p: '30px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            mb: 4,
-            width: '100%'
-          }}
-        >
-          <Typography variant="h2" sx={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: '#1a1a1a',
-            mb: 3
-          }}>
-            Ausbildung
-          </Typography>
-
+      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Manuelle-Prognose</Typography>
+      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Analysieren Sie die Wechselwahrscheinlichkeit eines einzelnen Kandidaten basierend auf dessen Berufserfahrung.</Typography>
+      <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, width: '100%' }}>
+          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>Ausbildung</Typography>
           <Box id="education" sx={{ width: '100%', mb: 3 }}>
             {education.map((edu, index) => (
               <Box key={index} sx={{ mb: 2 }}>
@@ -202,49 +177,19 @@ const ManualInput = () => {
                     label="Schule/Hochschule"
                     value={edu.school}
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                   <TextField
                     label="Abschluss"
                     value={edu.degree}
                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                   <TextField
                     label="Studienfach"
                     value={edu.fieldOfStudy}
                     onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
@@ -256,17 +201,7 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!edu.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField
@@ -277,17 +212,7 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          fontSize: '1.1rem',
-                          minHeight: '48px',
-                          padding: '5px 0',
-                        },
-                        input: {
-                          fontSize: '1.1rem',
-                          padding: '14px 12px'
-                        }
-                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                     />
                     <Button
                       variant={edu.endDate === 'Present' ? 'contained' : 'outlined'}
@@ -304,24 +229,7 @@ const ManualInput = () => {
                       const newEducation = education.filter((_, i) => i !== index);
                       setEducation(newEducation);
                     }}
-                    sx={{
-                      minWidth: '100px',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      bgcolor: '#f8f9fa',
-                      color: '#666',
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      mt: 1,
-                      mb: 1,
-                      '&:hover': {
-                        bgcolor: '#dc3545',
-                        color: 'white'
-                      }
-                    }}
-                  >
+                    sx={{minWidth: '100px', padding: '8px 16px', borderRadius: '8px',border: 'none',bgcolor: '#f8f9fa',color: '#666',fontSize: '0.9rem',cursor: 'pointer',transition: 'all 0.3s ease',mt: 1, mb: 1,'&:hover': {bgcolor: '#FF2525',color: 'white'}}}>
                     Entfernen
                   </Button>
                 )}
@@ -332,37 +240,11 @@ const ManualInput = () => {
             ))}
             <Button
               onClick={handleAddEducation}
-              sx={{
-                width: '100%',
-                bgcolor: '#001B41',
-                color: 'white',
-                border: 'none',
-                p: '14px',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textTransform: 'none',
-                mb: 3,
-                '&:hover': {
-                  bgcolor: '#FF5F00'
-                }
-              }}
-            >
+              sx={{width: '100%', bgcolor: '#001B41', color: 'white', border: 'none', p: '14px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease', textTransform: 'none', mb: 3,'&:hover': {bgcolor: '#FF8000'} }} >
               WEITERE AUSBILDUNG HINZUFÜGEN
             </Button>
           </Box>
-
-          <Typography variant="h2" sx={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: '#1a1a1a',
-            mb: 3
-          }}>
-            Berufserfahrung
-          </Typography>
-
+          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>Berufserfahrung</Typography>
           <Box id="experiences" sx={{ width: '100%', mb: 3 }}>
             {experiences.map((exp, index) => (
               <Box key={index} sx={{ mb: 2 }}>
@@ -371,33 +253,13 @@ const ManualInput = () => {
                     label="Firma"
                     value={exp.company}
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                   <TextField
                     label="Position"
                     value={exp.position}
                     onChange={e => handleExperienceChange(index, 'position', e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
@@ -409,17 +271,7 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '1.1rem',
-                        minHeight: '48px',
-                        padding: '5px 0',
-                      },
-                      input: {
-                        fontSize: '1.1rem',
-                        padding: '14px 12px'
-                      }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                   />
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField
@@ -430,17 +282,7 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          fontSize: '1.1rem',
-                          minHeight: '48px',
-                          padding: '5px 0',
-                        },
-                        input: {
-                          fontSize: '1.1rem',
-                          padding: '14px 12px'
-                        }
-                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
                     />
                     <Button
                       variant={exp.endDate === 'Present' ? 'contained' : 'outlined'}
@@ -454,24 +296,7 @@ const ManualInput = () => {
                 {index > 0 && (
                   <Button
                     onClick={() => handleRemoveExperience(index)}
-                    sx={{
-                      minWidth: '100px',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      bgcolor: '#f8f9fa',
-                      color: '#666',
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      mt: 1,
-                      mb: 1,
-                      '&:hover': {
-                        bgcolor: '#dc3545',
-                        color: 'white'
-                      }
-                    }}
-                  >
+                    sx={{ minWidth: '100px', padding: '8px 16px',  borderRadius: '8px', border: 'none', bgcolor: '#f8f9fa', color: '#666',fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.3s ease', mt: 1, mb: 1, '&:hover': { bgcolor: '#FF2525',color: 'white' } }} >
                     Entfernen
                   </Button>
                 )}
@@ -482,133 +307,25 @@ const ManualInput = () => {
             ))}
             <Button
               onClick={handleAddExperience}
-              sx={{
-                width: '100%',
-                bgcolor: '#001B41',
-                color: 'white',
-                border: 'none',
-                p: '14px',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textTransform: 'none',
-                mb: 3,
-                '&:hover': {
-                  bgcolor: '#FF5F00'
-                }
-              }}
-            >
+              sx={{ width: '100%',bgcolor: '#001B41',color: 'white',border: 'none', p: '14px',borderRadius: '8px', fontSize: '1rem',fontWeight: 600,cursor: 'pointer',transition: 'all 0.3s ease',textTransform: 'none', mb: 3, '&:hover': {bgcolor: '#FF8000' } }} >
               WEITERE POSITION HINZUFÜGEN
             </Button>
           </Box>
-
-          <Typography variant="h2" sx={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: '#1a1a1a',
-            mb: 3
-          }}>
-            KI-Modell
-          </Typography>
-
+          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>KI-Modell</Typography>
           <Box sx={{ mb: 3 }}>
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid #e0e0e0',
-                backgroundColor: 'white',
-                fontSize: '1rem',
-                outline: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
+            <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #e0e0e0', backgroundColor: 'white', fontSize: '1rem', outline: 'none', cursor: 'pointer', transition: 'all 0.3s ease' }}>
               <option value="" disabled>Wählen Sie ein Modell</option>
               <option value="gru">Gated Recurrent Unit (GRU)</option>
               <option value="xgboost">Extreme Gradient Boosting (XGBoost)</option>
               <option value="tft">Temporal Fusion Transformer (TFT)</option>
             </select>
           </Box>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            sx={{
-              width: '100%',
-              bgcolor: '#001B41',
-              color: 'white',
-              border: 'none',
-              p: '14px',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: '#FF5F00'
-              },
-              '&.Mui-disabled': {
-                bgcolor: '#f1f3f4',
-                color: '#80868b'
-              }
-            }}
-          >
-            PROGNOSE ERSTELLEN
-          </Button>
+          <Button type="submit" disabled={loading} sx={{ width: '100%', bgcolor: '#001B41', color: 'white', border: 'none', p: '14px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease', textTransform: 'none', '&:hover': { bgcolor: '#FF8000' }, '&.Mui-disabled': { bgcolor: '#f1f3f4', color: '#80868b' } }}>PROGNOSE ERSTELLEN</Button>
         </Box>
       </Box>
-
-      {loading && (
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          my: 4
-        }}>
-          <Box 
-            sx={{
-              border: '3px solid #f3f3f3',
-              borderTop: '3px solid #FF5F00',
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              animation: 'spin 1s linear infinite',
-              '@keyframes spin': {
-                '0%': { transform: 'rotate(0deg)' },
-                '100%': { transform: 'rotate(360deg)' }
-              }
-            }}
-          />
-        </Box>
-      )}
-
-      {error && (
-        <Box sx={{
-          bgcolor: '#fff',
-          borderRadius: '16px',
-          p: '30px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          mb: 4,
-          color: '#dc3545',
-          width: '100%'
-        }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>Fehler</Typography>
-          <Typography>{error}</Typography>
-        </Box>
-      )}
-
-      {prediction && selectedModel === 'tft' && (
-        <>
-          <PredictionResultTime prediction={prediction} />
-        </>
-      )}
+      {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #FF8000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
+      {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Fehler</Typography><Typography>{error}</Typography></Box>)}
+      {prediction && selectedModel === 'tft' && (<><PredictionResultTime prediction={prediction} /></>)}
       {prediction && selectedModel === 'gru' && <PredictionResultClassification prediction={prediction} />}
       {prediction && selectedModel === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
     </Box>
