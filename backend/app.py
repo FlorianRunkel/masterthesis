@@ -155,12 +155,20 @@ def predict_career():
         prediction = module.predict(profile_data, with_llm_explanation=True)
     
         # Formatiere Vorhersage
-        formatted_prediction = {
-            'confidence': max(0.0, prediction['confidence'][0]),
-            'recommendations': prediction['recommendations'][0],
-            'status': prediction.get('status', ''),
-            'explanations': prediction.get('explanations', []),
-        }
+        if model_type == 'xgboost':
+            formatted_prediction = {
+                'confidence': max(0.0, prediction['confidence'][0]),
+                'recommendations': prediction['recommendations'][0],
+                'status': prediction.get('status', ''),
+                'explanations': prediction.get('explanations', []),
+            }
+        else:
+            formatted_prediction = {
+                'confidence': prediction['confidence'],
+                'recommendations': prediction['recommendations'],
+                'status': prediction.get('status', ''),
+                'explanations': prediction.get('explanations', []),
+            }
         
         app.logger.info(f"Formatted Prediction: {formatted_prediction}")
 

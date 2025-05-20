@@ -103,6 +103,7 @@ def predict_next_job_change(profile_data):
         # 7. Vorhersage machen
         dataloader = prediction_dataset.to_dataloader(train=False, batch_size=1)
         predictions = model.predict(dataloader)
+        print(predictions)
         # 8. Ergebnisse formatieren
         results = format_prediction_results(predictions)
         return results

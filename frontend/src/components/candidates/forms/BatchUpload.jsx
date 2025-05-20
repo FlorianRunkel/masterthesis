@@ -128,8 +128,8 @@ const BatchUpload = () => {
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="model-type-label">Modelltyp</InputLabel>
             <Select labelId="model-type-label" value={modelType} label="Modelltyp" onChange={(e) => setModelType(e.target.value)}>
-              <MenuItem value="xgboost">Gated Recurrent Units (GRU)</MenuItem>
-              <MenuItem value="gru">Extrem Gradient Boosting (XGBoost)</MenuItem>
+              <MenuItem value="gru">Gated Recurrent Units (GRU)</MenuItem>
+              <MenuItem value="xgboost">Extrem Gradient Boosting (XGBoost)</MenuItem>
               <MenuItem value="tft">Temporal Fusion Transformer (TFT)</MenuItem>
             </Select>
           </FormControl>
@@ -160,7 +160,7 @@ const BatchUpload = () => {
       
       {results && !loading && (
         <Box sx={{ mt: 3 }}>
-          {modelType === 'tft' ? (
+          {modelType === 'tft' || modelType === 'gru' ? (
             <ResultsTableTimeSeries
               results={results}
               onSave={handleSaveCandidates}

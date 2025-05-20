@@ -184,7 +184,25 @@ const LinkedInInput = () => {
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><CircularProgress size={40} thickness={4} sx={{ color: '#001B41' }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#FF2525', p: 3, borderRadius: 2, mb: 3 }}><Typography variant="h6" sx={{ mb: 1 }}>Fehler</Typography><Typography>{error}</Typography><Box component="ul" sx={{ mt: 2, pl: 2 }}><li>Stellen Sie sicher, dass die URL korrekt ist</li><li>Das Profil muss öffentlich zugänglich sein</li><li>Versuchen Sie es später erneut</li></Box></Box>)}
       {profileData && <ProfileDisplay profile={profileData} />}
-      {predictionData && (<>{selectedModel === 'tft' ? (<PredictionResultTime prediction={predictionData} />) : (<PredictionResultClassification prediction={predictionData} />)}<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4, mb: 2, gap: 2 }}><Button variant="contained" startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />} onClick={handleSaveCandidate} disabled={saving || saveSuccess} sx={{ bgcolor: '#001B41', color: '#fff', px: 4, py: 1.5, borderRadius: '8px', '&:hover': { bgcolor: '#FF8000' }, minWidth: '250px' }}>{saving ? 'Speichere...' : 'Kandidat speichern'}</Button><Fade in={saveSuccess}><Alert icon={<CheckCircleOutlineIcon fontSize="inherit" />} severity="success" sx={{ mt: 2, bgcolor: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', '& .MuiAlert-icon': { color: '#059669' }, borderRadius: '8px', minWidth: '250px' }}>Kandidat wurde erfolgreich gespeichert!</Alert></Fade></Box></>)}
+      {predictionData && (
+        <>
+          {(selectedModel === 'tft' || selectedModel === 'gru') ? (
+            <PredictionResultTime prediction={predictionData} />
+          ) : (
+            <PredictionResultClassification prediction={predictionData} />
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4, mb: 2, gap: 2 }}>
+            <Button variant="contained" startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />} onClick={handleSaveCandidate} disabled={saving || saveSuccess} sx={{ bgcolor: '#001B41', color: '#fff', px: 4, py: 1.5, borderRadius: '8px', '&:hover': { bgcolor: '#FF8000' }, minWidth: '250px' }}>
+              {saving ? 'Speichere...' : 'Kandidat speichern'}
+            </Button>
+            <Fade in={saveSuccess}>
+              <Alert icon={<CheckCircleOutlineIcon fontSize="inherit" />} severity="success" sx={{ mt: 2, bgcolor: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', '& .MuiAlert-icon': { color: '#059669' }, borderRadius: '8px', minWidth: '250px' }}>
+                Kandidat wurde erfolgreich gespeichert!
+              </Alert>
+            </Fade>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

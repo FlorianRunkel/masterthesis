@@ -51,6 +51,16 @@ def get_feature_description(name):
     }
     return descriptions.get(name, "Dieses Feature beeinflusst die Vorhersage.")
 
+def get_status_and_recommendation(tage):
+    if tage < 30:
+        return "baldiger Wechsel", "Sehr wahrscheinlicher Jobwechsel innerhalb des nächsten Monats"
+    elif tage < 90:
+        return "mittelfristig", "Wahrscheinlicher Jobwechsel innerhalb der nächsten 3 Monate"
+    elif tage < 180:
+        return "später Wechsel", "Möglicher Jobwechsel innerhalb der nächsten 6 Monate"
+    else:
+        return "langfristig", "Jobwechsel in weiterer Zukunft (> 6 Monate)"
+
 '''
 Data Processing Functions
 '''
@@ -97,16 +107,14 @@ Model Functions
 def load_model(model_path):
     """Lädt das GRU-Modell."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    model = GRUModel(seq_input_size=6, static_input_size=6)
+    model = GRUModel(seq_input_size=7)
     model.load_state_dict(checkpoint)
     model.eval()
     return model
 
-def create_background_data(seq_tensor, static_features):
-    """Erstellt Hintergrunddaten für SHAP."""
+def create_background_data(seq_tensor):
     background_seq = torch.zeros((10, seq_tensor.shape[1], seq_tensor.shape[2]))
-    background_static = torch.zeros((10, static_features.shape[1]))
-    return [background_seq, background_static]
+    return background_seq
 
 def get_prediction_status(prob):
     """Bestimmt den Status basierend auf der Vorhersagewahrscheinlichkeit."""
@@ -121,18 +129,13 @@ def get_prediction_status(prob):
 '''
 Explanation Functions
 '''
-def calculate_shap_values(model, background_data, seq_tensor, static_features):
+def calculate_shap_values(model, background_data, seq_tensor):
     """Berechnet SHAP-Werte für die Erklärung."""
     explainer = shap.DeepExplainer(model, background_data)
-    shap_values = explainer.shap_values([seq_tensor, static_features], check_additivity=False)
-    
+    shap_values = explainer.shap_values(seq_tensor, check_additivity=False)
     mean_shap_seq = np.mean(np.abs(shap_values[0][0]), axis=0).flatten()
-    mean_shap_static = np.mean(np.abs(shap_values[1][0]), axis=0)
-    
-    all_shap = np.concatenate([mean_shap_seq, mean_shap_static])
-    total = np.sum(all_shap)
-    
-    return (all_shap / total) * 100 if total > 0 else np.zeros_like(all_shap)
+    total = np.sum(mean_shap_seq)
+    return (mean_shap_seq / total) * 100 if total > 0 else np.zeros_like(mean_shap_seq)
 
 def create_explanations(norm_shap):
     """Erstellt die Feature-Erklärungen."""
@@ -149,55 +152,35 @@ def create_explanations(norm_shap):
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, with_llm_explanation=False):
-    """Hauptfunktion für die Vorhersage."""
-    # Modellpfad bestimmen
+def predict(profile_dict, model_path=None, with_llm_explanation=True):
+    """Vorhersage der Tage bis zum Wechsel (Regression)."""
     if model_path is None:
         model_path = get_latest_model_path()
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
-    # Profildaten verarbeiten
-    profile_dict = parse_profile_data(profile_dict)
-    features = extract_features(profile_dict)
+    fe = FeatureEngineering()
+    features, _ = fe.extract_features_and_labels_for_training([profile_dict])
+    seq_tensor = features  # (1, 1, 7)
 
-    # Sequenz-Features vorbereiten
-    sequence_features = features.get('career_sequence', [])
-    if not sequence_features:
-        return {
-            "confidence": [0.0],
-            "recommendations": ["Keine Karriere-Sequenz vorhanden."],
-            "status": "unbekannt",
-            "explanations": [],
-            "llm_explanation": ""
-        }
-
-    # Tensoren vorbereiten
-    seq_tensor = prepare_sequence_tensor(sequence_features)
-    static_features = prepare_static_tensor(features)
-
-    # Modell laden und Vorhersage machen
     model = load_model(model_path)
-    background_data = create_background_data(seq_tensor, static_features)
-    
+
     with torch.no_grad():
-        pred = model(seq_tensor, static_features)
-        prob = torch.sigmoid(pred).item()
+        pred = model(seq_tensor)
+        tage = pred.item()  # Direkter Regressionswert
+        print(tage)
 
-    # Status und Empfehlungen
-    status = get_prediction_status(prob)
-    recommendations = [
-        f"Der Kandidat ist {status}.",
-        f"Wechselwahrscheinlichkeit: {prob:.1%}"
-    ]
+    status, recommendation = get_status_and_recommendation(tage)
 
-    # SHAP-Werte und Erklärungen
-    norm_shap = calculate_shap_values(model, background_data, seq_tensor, static_features)
+    # SHAP-Explanations
+    background_data = create_background_data(seq_tensor)
+    norm_shap = calculate_shap_values(model, background_data, seq_tensor)
     explanations = create_explanations(norm_shap)
 
     return {
-        "confidence": [float(prob)],
-        "recommendations": recommendations,
+        "confidence": tage,
+        "recommendations": [recommendation],
         "status": status,
         "explanations": explanations,
+        "llm_explanation": ""
     }

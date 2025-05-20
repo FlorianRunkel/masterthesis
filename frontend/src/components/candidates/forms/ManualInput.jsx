@@ -326,7 +326,7 @@ const ManualInput = () => {
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #FF8000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Fehler</Typography><Typography>{error}</Typography></Box>)}
       {prediction && selectedModel === 'tft' && (<><PredictionResultTime prediction={prediction} /></>)}
-      {prediction && selectedModel === 'gru' && <PredictionResultClassification prediction={prediction} />}
+      {prediction && selectedModel === 'gru' && <PredictionResultTime prediction={prediction} />}
       {prediction && selectedModel === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
     </Box>
   );
