@@ -140,7 +140,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#13213C', fontWeight: 500, fontSize: '1rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1, '&:hover': { color: '#FF8000', textDecoration: 'underline' } }}>{linkedin.replace(/^https?:\/\/|^www\./, '')}</Link>
                       </td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee' }}>
-                        <Chip label={`${result.confidence} Tag${result.confidence === 1 ? '' : 'e'}`} sx={{ color: '#000', fontWeight: 700, fontSize: '1.05rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent' }} />
+                        <Chip 
+                          label={`${(result.confidence / 30.44).toFixed(1)} Monat${(result.confidence / 30.44).toFixed(1) === '1.0' ? '' : 'e'}`} 
+                          sx={{ color: '#000', fontWeight: 700,  fontSize: '1.05rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent'}}/>
                       </td>
                       <td style={{ padding: '15px 30px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
                         <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2.5, py: 1.2, borderRadius: '8px', fontSize: '1rem', fontWeight: 600, minWidth: 0, '&:hover': { bgcolor: '#FF8000' }, display: 'flex', alignItems: 'center', gap: 1 }} endIcon={expandedRows.has(index) ? <ExpandLessIcon /> : <ExpandMoreIcon />}>

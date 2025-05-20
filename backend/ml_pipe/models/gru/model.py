@@ -14,16 +14,16 @@ class GRUModel(pl.LightningModule):
             batch_first=True,
             dropout=dropout if num_layers > 1 else 0
         )
-        self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Linear(hidden_size, 1)
-        self.loss_fn = nn.BCEWithLogitsLoss()  # Für Binärklassifikation
+
+        # Nur eine einzelne Ausgabeschicht
+        self.fc_out = nn.Linear(hidden_size, 1)
+        self.loss_fn = nn.MSELoss()  # Für Regression
         self.lr = lr
 
     def forward(self, x_seq):
-        gru_out, _ = self.gru(x_seq)  # x_seq: (batch, time, features)
-        last_out = gru_out[:, -1, :]  # letzter Zeitschritt
-        out = self.dropout(last_out)
-        out = self.fc(out)
+        gru_out, _ = self.gru(x_seq)
+        last_out = gru_out[:, -1, :]  # Nur den letzten Output der Sequenz nehmen
+        out = self.fc_out(last_out)
         return out
 
     def step(self, batch, stage):

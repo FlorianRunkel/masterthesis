@@ -2,8 +2,9 @@ import torch
 import os
 import glob
 import json
+from datetime import datetime
+from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import process_profile, parse_date
 from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
-from backend.ml_pipe.data.linkedInData.classification.profileFeaturizer import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
 from backend.ml_pipe.models.gru.model import GRUModel
 import numpy as np
 import shap
@@ -20,34 +21,24 @@ def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Ma
 
 def get_feature_names():
     return [
-        "Position Level",
+        "Berufserfahrung",
+        "Anzahl Wechsel",
+        "Anzahl Jobs",
+        "Durchschnittsdauer Jobs",
+        "Level",
         "Branche",
-        "Beschäftigungsdauer",
-        "Zeit seit Beginn",
-        "Zeit bis Ende",
-        "Aktuelle Position",
-        "Total Positions",
-        "Company Changes",
-        "Total Experience Years",
-        "Highest Degree",
-        "Age Category",
-        "Avg. Position Duration"
+        "Durchschnittszeit Position"
     ]
 
 def get_feature_description(name):
     descriptions = {
-        "Position Level": "Die Hierarchieebene der aktuellen und vorherigen Positionen hat einen signifikanten Einfluss auf die Wechselbereitschaft.",
-        "Branche": "Die Branchenzugehörigkeit und deren Entwicklung sind wichtige Indikatoren für potenzielle Wechsel.",
-        "Beschäftigungsdauer": "Die Verweildauer in Positionen gibt Aufschluss über das Wechselverhalten.",
-        "Zeit seit Beginn": "Die Zeit seit Beginn der aktuellen Position beeinflusst die Wechselwahrscheinlichkeit.",
-        "Zeit bis Ende": "Die Dauer bis zum Ende einer Position zeigt Muster im Wechselverhalten.",
-        "Aktuelle Position": "Der aktuelle Karrierestatus ist ein wichtiger Indikator für Wechselbereitschaft.",
-        "Total Positions": "Die Anzahl der bisherigen Positionen beeinflusst die Wechselwahrscheinlichkeit.",
-        "Company Changes": "Die Anzahl der Firmenwechsel ist ein Indikator für Flexibilität oder Unzufriedenheit.",
-        "Total Experience Years": "Mehr Erfahrung kann die Wechselwahrscheinlichkeit beeinflussen.",
-        "Highest Degree": "Ein höherer Abschluss kann die Karrierechancen und Wechselbereitschaft beeinflussen.",
-        "Age Category": "Das Alter beeinflusst die Karrierephase und Wechselmotivation.",
-        "Avg. Position Duration": "Kurze Verweildauer spricht für häufige Wechsel."
+        "Berufserfahrung": "Die Gesamtberufserfahrung bis zum aktuellen Zeitpunkt",
+        "Anzahl Wechsel": "Die Anzahl der bisherigen Jobwechsel",
+        "Anzahl Jobs": "Die Gesamtanzahl der bisherigen Jobs",
+        "Durchschnittsdauer Jobs": "Die durchschnittliche Dauer der bisherigen Jobs",
+        "Level": "Die Hierarchieebene der aktuellen Position",
+        "Branche": "Die Branchenzugehörigkeit",
+        "Durchschnittszeit Position": "Die durchschnittliche Verweildauer in der aktuellen Position"
     }
     return descriptions.get(name, "Dieses Feature beeinflusst die Vorhersage.")
 
@@ -66,40 +57,67 @@ Data Processing Functions
 '''
 def parse_profile_data(profile_dict):
     """Verarbeitet die eingehenden Profildaten."""
-    if "linkedinProfileInformation" in profile_dict:
+    if isinstance(profile_dict, str):
         try:
-            return json.loads(profile_dict["linkedinProfileInformation"])
-        except Exception as e:
-            raise ValueError(f"Profil konnte nicht geparst werden: {e}")
+            return json.loads(profile_dict)
+        except:
+            pass
+    
+    # Wenn das Profil direkt als Dict übergeben wurde, packen wir es in das erwartete Format
+    if isinstance(profile_dict, dict) and "workExperience" in profile_dict:
+        profile_dict = {"linkedinProfileInformation": json.dumps(profile_dict)}
+    
     return profile_dict
 
-def extract_features(profile_dict):
-    """Extrahiert Features aus den Profildaten."""
+def prepare_features(profile_dict):
+    """Bereitet die Features für die Vorhersage vor."""
+    # Profil in das richtige Format bringen
+    profile_data = parse_profile_data(profile_dict)
+    
+    # Profile verarbeiten wie beim Training
+    samples = process_profile(profile_data)
+    
+    if not samples:
+        raise ValueError("Keine gültigen Samples aus dem Profil extrahiert")
+    
+    # Nehmen wir das aktuellste Sample (erste Position)
+    latest_sample = samples[0]
+    
+    # FeatureEngineering für das Mapping der Positionen
     fe = FeatureEngineering()
-    career_history = extract_career_data(profile_dict, fe)
-    education_data = extract_education_data(profile_dict)
-    age_category = estimate_age_category(profile_dict)
-    return extract_additional_features(career_history, education_data, fe, age_category)
+    
+    # Features in die richtige Reihenfolge bringen wie im Training
+    features = [
+        float(latest_sample["berufserfahrung_bis_zeitpunkt"]),
+        float(latest_sample["anzahl_wechsel_bisher"]),
+        float(latest_sample["anzahl_jobs_bisher"]),
+        float(latest_sample["durchschnittsdauer_bisheriger_jobs"]),
+    ]
+    
+    # Position und Branche mappen mit verbessertem Matching
+    print(f"\nVerarbeite Position: '{latest_sample['aktuelle_position']}'")
+    level, branche, durchschnittszeit = fe.map_position(latest_sample["aktuelle_position"])
+    features.append(level)
+    features.append(branche)
+    features.append(durchschnittszeit)
+    
+    # Debug-Ausgaben
+    print("\nFeature-Werte:")
+    print(f"Berufserfahrung: {features[0]:.2f} Tage")
+    print(f"Anzahl Wechsel: {features[1]:.0f}")
+    print(f"Anzahl Jobs: {features[2]:.0f}")
+    print(f"Durchschnittsdauer Jobs: {features[3]:.2f} Tage")
+    print(f"Level: {features[4]:.0f}")
+    print(f"Branche: {features[5]:.0f} ({get_branche_name(features[5])})")
+    print(f"Durchschnittszeit Position: {features[6]:.2f} Tage")
+    
+    # Tensor erstellen mit der gleichen Form wie im Training
+    return torch.tensor([features], dtype=torch.float32).unsqueeze(0)  # (1, 1, 7)
 
-def prepare_sequence_tensor(sequence_features):
-    """Bereitet die Sequenz-Features als Tensor vor."""
-    return torch.tensor([
-        [float(seq.get(key, 0)) for key in [
-            'level', 'branche', 'duration_months', 
-            'time_since_start', 'time_until_end', 'is_current']
-        ] for seq in sequence_features
-    ], dtype=torch.float32).unsqueeze(0)  # (1, T, 6)
-
-def prepare_static_tensor(features):
-    """Bereitet die statischen Features als Tensor vor."""
-    return torch.tensor([[
-        features.get('total_positions', 0),
-        features.get('company_changes', 0),
-        features.get('total_experience_years', 0),
-        features.get('highest_degree', 0),
-        features.get('age_category', 0),
-        features.get('avg_position_duration_months', 0)
-    ]], dtype=torch.float32)  # (1, 6)
+def get_branche_name(branche_num):
+    """Konvertiert Branchennummer in Namen."""
+    branche_map = {1: "Sales", 2: "Engineering", 3: "Consulting"}
+    return branche_map.get(branche_num, "Unbekannt")
 
 '''
 Model Functions
@@ -107,24 +125,21 @@ Model Functions
 def load_model(model_path):
     """Lädt das GRU-Modell."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    model = GRUModel(seq_input_size=7)
+    model = GRUModel(seq_input_size=7)  # 7 Features wie oben definiert
     model.load_state_dict(checkpoint)
     model.eval()
+    
+    # Debug: Modellgewichte ausgeben
+    print("\nModellgewichte:")
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(f"{name}: {param.data.mean().item():.4f} (Mittelwert)")
+    
     return model
 
 def create_background_data(seq_tensor):
     background_seq = torch.zeros((10, seq_tensor.shape[1], seq_tensor.shape[2]))
     return background_seq
-
-def get_prediction_status(prob):
-    """Bestimmt den Status basierend auf der Vorhersagewahrscheinlichkeit."""
-    if prob > 0.7:
-        return "sehr wahrscheinlich wechselbereit"
-    elif prob > 0.5:
-        return "wahrscheinlich wechselbereit"
-    elif prob > 0.3:
-        return "möglicherweise wechselbereit"
-    return "bleibt wahrscheinlich"
 
 '''
 Explanation Functions
@@ -159,26 +174,41 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
-    fe = FeatureEngineering()
-    features, _ = fe.extract_features_and_labels_for_training([profile_dict])
-    seq_tensor = features  # (1, 1, 7)
+    print("\n=== Starte Vorhersage ===")
+    
+    # Profil verarbeiten
+    profile_data = parse_profile_data(profile_dict)
+    features = prepare_features(profile_data)
 
+    # Modell laden und Vorhersage machen
     model = load_model(model_path)
-
     with torch.no_grad():
-        pred = model(seq_tensor)
-        tage = pred.item()  # Direkter Regressionswert
-        print(tage)
+        # Debug: Zwischenwerte der Schichten ausgeben
+        gru_out, _ = model.gru(features)
+        print("\nGRU Ausgabe:", gru_out.mean().item())
+        
+        last_out = gru_out[:, -1, :]  # Nur den letzten Output der Sequenz nehmen
+        print("GRU letzter Output:", last_out.mean().item())
+        
+        pred = model.fc_out(last_out)
+        print("Finale Ausgabe:", pred.mean().item())
+        
+        tage = max(0, pred.item())  # Stelle sicher, dass die Tage nicht unter 0 sind
+        print(f"\nModell-Ausgabe:")
+        print(f"Rohausgabe: {pred}")
+        print(f"Tage bis zum Wechsel: {tage:.2f}")
 
     status, recommendation = get_status_and_recommendation(tage)
 
     # SHAP-Explanations
-    background_data = create_background_data(seq_tensor)
-    norm_shap = calculate_shap_values(model, background_data, seq_tensor)
+    background_data = create_background_data(features)
+    norm_shap = calculate_shap_values(model, background_data, features)
     explanations = create_explanations(norm_shap)
 
+    print("\n=== Vorhersage abgeschlossen ===")
+
     return {
-        "confidence": tage,
+        "confidence": tage,  # Bleibt in Tagen
         "recommendations": [recommendation],
         "status": status,
         "explanations": explanations,
