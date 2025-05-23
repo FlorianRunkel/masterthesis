@@ -149,7 +149,7 @@ def predict_career():
         app.logger.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
 
         # Vorhersage mit den Profildaten
-        if model_type == 'tft' or model_type == 'gru':
+        if model_type == 'gru' or model_type == 'tft':
             profile_data = preprocess_dates_time(profile_data)
 
         prediction = module.predict(profile_data, with_llm_explanation=True)
@@ -340,13 +340,15 @@ def scrape_linkedin():
                 start = position.get('timePeriod', {}).get('startDate', {})
                 start_year = str(start.get('year', ''))
                 start_month = str(start.get('month', '')).zfill(2) if start.get('month') else '01'
-                start_date = f"{start_month}/{start_year}" if start_year else ''
+                start_day = str(start.get('day', '')).zfill(2) if start.get('day') else '01'
+                start_date = f"{start_day}/{start_month}/{start_year}" if start_year else ''
                 # Enddatum
                 end = position.get('timePeriod', {}).get('endDate', {})
                 if end:
                     end_year = str(end.get('year', ''))
                     end_month = str(end.get('month', '')).zfill(2) if end.get('month') else '01'
-                    end_date = f"{end_month}/{end_year}" if end_year else ''
+                    end_day = str(end.get('day', '')).zfill(2) if end.get('day') else '01'
+                    end_date = f"{end_day}/{end_month}/{end_year}" if end_year else ''
                 else:
                     end_date = 'Present'
                 exp_data = {

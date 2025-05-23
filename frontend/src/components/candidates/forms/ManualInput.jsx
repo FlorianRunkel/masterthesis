@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, Checkbox, FormControlLabel, Switch } from '@mui/material';
+import { Box, Typography, Button, TextField, Switch } from '@mui/material';
 import PredictionResultTime from '../prediction/PredictionResultTime';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  // Falls nur Jahr
-  if (/^\\d{4}$/.test(dateStr)) return `01/${dateStr}`;
-  // Falls ISO (yyyy-mm-dd)
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(dateStr)) {
-    const [year, month] = dateStr.split('-');
-    return `${month}/${year}`;
-  }
-  return dateStr;
-}
 
 const modelOptions = [
   {
@@ -165,15 +153,15 @@ const ManualInput = () => {
     if (!dateStr) return '';
     // Konvertiere YYYY-MM-DD zu MM/YYYY
     if (dateStr.includes('-')) {
-      const [year, month] = dateStr.split('-');
-      return `${month}/${year}`;
+      const [year, month, day]  = dateStr.split('-');
+      return `${day}/${month}/${year}`;
     }
     return dateStr;
   };
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#2C425C', mb: 2 }}>Manuelle-Prognose</Typography>
+      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Manuelle-Prognose</Typography>
       <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Analysieren Sie die Wechselwahrscheinlichkeit eines einzelnen Kandidaten basierend auf dessen Berufserfahrung.</Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
         <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '0 0px 40px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
@@ -217,13 +205,13 @@ const ManualInput = () => {
                     label="Schule/Hochschule"
                     value={edu.school}
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <TextField
                     label="Abschluss"
                     value={edu.degree}
                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 2 }}>
@@ -231,7 +219,7 @@ const ManualInput = () => {
                     label="Studienfach"
                     value={edu.fieldOfStudy}
                     onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
-                    sx={{ gridColumn: '1 / -1', '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ gridColumn: '1 / -1', '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, alignItems: 'center' }}>
@@ -243,7 +231,7 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!edu.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <TextField
@@ -254,7 +242,7 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                     />
                     <Switch
                       checked={edu.endDate === 'Present'}
@@ -304,13 +292,13 @@ const ManualInput = () => {
                     label="Firma"
                     value={exp.company}
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <TextField
                     label="Position"
                     value={exp.position}
                     onChange={e => handleExperienceChange(index, 'position', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, alignItems: 'center' }}>
@@ -322,7 +310,7 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <TextField
@@ -333,7 +321,7 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
                     />
                     <Switch
                       checked={exp.endDate === 'Present'}

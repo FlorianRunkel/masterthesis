@@ -50,17 +50,6 @@ const LinkedInInput = () => {
         let endDate = exp.endDate;
       
         // Falls nur Jahr vorhanden, ergänze Monat
-        if (selectedModel === 'tft') {
-          if (startDate && /^\d{4}$/.test(startDate)) {
-            startDate = `01/${startDate}`;
-          }
-          if (endDate && /^\d{4}$/.test(endDate)) {
-            endDate = `01/${endDate}`;
-          }
-          if (!endDate || endDate === 'Present') {
-            endDate = 'Present';
-          }
-        }
       
         return {
           company: exp.company,
@@ -114,6 +103,24 @@ const LinkedInInput = () => {
       setLoading(false);
     }
   };
+  
+  const modelOptions = [
+    {
+      value: 'gru',
+      title: 'Gated Recurrent Unit (GRU)',
+      description: 'Sequenzmodell für Zeitreihen und Karriereverläufe'
+    },
+    {
+      value: 'xgboost',
+      title: 'Extreme Gradient Boosting (XGBoost)',
+      description: 'Leistungsstarkes Machine-Learning-Modell für strukturierte Daten'
+    },
+    {
+      value: 'tft',
+      title: 'Temporal Fusion Transformer (TFT)',
+      description: 'Modernes Deep-Learning-Modell für komplexe Zeitreihen'
+    }
+  ];
 
   const handleSaveCandidate = async () => {
     if (!profileData || !predictionData) return;
