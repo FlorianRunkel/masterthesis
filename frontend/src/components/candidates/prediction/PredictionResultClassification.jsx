@@ -47,13 +47,13 @@ const PredictionResult = ({ prediction }) => {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+      <Paper elevation={3} sx={{ p: 3, borderRadius: '18px' , boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" color="primary" gutterBottom>
+          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.8rem', fontWeight: 700, mb: 4}}>
             Wechselwahrscheinlichkeit
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="h3" sx={{ color: '#001B41', mr: 2 }}>
+            <Typography variant="h3" sx={{ color: '#001B41', mr: 2 ,fontSize: '4rem', fontWeight: 600}}>
               {confidence}%
             </Typography>
             <Box sx={{ flex: 1, position: 'relative', height: '16px', mr: 2 }}>
@@ -64,35 +64,9 @@ const PredictionResult = ({ prediction }) => {
             </Box>
           </Box>
         </Box>
-
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" color="primary" gutterBottom>
-            Empfehlungen
-          </Typography>
-          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
-            {recommendations && recommendations.length > 0 ? (
-              recommendations.map((rec, index) => (
-                <Box
-                  component="li"
-                  key={index}
-                  sx={{  p: '12px 15px', bgcolor: '#f5f5f5',  borderRadius: '8px',  mb: 1, fontSize: '0.95rem',  color: '#666', '&:last-child': { mb: 0 } }} >
-                  {rec}
-                </Box>
-              ))
-            ) : (
-              <Box
-                component="li"
-                sx={{ p: '12px 15px', bgcolor: '#f5f5f5',borderRadius: '8px',fontSize: '0.95rem', color: '#666' }} >
-                Keine Empfehlungen verfügbar
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Paper>
-
-      {barData.length > 0 && (
+        {barData.length > 0 && (
         <>
-          <Typography variant="h1" color="primary" gutterBottom sx={{ mt: 8, mb: 4, fontSize: '1.8rem', fontWeight: 700}}>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 8, mb: 4, fontSize: '1.rem', fontWeight: 700}}>
             Vorhersage-Erklärung
           </Typography>
           <Box sx={{ p: 3, pt: 0, pb: 0 }}>
@@ -136,6 +110,9 @@ const PredictionResult = ({ prediction }) => {
           </Typography>
         </Box>
       )}
+      </Paper>
+
+
     </Box>
   );
 };

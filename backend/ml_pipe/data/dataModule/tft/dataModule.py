@@ -5,28 +5,52 @@ from pytorch_forecasting import TimeSeriesDataSet, GroupNormalizer
 import json
 from rapidfuzz import process, fuzz
 
+from pytorch_forecasting.data.encoders import NaNLabelEncoder
+
 class CareerDataModule(pl.LightningDataModule):
-    def __init__(self, dataframe, batch_size=64, max_encoder_length=90, max_prediction_length=30):
+    def __init__(self, dataframe, batch_size=64, max_encoder_length=4, max_prediction_length=2, min_encoder_length=2, min_prediction_length=1):
         super().__init__()
-        self.dataframe = dataframe.copy()
+        self.dataframe = dataframe
         self.batch_size = batch_size
         self.max_encoder_length = max_encoder_length
         self.max_prediction_length = max_prediction_length
+        self.min_encoder_length = min_encoder_length
+        self.min_prediction_length = min_prediction_length
+        # Mapping vorbereiten
+        with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json", "r") as f:
+            position_entries = json.load(f)
+        self.position_map = {
+            entry["position"].lower(): (
+                entry["level"], 
+                entry["branche"],
+                entry.get("durchschnittszeit_tage", 365)
+            ) for entry in position_entries
+        }
+        self.all_positions = list(self.position_map.keys())
+
+    def map_position_fuzzy(self, pos, threshold=30):
+        pos_clean = pos.lower().strip()
+        if pos_clean in self.position_map:
+            level, branche, durchschnittszeit = self.position_map[pos_clean]
+            match = pos_clean
+            score = 100  # Maximale Ähnlichkeit, da exakter Treffer
+        else:
+            match, score, _ = process.extractOne(pos_clean, self.all_positions, scorer=fuzz.ratio)
+            if score >= threshold:
+                level, branche, durchschnittszeit = self.position_map[match]
+            else:
+                return (None, None, None, None)
+        return (match, float(level), float(self.get_branche_num(branche)), float(durchschnittszeit))
 
     def setup(self, stage=None):
         df = self.dataframe.copy()
-        df["date"] = pd.to_datetime(df["zeitpunkt"], unit="s")
-        df = df.sort_values(["profile_id", "date"])
-        df = df.reset_index(drop=True)
+        df["zeitpunkt"] = pd.to_datetime(df["zeitpunkt"], unit="s")
+        df = df.sort_values(["profile_id", "zeitpunkt"])
         df["time_idx"] = df.groupby("profile_id").cumcount()
 
-        # Zeitfeatures
-        df["weekday"] = df["date"].dt.weekday
-        df["weekday_sin"] = np.sin(2 * np.pi * df["weekday"] / 7)
-        df["weekday_cos"] = np.cos(2 * np.pi * df["weekday"] / 7)
-        df["month"] = df["date"].dt.month
-        df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
-        df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
+        # Mapping anwenden
+        mapped = df["aktuelle_position"].map(self.map_position_fuzzy)
+        df[["mapped_position", "level", "branche", "durchschnittszeit"]] = pd.DataFrame(mapped.tolist(), index=df.index)
 
         # Numerische Spalten als float casten
         float_cols = [
@@ -35,48 +59,15 @@ class CareerDataModule(pl.LightningDataModule):
             "anzahl_wechsel_bisher",
             "anzahl_jobs_bisher",
             "durchschnittsdauer_bisheriger_jobs",
-            "zeitpunkt"
         ]
+
         for col in float_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce").astype(float)
 
         # Fehlende Werte entfernen
         df = df.dropna(subset=float_cols + ["profile_id", "aktuelle_position"])
-
-        # --- Mapping vorbereiten ---
-        # Lade Mapping aus position_level.json
-        with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json", "r") as f:
-            position_entries = json.load(f)
-        # Dict: Position (klein) -> (Level, Branche)
-        position_map = {entry["position"].lower(): (entry["level"], entry["branche"]) for entry in position_entries}
-        all_positions = list(position_map.keys())
-        # Level-Zahl auf String
-        level_map = {
-            1: "Entry", 2: "Junior", 3: "Professional", 4: "Senior", 5: "Lead", 6: "Manager", 7: "Director", 8: "C-Level"
-        }
-
-        def map_position_fuzzy(pos, threshold=65):
-            pos_clean = pos.lower().strip()
-            if pos_clean in position_map:
-                level, branche = position_map[pos_clean]
-                match = pos_clean
-                score = 100  # Maximale Ähnlichkeit, da exakter Treffer
-            else:
-                match, score, _ = process.extractOne(pos_clean, all_positions, scorer=fuzz.ratio)
-                if score >= threshold:
-                    level, branche = position_map[match]
-                else:
-                    return (None, None, None)
-            # Level-Zahl auf String mappen
-            level_str = level_map.get(level, str(level)) if isinstance(level, int) else str(level)
-            return (match, level_str, branche)
-
-        # Mapping anwenden
-        mapped = df["aktuelle_position"].map(map_position_fuzzy)
-        df[["mapped_position", "level_str", "branche"]] = pd.DataFrame(mapped.tolist(), index=df.index)
-        # Nur Zeilen mit gültigem Mapping behalten
-        df = df.dropna(subset=["mapped_position", "level_str", "branche"])
+        df = df.dropna(subset=["mapped_position", "level", "branche", "durchschnittszeit"])
 
         # 70/30 Split pro Profil
         def split_profile(group):
@@ -87,19 +78,18 @@ class CareerDataModule(pl.LightningDataModule):
             return group
 
         df = df.groupby("profile_id", group_keys=False).apply(split_profile)
+        #print(df.groupby("profile_id").size().describe())
 
         training = df[df["is_train"]].dropna()
         validation = df[~df["is_train"]].dropna()
 
         # Optional: Profile ohne Trainings- oder Val-Daten entfernen
         valid_profiles = set(training["profile_id"]).intersection(validation["profile_id"])
-        training = training[training["profile_id"].isin(valid_profiles)]
-        validation = validation[validation["profile_id"].isin(valid_profiles)]
-
-        self.training = training
-        self.validation = validation
+        self.training = training[training["profile_id"].isin(valid_profiles)]
+        self.validation = validation[validation["profile_id"].isin(valid_profiles)]
 
         print("Train:", len(self.training), "Val:", len(self.validation))
+        print(self.validation.head(20))
 
         # TimeSeriesDataSet für Training
         self.training_dataset = TimeSeriesDataSet(
@@ -108,23 +98,34 @@ class CareerDataModule(pl.LightningDataModule):
             target="label",
             group_ids=["profile_id"],
             max_encoder_length=self.max_encoder_length,
-            min_encoder_length=self.max_encoder_length // 2,
             max_prediction_length=self.max_prediction_length,
-            min_prediction_length=self.max_prediction_length,
-            time_varying_known_reals=["time_idx", "weekday_sin", "weekday_cos", "month_sin", "month_cos"],
+            min_encoder_length=self.min_encoder_length,
+            min_prediction_length=self.min_prediction_length,
             time_varying_unknown_reals=[
                 "berufserfahrung_bis_zeitpunkt",
                 "anzahl_wechsel_bisher",
                 "anzahl_jobs_bisher",
                 "durchschnittsdauer_bisheriger_jobs",
+                "level",
+                "branche",
+                "durchschnittszeit"
             ],
-            static_categoricals=["mapped_position", "level_str", "branche"],
+            time_varying_known_reals=[
+                "time_idx"
+            ],
+            static_categoricals=["mapped_position"],
+            categorical_encoders={
+                "profile_id": NaNLabelEncoder(add_nan=True),
+                "mapped_position": NaNLabelEncoder(add_nan=True),
+            }, 
             target_normalizer=GroupNormalizer(groups=["profile_id"], transformation="softplus"),
             add_relative_time_idx=True,
             add_target_scales=True,
             add_encoder_length=True,
             allow_missing_timesteps=True,
         )
+        import torch
+        torch.save(self.training_dataset, "training_dataset.pt")
 
         # TimeSeriesDataSet für Validation
         self.validation_dataset = TimeSeriesDataSet.from_dataset(
@@ -134,6 +135,11 @@ class CareerDataModule(pl.LightningDataModule):
             stop_randomization=True,
             allow_missing_timesteps=True,    
         )
+
+    def get_branche_num(self, branche):
+        """Konvertiert Branchennamen in numerische Werte."""
+        branche_map = {"sales": 1, "engineering": 2, "consulting": 3}
+        return branche_map.get(branche, 0)
 
     def train_dataloader(self):
         return self.training_dataset.to_dataloader(train=True, batch_size=self.batch_size, num_workers=4)

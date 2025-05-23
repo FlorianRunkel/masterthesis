@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, TextField } from '@mui/material';
+import { Box, Typography, Button, TextField, Checkbox, FormControlLabel, Switch } from '@mui/material';
 import PredictionResultTime from '../prediction/PredictionResultTime';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -14,6 +15,24 @@ function formatDate(dateStr) {
   }
   return dateStr;
 }
+
+const modelOptions = [
+  {
+    value: 'gru',
+    title: 'Gated Recurrent Unit (GRU)',
+    description: 'Sequenzmodell für Zeitreihen und Karriereverläufe'
+  },
+  {
+    value: 'xgboost',
+    title: 'Extreme Gradient Boosting (XGBoost)',
+    description: 'Leistungsstarkes Machine-Learning-Modell für strukturierte Daten'
+  },
+  {
+    value: 'tft',
+    title: 'Temporal Fusion Transformer (TFT)',
+    description: 'Modernes Deep-Learning-Modell für komplexe Zeitreihen'
+  }
+];
 
 const ManualInput = () => {
   const [experiences, setExperiences] = useState([{
@@ -85,59 +104,38 @@ const ManualInput = () => {
     setPrediction(null);
 
     try {
-      const formData = {
-        workExperience: experiences.map(exp => ({
-          company: exp.company || "",
-          position: exp.position || "",
-          startDate: exp.startDate || "",
-          endDate: exp.endDate || "Present",
-          type: "fullTime",
-          location: "",
-          description: ""
-        })),
-        education: education.map(edu => ({
-          school: edu.school,
-          degree: edu.degree,
-          fieldOfStudy: edu.fieldOfStudy,
-          startDate: edu.startDate,
-          endDate: edu.endDate
-        })),
-        modelType: selectedModel.toLowerCase()
-      };
-
-      // Erstelle das Profil im gleichen Format wie beim Batch-Upload
+      // Formatiere die Daten im korrekten Format
       const profile_data = {
-        firstName: formData.firstName || "Unbekannt",
-        lastName: formData.lastName || "Unbekannt",
-        profileLink: "",
-        modelType: selectedModel.toLowerCase(),
+        firstName: "Unbekannt",
+        lastName: "Unbekannt",
         linkedinProfileInformation: JSON.stringify({
-          firstName: formData.firstName || "Unbekannt",
-          lastName: formData.lastName || "Unbekannt",
+          firstName: "Unbekannt",
+          lastName: "Unbekannt",
           workExperience: experiences.map(exp => ({
             company: exp.company || "",
             position: exp.position || "",
-            startDate: exp.startDate || "",
-            endDate: exp.endDate || "Present",
+            startDate: exp.startDate ? formatDate(exp.startDate) : "",
+            endDate: exp.endDate === 'Present' ? 'Present' : (exp.endDate ? formatDate(exp.endDate) : ""),
             type: "fullTime",
             location: "",
             description: ""
           })),
           education: education.map(edu => ({
-            school: edu.school,
-            degree: edu.degree,
-            fieldOfStudy: edu.fieldOfStudy,
-            startDate: edu.startDate,
-            endDate: edu.endDate
+            school: edu.school || "",
+            degree: edu.degree || "",
+            fieldOfStudy: edu.fieldOfStudy || "",
+            startDate: edu.startDate ? formatDate(edu.startDate) : "",
+            endDate: edu.endDate === 'Present' ? 'Present' : (edu.endDate ? formatDate(edu.endDate) : "")
           })),
           skills: [],
           location: "",
           headline: "",
           languageSkills: {}
-        })
+        }),
+        modelType: selectedModel.toLowerCase()
       };
 
-      console.log("Sende Daten:", profile_data); // Debug-Log
+      console.log("Sende Daten:", profile_data);
 
       const response = await fetch('http://localhost:5100/predict', {
         method: 'POST',
@@ -155,44 +153,88 @@ const ManualInput = () => {
       const data = await response.json();
       setPrediction(data);
     } catch (err) {
-      console.error("Fehler:", err); // Debug-Log
+      console.error("Fehler:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // Hilfsfunktion zum Formatieren der Daten
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    // Konvertiere YYYY-MM-DD zu MM/YYYY
+    if (dateStr.includes('-')) {
+      const [year, month] = dateStr.split('-');
+      return `${month}/${year}`;
+    }
+    return dateStr;
+  };
+
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Manuelle-Prognose</Typography>
+      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#2C425C', mb: 2 }}>Manuelle-Prognose</Typography>
       <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Analysieren Sie die Wechselwahrscheinlichkeit eines einzelnen Kandidaten basierend auf dessen Berufserfahrung.</Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, width: '100%' }}>
-          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>Ausbildung</Typography>
-          <Box id="education" sx={{ width: '100%', mb: 3 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '0 0px 40px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
+          <Box sx={{bgcolor: '#2C425C', borderTopLeftRadius: '18px',borderTopRightRadius: '18px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '40px 0 40px 40px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
+            <Typography variant="h2" sx={{ fontSize: '1.7rem', fontWeight: 700, color: '#FFF', mb: 1 }}>Ausbildung</Typography>
+              <Typography sx={{ color: '#FFF', mb: 3, fontSize: '1.05rem' }}>
+                Fügen Sie Informationen zur Ausbildung des Kandidaten hinzu.
+              </Typography>
+          </Box>
+          <Box sx={{ bgcolor: '#fff', borderRadius: '12px', p: 3, mb: 2 }}>
             {education.map((edu, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box
+                key={index}
+                sx={{
+                  mb: 4,
+                  bgcolor: '#fff',
+                  borderRadius: '18px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  p: { xs: 2, sm: 4 },
+                  border: '1px solid #f0f0f0',
+                  position: 'relative'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#2C425C', fontSize: '1.15rem' }}>
+                    Ausbildung {index + 1}
+                  </Typography>
+                  {education.length > 1 && index > 0 && (
+                    <Button
+                      onClick={() => {
+                        const newEducation = education.filter((_, i) => i !== index);
+                        setEducation(newEducation);
+                      }}
+                      sx={{ color: '#FF2525',fontWeight: 600, fontSize: '1rem', textTransform: 'none', display: 'flex', alignItems: 'center', gap: 0.5, p: 0, minWidth: 0 }}startIcon={<DeleteOutlineIcon />} >
+                      Entfernen
+                    </Button>
+                  )}
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 2 }}>
                   <TextField
                     label="Schule/Hochschule"
                     value={edu.school}
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <TextField
                     label="Abschluss"
                     value={edu.degree}
                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 2 }}>
                   <TextField
                     label="Studienfach"
                     value={edu.fieldOfStudy}
                     onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ gridColumn: '1 / -1', '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, alignItems: 'center' }}>
                   <TextField
                     label="Startdatum"
                     type="date"
@@ -201,9 +243,9 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!edu.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <TextField
                       label="Enddatum"
                       type={edu.endDate === 'Present' ? 'text' : 'date'}
@@ -212,57 +254,66 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!edu.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                     />
-                    <Button
-                      variant={edu.endDate === 'Present' ? 'contained' : 'outlined'}
-                      onClick={() => handleEducationChange(index, 'endDate', edu.endDate === 'Present' ? '' : 'Present')}
-                      sx={{ minWidth: 80, minHeight: '48px', height: '57px', p: 0, fontSize: '0.9rem' }}
-                    >
+                    <Switch
+                      checked={edu.endDate === 'Present'}
+                      onChange={e => handleEducationChange(index, 'endDate', e.target.checked ? 'Present' : '')}
+                      color="primary"
+                    />
+                    <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, color: '#888', ml: 1 }}>
                       Present
-                    </Button>
+                    </Typography>
                   </Box>
                 </Box>
-                {index > 0 && (
-                  <Button
-                    onClick={() => {
-                      const newEducation = education.filter((_, i) => i !== index);
-                      setEducation(newEducation);
-                    }}
-                    sx={{minWidth: '100px', padding: '8px 16px', borderRadius: '8px',border: 'none',bgcolor: '#f8f9fa',color: '#666',fontSize: '0.9rem',cursor: 'pointer',transition: 'all 0.3s ease',mt: 1, mb: 1,'&:hover': {bgcolor: '#FF2525',color: 'white'}}}>
-                    Entfernen
-                  </Button>
-                )}
-                {index < education.length - 1 && (
-                  <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />
-                )}
               </Box>
             ))}
-            <Button
-              onClick={handleAddEducation}
-              sx={{width: '100%', bgcolor: '#001B41', color: 'white', border: 'none', p: '14px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease', textTransform: 'none', mb: 3,'&:hover': {bgcolor: '#FF8000'} }} >
-              WEITERE AUSBILDUNG HINZUFÜGEN
-            </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
+              <Button onClick={handleAddEducation} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px dashed #001B41',borderRadius: '10px',fontWeight: 600,fontSize: '1rem',px: 4,py: 1.7,mt: 3,maxWidth: "100%", maxHeight: "50px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000'}}} >
+                + WEITERE AUSBILDUNG HINZUFÜGEN
+              </Button>
+            </Box>
           </Box>
-          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>Berufserfahrung</Typography>
-          <Box id="experiences" sx={{ width: '100%', mb: 3 }}>
+        </Box>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '0 0px 40px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
+          <Box sx={{bgcolor: '#2C425C', borderTopLeftRadius: '18px',borderTopRightRadius: '18px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '40px 0 40px 40px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
+            <Typography variant="h2" sx={{ fontSize: '1.7rem', fontWeight: 700, color: '#fff', mb: 1 }}>Berufserfahrung</Typography>
+            <Typography sx={{ color: '#fff', mb: 3, fontSize: '1.05rem' }}>
+              Fügen Sie Informationen zur Berufserfahrung des Kandidaten hinzu.
+            </Typography>
+          </Box>
+          <Box sx={{ bgcolor: '#fff', borderRadius: '12px', p: 3, mb: 2 }}>
             {experiences.map((exp, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box
+                key={index}
+                sx={{ mb: 4,  bgcolor: '#fff', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', p: { xs: 2, sm: 4 },border: '1px solid #f0f0f0',position: 'relative'}} >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#2C425C', fontSize: '1.15rem' }}>
+                    Position {index + 1}
+                  </Typography>
+                  {experiences.length > 1 && index > 0 && (
+                    <Button
+                      onClick={() => handleRemoveExperience(index)}
+                      sx={{ color: '#FF2525', fontWeight: 600, fontSize: '1rem', textTransform: 'none', display: 'flex',alignItems: 'center',  gap: 0.5,  p: 0, minWidth: 0 }} startIcon={<DeleteOutlineIcon />} >
+                      Entfernen
+                    </Button>
+                  )}
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 2 }}>
                   <TextField
                     label="Firma"
                     value={exp.company}
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
                   <TextField
                     label="Position"
                     value={exp.position}
                     onChange={e => handleExperienceChange(index, 'position', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, alignItems: 'center' }}>
                   <TextField
                     label="Startdatum"
                     type="date"
@@ -271,9 +322,9 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                   />
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <TextField
                       label="Enddatum"
                       type={exp.endDate === 'Present' ? 'text' : 'date'}
@@ -282,46 +333,55 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px', padding: '5px 0' }, input: { fontSize: '1.1rem', padding: '14px 12px' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '48px' }, input: { fontSize: '1.1rem' } }}
                     />
-                    <Button
-                      variant={exp.endDate === 'Present' ? 'contained' : 'outlined'}
-                      onClick={() => handleExperienceChange(index, 'endDate', exp.endDate === 'Present' ? '' : 'Present')}
-                      sx={{ minWidth: 80, minHeight: '48px', height: '57px', p: 0, fontSize: '0.9rem' }}
-                    >
+                    <Switch
+                      checked={exp.endDate === 'Present'}
+                      onChange={e => handleExperienceChange(index, 'endDate', e.target.checked ? 'Present' : '')}
+                      color="primary"
+                    />
+                    <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, color: '#888', ml: 1 }}>
                       Present
-                    </Button>
+                    </Typography>
                   </Box>
                 </Box>
-                {index > 0 && (
-                  <Button
-                    onClick={() => handleRemoveExperience(index)}
-                    sx={{ minWidth: '100px', padding: '8px 16px',  borderRadius: '8px', border: 'none', bgcolor: '#f8f9fa', color: '#666',fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.3s ease', mt: 1, mb: 1, '&:hover': { bgcolor: '#FF2525',color: 'white' } }} >
-                    Entfernen
-                  </Button>
-                )}
-                {index < experiences.length - 1 && (
-                  <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />
-                )}
               </Box>
             ))}
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
+              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px dashed #001B41',borderRadius: '10px',fontWeight: 600,fontSize: '1rem',px: 4,py: 1.7,mt: 3,maxWidth: "100%", maxHeight: "50px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000'}}} >
+                + WEITERE POSITION HINZUFÜGEN
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '40px 30px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.7rem', fontWeight: 700, color: '#2C425C', mb: 1 }}>
+            KI-Modell auswählen
+          </Typography>
+          <Typography sx={{ color: '#888', mb: 4, fontSize: '1.08rem' }}>
+            Wählen Sie das passende Modell für eine präzise Prognose.
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+            {modelOptions.map(option => (
+              <Box key={option.value}onClick={() => setSelectedModel(option.value)} sx={{cursor: 'pointer',bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.5px solid #e3e6f0', borderRadius: '16px', p: 3, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none'}} >
+                <Typography sx={{ fontWeight: 700, fontSize: '1.18rem', color: '#1a1a1a', mb: 0.5 }}>
+                  {option.title}
+                </Typography>
+                <Typography sx={{ color: '#888', fontSize: '1.05rem' }}>
+                  {option.description}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
-              onClick={handleAddExperience}
-              sx={{ width: '100%',bgcolor: '#001B41',color: 'white',border: 'none', p: '14px',borderRadius: '8px', fontSize: '1rem',fontWeight: 600,cursor: 'pointer',transition: 'all 0.3s ease',textTransform: 'none', mb: 3, '&:hover': {bgcolor: '#FF8000' } }} >
-              WEITERE POSITION HINZUFÜGEN
+              type="submit"
+              disabled={loading || !selectedModel}
+              sx={{ minWidth: 320, px: 4,  py: 1.8,  fontSize: '1.18rem', fontWeight: 700, borderRadius: '14px', color: '#fff', background: 'linear-gradient(90deg, #f4a65892 0%, #f4a65892 100%)', boxShadow: '0 4px 16px rgba(108,99,255,0.10)',textTransform: 'none', letterSpacing: 0.2, display: 'flex',  alignItems: 'center',justifyContent: 'center', gap: 1.5,'&:hover': {  background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)'}, '&.Mui-disabled': { background: '#e3e6f0',color: '#bdbdbd' } }}>
+              Prognose starten
             </Button>
           </Box>
-          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>KI-Modell</Typography>
-          <Box sx={{ mb: 3 }}>
-            <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #e0e0e0', backgroundColor: 'white', fontSize: '1rem', outline: 'none', cursor: 'pointer', transition: 'all 0.3s ease' }}>
-              <option value="" disabled>Wählen Sie ein Modell</option>
-              <option value="gru">Gated Recurrent Unit (GRU)</option>
-              <option value="xgboost">Extreme Gradient Boosting (XGBoost)</option>
-              <option value="tft">Temporal Fusion Transformer (TFT)</option>
-            </select>
-          </Box>
-          <Button type="submit" disabled={loading} sx={{ width: '100%', bgcolor: '#001B41', color: 'white', border: 'none', p: '14px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease', textTransform: 'none', '&:hover': { bgcolor: '#FF8000' }, '&.Mui-disabled': { bgcolor: '#f1f3f4', color: '#80868b' } }}>PROGNOSE ERSTELLEN</Button>
-        </Box>
+        </Box>   
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #FF8000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Fehler</Typography><Typography>{error}</Typography></Box>)}

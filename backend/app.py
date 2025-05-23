@@ -149,7 +149,7 @@ def predict_career():
         app.logger.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
 
         # Vorhersage mit den Profildaten
-        if model_type == 'tft':
+        if model_type == 'tft' or model_type == 'gru':
             profile_data = preprocess_dates_time(profile_data)
 
         prediction = module.predict(profile_data, with_llm_explanation=True)

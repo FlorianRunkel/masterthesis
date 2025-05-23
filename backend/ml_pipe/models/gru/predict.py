@@ -69,17 +69,87 @@ def parse_profile_data(profile_dict):
     
     return profile_dict
 
+def prepare_prediction_sample(profile_data):
+    """Bereitet ein Sample für die Vorhersage vor."""
+    try:
+        # Wenn die Daten als String übergeben wurden, parsen wir sie
+        if isinstance(profile_data, str):
+            try:
+                profile_data = json.loads(profile_data)
+            except:
+                pass
+
+        # Wenn die Daten in linkedinProfileInformation sind, extrahieren wir sie
+        if isinstance(profile_data, dict) and "linkedinProfileInformation" in profile_data:
+            try:
+                profile_data = json.loads(profile_data["linkedinProfileInformation"])
+            except:
+                pass
+
+        experiences = profile_data.get('workExperience', [])
+        if not experiences:
+            raise ValueError("Keine Berufserfahrung gefunden")
+
+        # Sortiere Erfahrungen nach Startdatum (neueste zuerst)
+        experiences = sorted(
+            experiences,
+            key=lambda x: parse_date(x.get('startDate', '')) or datetime(1900, 1, 1),
+            reverse=True
+        )
+
+        # Extrahiere Features für die aktuelle Position
+        current_exp = experiences[0]  # Neueste Position
+        current_start = parse_date(current_exp.get('startDate', ''))
+        current_end = parse_date(current_exp.get('endDate', '')) if current_exp.get('endDate') != 'Present' else datetime.now()
+
+        if not current_start:
+            raise ValueError("Kein Startdatum für die aktuelle Position gefunden")
+
+        # Berechne Features
+        berufserfahrung_bis_zeitpunkt = 0
+        anzahl_wechsel_bisher = 0
+        anzahl_jobs_bisher = 0
+        durchschnittsdauer_bisheriger_jobs = 0
+
+        # Berechne Berufserfahrung
+        for exp in experiences:
+            start = parse_date(exp.get('startDate', ''))
+            end = parse_date(exp.get('endDate', '')) if exp.get('endDate') != 'Present' else datetime.now()
+            
+            if start and end:
+                berufserfahrung_bis_zeitpunkt += (end - start).days
+                anzahl_jobs_bisher += 1
+                if exp.get('endDate') != 'Present':
+                    anzahl_wechsel_bisher += 1
+
+        # Berechne durchschnittliche Jobdauer
+        if anzahl_jobs_bisher > 0:
+            durchschnittsdauer_bisheriger_jobs = berufserfahrung_bis_zeitpunkt / anzahl_jobs_bisher
+
+        # Erstelle Sample
+        sample = {
+            "aktuelle_position": current_exp.get("position", ""),
+            "berufserfahrung_bis_zeitpunkt": berufserfahrung_bis_zeitpunkt,
+            "anzahl_wechsel_bisher": anzahl_wechsel_bisher,
+            "anzahl_jobs_bisher": anzahl_jobs_bisher,
+            "durchschnittsdauer_bisheriger_jobs": durchschnittsdauer_bisheriger_jobs
+        }
+
+        return [sample]  # Liste mit einem Sample zurückgeben
+
+    except Exception as e:
+        print(f"Fehler bei der Profilverarbeitung: {str(e)}")
+        return []
+
 def prepare_features(profile_dict):
     """Bereitet die Features für die Vorhersage vor."""
     # Profil in das richtige Format bringen
-    profile_data = parse_profile_data(profile_dict)
-    
-    # Profile verarbeiten wie beim Training
-    samples = process_profile(profile_data)
+    samples = prepare_prediction_sample(profile_dict)
     
     if not samples:
         raise ValueError("Keine gültigen Samples aus dem Profil extrahiert")
-    
+
+    print(samples)
     # Nehmen wir das aktuellste Sample (erste Position)
     latest_sample = samples[0]
     
