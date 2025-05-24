@@ -5,14 +5,38 @@ import { Box, Typography, Link } from '@mui/material';
 const CandidateCard = ({ candidate }) => {
   // Name zusammensetzen
   const name = `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim();
-  // Konfidenz (Wechselwahrscheinlichkeit) berechnen
-  const confidence = candidate.confidence ? candidate.confidence[0] * 100 : 0;
+  
+  // Konfidenz oder Wechseldatum je nach Modelltyp
+  const isTimeSeriesModel = candidate.modelType === 'tft' || candidate.modelType === 'gru';
+  
+  // Konfidenz korrekt extrahieren
+  const confidence = candidate.confidence ? candidate.confidence[0] : 0;
 
-  // Gibt die Farbe je nach Konfidenz zurück (rot, gelb, grün)
-  const getConfidenceColor = (confidence) => {
-    if (confidence <= 50) return '#FF2525'; // rot
-    if (confidence <= 75) return '#FFC03D'; // gelb
-    return '#8AD265'; // grün
+  // Für Zeitreihen-Modelle: Konfidenz als Tage interpretieren
+  const getDaysFromConfidence = (conf) => {
+    if (!conf) return 0;
+    // Konfidenz in Tage umrechnen (Beispiel: 0.8 = 80 Tage)
+    return Math.round(conf);
+  };
+
+  // Gibt die Farbe je nach Konfidenz/Zeit zurück
+  const getConfidenceColor = (value, isTimeSeries) => {
+    if (isTimeSeries) {
+      // Für Zeitreihen-Modelle: 
+      // - unter 6 Monaten (180 Tage) = grün
+      // - 6 Monate bis 1 Jahr (180-365 Tage) = orange
+      // - über 1 Jahr = rot
+      const days = getDaysFromConfidence(value);
+      if (days <= 180) return '#8AD265'; // grün
+      if (days <= 365) return '#FFC03D'; // orange
+      return '#FF2525'; // rot
+    } else {
+      // Für Klassifikations-Modelle: Je höher die Wahrscheinlichkeit, desto roter
+      const percentage = value * 100;
+      if (percentage <= 50) return '#FF2525'; // rot
+      if (percentage <= 75) return '#FFC03D'; // gelb
+      return '#8AD265'; // grün
+    }
   };
 
   return (
@@ -38,21 +62,51 @@ const CandidateCard = ({ candidate }) => {
       {/* Branche anzeigen, falls vorhanden */}
       {candidate.industry && (<Typography sx={{ color: '#666', fontSize: '1rem' }}><b>Branche:</b> {candidate.industry}</Typography>)}
 
-      {/* Wechselwahrscheinlichkeit als Text und Balkenanzeige */}
+      {/* Wechselwahrscheinlichkeit oder Wechseldatum */}
       <Box sx={{ mt: 2 }}>
-        {/* Textliche Einschätzung */}
-        <Typography sx={{ color: getConfidenceColor(confidence), fontWeight: 600, mb: 1 }}>
-          {confidence <= 60 ? 'Geringe Wechselwahrscheinlichkeit' : confidence <= 80 ? 'Mittlere Wechselwahrscheinlichkeit' : 'Hohe Wechselwahrscheinlichkeit'}
-        </Typography>
-        {/* Prozentwert und Balkenanzeige */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          {/* Prozentwert */}
-          <Typography sx={{ fontWeight: 600, minWidth: 50, color: getConfidenceColor(confidence) }}>{confidence.toFixed(0)}%</Typography>
-          {/* Balkenanzeige */}
-          <Box sx={{ flexGrow: 1, height: 8, bgcolor: '#eee', borderRadius: 1, overflow: 'hidden' }}>
-            <Box sx={{ height: '100%', width: `${confidence}%`, bgcolor: getConfidenceColor(confidence), borderRadius: 1, transition: 'width 0.3s ease' }} />
+        {isTimeSeriesModel ? (
+          // Zeitreihen-Modell Anzeige
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+            mb: 2 
+          }}>
+            <Typography sx={{ 
+              color: '#666', 
+              fontSize: '1rem',
+              fontWeight: 600 
+            }}>
+              Voraussichtliches Wechseldatum
+            </Typography>
+            <Typography sx={{ 
+              color: getConfidenceColor(confidence, true), 
+              fontSize: '1.2rem',
+              fontWeight: 700 
+            }}>
+              {new Date(Date.now() + getDaysFromConfidence(confidence) * 24 * 60 * 60 * 1000).toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+              })}
+            </Typography>
           </Box>
-        </Box>
+        ) : (
+          // Klassifikations-Modell Anzeige
+          <>
+            <Typography sx={{ color: getConfidenceColor(confidence, false), fontWeight: 600, mb: 1 }}>
+              {confidence * 100 <= 60 ? 'Geringe Wechselwahrscheinlichkeit' : confidence * 100 <= 80 ? 'Mittlere Wechselwahrscheinlichkeit' : 'Hohe Wechselwahrscheinlichkeit'}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              <Typography sx={{ fontWeight: 600, minWidth: 50, color: getConfidenceColor(confidence, false) }}>
+                {(confidence * 100).toFixed(0)}%
+              </Typography>
+              <Box sx={{ flexGrow: 1, height: 8, bgcolor: '#eee', borderRadius: 1, overflow: 'hidden' }}>
+                <Box sx={{ height: '100%', width: `${confidence * 100}%`, bgcolor: getConfidenceColor(confidence, false), borderRadius: 1, transition: 'width 0.3s ease' }} />
+              </Box>
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );

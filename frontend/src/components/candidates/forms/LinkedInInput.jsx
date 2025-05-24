@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade, FormControl} from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProfileDisplay from '../display/ProfileDisplay';
@@ -103,24 +103,6 @@ const LinkedInInput = () => {
       setLoading(false);
     }
   };
-  
-  const modelOptions = [
-    {
-      value: 'gru',
-      title: 'Gated Recurrent Unit (GRU)',
-      description: 'Sequenzmodell für Zeitreihen und Karriereverläufe'
-    },
-    {
-      value: 'xgboost',
-      title: 'Extreme Gradient Boosting (XGBoost)',
-      description: 'Leistungsstarkes Machine-Learning-Modell für strukturierte Daten'
-    },
-    {
-      value: 'tft',
-      title: 'Temporal Fusion Transformer (TFT)',
-      description: 'Modernes Deep-Learning-Modell für komplexe Zeitreihen'
-    }
-  ];
 
   const handleSaveCandidate = async () => {
     if (!profileData || !predictionData) return;
@@ -140,7 +122,8 @@ const LinkedInInput = () => {
         recommendations: predictionData.recommendations,
         imageUrl: profileData.imageUrl,
         industry: profileData.industry,
-        experience: profileData.experience
+        experience: profileData.experience,
+        modelType: selectedModel
       };
 
       const response = await fetch('/api/candidates', {
@@ -169,23 +152,87 @@ const LinkedInInput = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
       <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>LinkedIn Prognose</Typography>
       <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Geben Sie einen LinkedIn-Profillink ein, um automatisch eine Karriereprognose basierend auf den verfügbaren Berufserfahrungen zu erstellen.</Typography>
       <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#13213C', mb: 3 }}>LinkedIn Profil</Typography>
+       <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#2C425C', mb: 0.8 }}>LinkedIn Profil</Typography>
+       <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
+          Geben Sie einen LinkedIn-Profillink ein, um automatisch eine Karriereprognose basierend auf den verfügbaren Berufserfahrungen zu erstellen.
+        </Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <TextField fullWidth value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://www.linkedin.com/in/username" variant="outlined" sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff', fontSize: '1.3rem', minHeight: '40px', padding: '5px 0', '& fieldset': { borderColor: '#e0e0e0', borderWidth: 1 }, '&:hover fieldset': { borderColor: '#13213C' }, '&.Mui-focused fieldset': { borderColor: '#13213C' } }, input: { fontSize: '1.3rem', padding: '18px 14px' } }} />
-          <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 1 }}>Modelltyp auswählen</Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="model-type-label">Modelltyp</InputLabel>
-            <Select labelId="model-type-label" value={selectedModel} label="Modelltyp" onChange={(e) => setSelectedModel(e.target.value)} sx={{ '&:hover': { borderColor: 'transparent' }, '&.Mui-focused': { borderColor: 'transparent' } }}>
-              <MenuItem value="gru">Gated Recurrent Units (GRU)</MenuItem>
-              <MenuItem value="xgboost">Extrem Gradient Boosting (XGBoost)</MenuItem>
-              <MenuItem value="tft">Temporal Fusion Transformer (TFT)</MenuItem>
-            </Select>
-          </FormControl>
-          <button type="submit" disabled={loading} style={{ width: '100%', background: '#13213C', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease' }}>PROGNOSE ERSTELLEN</button>
+        </Box>
+      </Box>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 1.6 }}>
+        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#2C425C', mb: 0.8 }}>
+          KI-Modell auswählen
+        </Typography>
+        <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
+          Wählen Sie das passende Modell für eine präzise Prognose.
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
+          <FormControl fullWidth sx={{ display: 'none' }} />
+          {[
+            {
+              value: 'gru',
+              title: 'Gated Recurrent Unit (GRU)',
+              description: 'Sequenzmodell für Zeitreihen und Karriereverläufe'
+            },
+            {
+              value: 'xgboost',
+              title: 'Extreme Gradient Boosting (XGBoost)',
+              description: 'Leistungsstarkes Machine-Learning-Modell für strukturierte Daten'
+            },
+            {
+              value: 'tft',
+              title: 'Temporal Fusion Transformer (TFT)',
+              description: 'Modernes Deep-Learning-Modell für komplexe Zeitreihen'
+            }
+          ].map(option => (
+            <Box key={option.value} onClick={() => setSelectedModel(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none', mb: 0.8 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
+                {option.title}
+              </Typography>
+              <Typography sx={{ color: '#888', fontSize: '0.84rem' }}>
+                {option.description}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.6 }}>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !selectedModel || !linkedinUrl}
+            sx={{
+              minWidth: 256,
+              px: 3.2,
+              py: 1.44,
+              fontSize: '0.94rem',
+              fontWeight: 700,
+              borderRadius: '11.2px',
+              color: '#fff',
+              background: 'linear-gradient(90deg, #f4a65892 0%, #f4a65892 100%)',
+              boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
+              textTransform: 'none',
+              letterSpacing: 0.16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1.2,
+              mt: 1.6,
+              mx: 'auto',
+              '&:hover': {
+                background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+              },
+              '&.Mui-disabled': {
+                background: '#e3e6f0',
+                color: '#bdbdbd',
+              },
+            }}
+          >
+            Prognose starten
+          </Button>
         </Box>
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><CircularProgress size={40} thickness={4} sx={{ color: '#001B41' }} /></Box>)}

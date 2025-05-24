@@ -92,7 +92,6 @@ const ManualInput = () => {
     setPrediction(null);
 
     try {
-      // Formatiere die Daten im korrekten Format
       const profile_data = {
         firstName: "Unbekannt",
         lastName: "Unbekannt",
@@ -160,10 +159,11 @@ const ManualInput = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
       <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Manuelle-Prognose</Typography>
       <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Analysieren Sie die Wechselwahrscheinlichkeit eines einzelnen Kandidaten basierend auf dessen Berufserfahrung.</Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+        {/* 
         <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '0 0px 40px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
           <Box sx={{bgcolor: '#2C425C', borderTopLeftRadius: '18px',borderTopRightRadius: '18px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '40px 0 40px 40px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
             <Typography variant="h2" sx={{ fontSize: '1.7rem', fontWeight: 700, color: '#FFF', mb: 1 }}>Ausbildung</Typography>
@@ -263,45 +263,46 @@ const ManualInput = () => {
             </Box>
           </Box>
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '18px', p: '0 0px 40px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 5 }}>
-          <Box sx={{bgcolor: '#2C425C', borderTopLeftRadius: '18px',borderTopRightRadius: '18px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '40px 0 40px 40px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
-            <Typography variant="h2" sx={{ fontSize: '1.7rem', fontWeight: 700, color: '#fff', mb: 1 }}>Berufserfahrung</Typography>
-            <Typography sx={{ color: '#fff', mb: 3, fontSize: '1.05rem' }}>
+        */}
+        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 4 }}>
+          <Box sx={{bgcolor: '#2C425C', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
+            <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#fff', mb: 0.8 }}>Berufserfahrung</Typography>
+            <Typography sx={{ color: '#fff', mb: 2.4, fontSize: '0.84rem' }}>
               Fügen Sie Informationen zur Berufserfahrung des Kandidaten hinzu.
             </Typography>
           </Box>
-          <Box sx={{ bgcolor: '#fff', borderRadius: '12px', p: 3, mb: 2 }}>
+          <Box sx={{ bgcolor: '#fff', borderRadius: '9.6px', p: 2.4, mb: 1.6 }}>
             {experiences.map((exp, index) => (
               <Box
                 key={index}
-                sx={{ mb: 4,  bgcolor: '#fff', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', p: { xs: 2, sm: 4 },border: '1px solid #f0f0f0',position: 'relative'}} >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography sx={{ fontWeight: 700, color: '#2C425C', fontSize: '1.15rem' }}>
+                sx={{ mb: 3.2,  bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', p: { xs: 1.6, sm: 3.2 },border: '1px solid #f0f0f0',position: 'relative'}} >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
+                  <Typography sx={{ fontWeight: 700, color: '#2C425C', fontSize: '0.92rem' }}>
                     Position {index + 1}
                   </Typography>
                   {experiences.length > 1 && index > 0 && (
                     <Button
                       onClick={() => handleRemoveExperience(index)}
-                      sx={{ color: '#FF2525', fontWeight: 600, fontSize: '1rem', textTransform: 'none', display: 'flex',alignItems: 'center',  gap: 0.5,  p: 0, minWidth: 0 }} startIcon={<DeleteOutlineIcon />} >
+                      sx={{ color: '#FF2525', fontWeight: 600, fontSize: '0.8rem', textTransform: 'none', display: 'flex',alignItems: 'center',  gap: 0.4,  p: 0, minWidth: 0 }} startIcon={<DeleteOutlineIcon />} >
                       Entfernen
                     </Button>
                   )}
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, mb: 1.6 }}>
                   <TextField
                     label="Firma"
                     value={exp.company}
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                   />
                   <TextField
                     label="Position"
                     value={exp.position}
                     onChange={e => handleExperienceChange(index, 'position', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                   />
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, alignItems: 'center' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, alignItems: 'center' }}>
                   <TextField
                     label="Startdatum"
                     type="date"
@@ -310,9 +311,9 @@ const ManualInput = () => {
                     InputLabelProps={{ shrink: true }}
                     helperText={!exp.startDate ? "Bitte Startdatum wählen" : ""}
                     fullWidth
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                   />
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6 }}>
                     <TextField
                       label="Enddatum"
                       type={exp.endDate === 'Present' ? 'text' : 'date'}
@@ -321,22 +322,22 @@ const ManualInput = () => {
                       InputLabelProps={{ shrink: true }}
                       helperText={!exp.endDate ? "Bitte Enddatum wählen" : ""}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '1.1rem', minHeight: '58px' }, input: { fontSize: '1.1rem' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                     <Switch
                       checked={exp.endDate === 'Present'}
                       onChange={e => handleExperienceChange(index, 'endDate', e.target.checked ? 'Present' : '')}
                       color="primary"
                     />
-                    <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, color: '#888', ml: 1 }}>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: '#888', ml: 0.8 }}>
                       Present
                     </Typography>
                   </Box>
                 </Box>
               </Box>
             ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
-              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px dashed #001B41',borderRadius: '10px',fontWeight: 600,fontSize: '1rem',px: 4,py: 1.7,mt: 3,maxWidth: "100%", maxHeight: "50px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000'}}} >
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4.8 }}>
+              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px dashed #001B41',borderRadius: '8px',fontWeight: 600,fontSize: '0.8rem',px: 3.2,py: 1.36,mt: 2.4,maxWidth: "100%", maxHeight: "40px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000'}}} >
                 + WEITERE POSITION HINZUFÜGEN
               </Button>
             </Box>
