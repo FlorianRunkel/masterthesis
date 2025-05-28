@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, Tooltip } from '@mui/material';
 
 const getBarColors = [
   '#8AD265', // grün
@@ -39,11 +39,18 @@ const PredictionResult = ({ prediction }) => {
       color: getBarColors[i]
     })),
     ...(sonstigeSumme > 0 ? [{
-      feature: 'Sonstiges',
+      feature: 'Other',
       impact_percentage: sonstigeSumme,
       color: getBarColors[3]
     }] : [])
   ];
+
+  const total = barData.reduce((sum, item) => sum + item.impact_percentage, 0);
+  if (total > 0 && total !== 100) {
+    barData.forEach(item => {
+      item.impact_percentage = item.impact_percentage * 100 / total;
+    });
+  }
 
   return (
     <Box>
@@ -82,7 +89,14 @@ const PredictionResult = ({ prediction }) => {
                   key={item.feature}
                   sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}
                 >
-                  {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
+                  {item.impact_percentage > 8
+                    ? `${item.impact_percentage.toFixed(1)}%`
+                    : (
+                        <Tooltip title={`${item.impact_percentage.toFixed(1)}%`} arrow>
+                          <Box sx={{ width: '100%', height: '100%' }} />
+                        </Tooltip>
+                      )
+                  }
                 </Box>
               ))}
             </Box>

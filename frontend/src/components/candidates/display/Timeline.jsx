@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Tooltip } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -156,7 +156,14 @@ const Timeline = ({ prediction, profile }) => {
                 key={item.feature}
                 sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}
               >
-                {item.impact_percentage > 8 && `${item.impact_percentage.toFixed(1)}%`}
+                {item.impact_percentage > 8
+                  ? `${item.impact_percentage.toFixed(1)}%`
+                  : (
+                      <Tooltip title={`${item.impact_percentage.toFixed(1)}%`} arrow>
+                        <Box sx={{ width: '100%', height: '100%' }} />
+                      </Tooltip>
+                    )
+                }
               </Box>
             ))}
           </Box>
