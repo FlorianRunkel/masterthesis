@@ -83,6 +83,19 @@ def preprocess_dates_time(data):
         edu['endDate'] = to_mm_yyyy(edu.get('endDate', ''))
     return data
 
+def candidate_exists(candidate, mongo_db, collection_name):
+    # Prüfe auf LinkedIn-Profil
+    if candidate.get('linkedinProfile'):
+        res = mongo_db.get({'linkedinProfile': candidate['linkedinProfile']}, collection_name)
+        if res['statusCode'] == 200 and res['data']:
+            return True
+    # Prüfe auf Vor- und Nachname (nur wenn LinkedIn nicht vorhanden oder leer)
+    if candidate.get('firstName') and candidate.get('lastName'):
+        res = mongo_db.get({'firstName': candidate['firstName'], 'lastName': candidate['lastName']}, collection_name)
+        if res['statusCode'] == 200 and res['data']:
+            return True
+    return False
+
 '''
 Routes
 '''
@@ -406,7 +419,12 @@ def save_candidates():
         skipped_count = 0
         for candidate in candidates:
             app.logger.info(f"Speichere Kandidaten: {candidate}")
-            result = mongo_db.create(candidate, 'candidates')
+
+            if not candidate_exists(candidate, mongo_db, 'candidates'):
+                result = mongo_db.create(candidate, 'candidates')
+            else:
+                result = {'statusCode': 409, 'error': 'Kandidat existiert bereits.'}
+
             if result['statusCode'] == 200: 
                 saved_count += 1
                 app.logger.info(f"Kandidat erfolgreich gespeichert: {candidate['linkedinProfile']}")

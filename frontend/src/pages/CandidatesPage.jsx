@@ -19,7 +19,7 @@ const CandidatesPage = () => {
         setLoading(true);
         const response = await fetch('http://localhost:5100/candidates');
         if (!response.ok) {
-          throw new Error('Fehler beim Laden der Kandidaten');
+          throw new Error('Error loading candidates');
         }
         const data = await response.json();
         setCandidates(data);
@@ -54,7 +54,7 @@ const CandidatesPage = () => {
     return (
       <Box sx={{ maxWidth: '1200px', margin: '0 auto', p: 4 }}>
         <Typography variant="h2" sx={{ mb: 3, color: '#1a1a1a', fontSize: '1.5rem', fontWeight: 600 }}>
-          Fehler
+          Error
         </Typography>
         <Typography sx={{ color: '#dc3545' }}>{error}</Typography>
       </Box>
@@ -62,24 +62,9 @@ const CandidatesPage = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1200px', margin: '0 auto'}}>
-      <Typography variant="h1" sx={{
-        fontSize: '2rem',
-        fontWeight: 700,
-        color: '#1a1a1a',
-        mb: 1.6
-      }}>
-        Kandidaten
-      </Typography>
-
-      <Typography sx={{
-        color: '#666',
-        mb: 3.2,
-        fontSize: '0.8rem',
-        maxWidth: '640px'
-      }}>
-        Hier können Sie alle gespeicherten Kandidaten einsehen.
-      </Typography>
+    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
+      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Candidates</Typography>
+      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Here you can see all saved candidates.</Typography>
 
       <Box sx={{
         bgcolor: '#fff',
@@ -95,12 +80,12 @@ const CandidatesPage = () => {
           color: '#1a1a1a',
           mb: 2.4
         }}>
-          Kandidaten suchen
+          Search candidates
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6 }}>
           <TextField 
-            placeholder="Nach Name oder LinkedIn-Profil suchen..."
+            placeholder="Search by name or LinkedIn profile..."
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,7 +146,7 @@ const CandidatesPage = () => {
                 }
               }}
             >
-              Alle Modelle
+              All Models
             </Button>
             <Button
               variant={selectedModel === 'gru' ? 'contained' : 'outlined'}

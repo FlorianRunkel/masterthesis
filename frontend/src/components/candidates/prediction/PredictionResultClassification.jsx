@@ -17,7 +17,7 @@ const PredictionResult = ({ prediction }) => {
 
   const getProbabilityClass = (confidence) => {
     if (confidence < 60) return 'probability-low-single';
-    if (confidence < 80) return 'probability-medium-single';
+    if (confidence < 85) return 'probability-medium-single';
     return 'probability-high-single';
   };
 
@@ -46,14 +46,14 @@ const PredictionResult = ({ prediction }) => {
   ];
 
   return (
-    <Box sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 3, borderRadius: '18px' , boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
+    <Box>
+      <Paper elevation={3} sx={{borderRadius: '12px' , boxShadow: '0 4px 18px 0 rgba(0,0,0,0.04)'}}>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.8rem', fontWeight: 700, mb: 4}}>
-            Wechselwahrscheinlichkeit
+          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.5rem', fontWeight: 700, mb: 4}}>
+          Career Change Prediction
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="h3" sx={{ color: '#001B41', mr: 2 ,fontSize: '4rem', fontWeight: 600}}>
+            <Typography variant="h3" sx={{ color: '#001B41', mr: 2 ,fontSize: '3rem', fontWeight: 600}}>
               {confidence}%
             </Typography>
             <Box sx={{ flex: 1, position: 'relative', height: '16px', mr: 2 }}>
@@ -66,15 +66,15 @@ const PredictionResult = ({ prediction }) => {
         </Box>
         {barData.length > 0 && (
         <>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 8, mb: 4, fontSize: '1.rem', fontWeight: 700}}>
-            Vorhersage-Erklärung
+          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2, mb: 1, fontSize: '1.1rem', fontWeight: 700}}>
+            Prediction Explanation
           </Typography>
-          <Box sx={{ p: 3, pt: 0, pb: 0 }}>
-            <Typography sx={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.9, textAlign: 'justify', mb: 2 }}>
-              Der folgende Balken zeigt, welche Merkmale das Ergebnis am stärksten beeinflusst haben. Je größer der farbige Anteil, desto wichtiger war dieses Merkmal für die Prognose. Die Legende darunter erklärt, wofür die Farben stehen.
+          <Box sx={{ pt: 0, pb: 0 }}>
+            <Typography sx={{ color: '#444', fontSize: '0.9rem', lineHeight: 1.9, textAlign: 'justify'}}>
+              The following bar shows which features most strongly influenced the result. The larger the colored portion, the more important this feature was for the prediction. The legend below explains what the colors represent.
             </Typography>
           </Box>
-          <Box sx={{ mt: 6, mb: 3, px: { xs:1, sm: 2, md: 4 } }}>
+          <Box sx={{ mt: 4, mb: 3 }}>
             {/* Gestapelter Balken */}
             <Box sx={{ display: 'flex', width: '100%', height: 32, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
               {barData.map((item, idx) => (
@@ -87,11 +87,11 @@ const PredictionResult = ({ prediction }) => {
               ))}
             </Box>
             {/* Legende */}
-            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap'}}>
               {barData.map(item => (
                 <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                  <Typography variant="body2">{item.feature}</Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem'}}>{item.feature}</Typography>
                 </Box>
               ))}
             </Box>
@@ -105,7 +105,7 @@ const PredictionResult = ({ prediction }) => {
           mb: 3,
           p: 3,
         }}>
-          <Typography sx={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.9, textAlign: 'justify' }}>
+          <Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9, textAlign: 'justify' }}>
             {prediction.llm_explanation}
           </Typography>
         </Box>

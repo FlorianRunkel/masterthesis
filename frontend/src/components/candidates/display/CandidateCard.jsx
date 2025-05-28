@@ -40,27 +40,27 @@ const CandidateCard = ({ candidate }) => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', height: '95%', display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
       {/* Bild und Name/Link nebeneinander */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, minWidth: 0 }}>
         {/* Profilbild, falls vorhanden */}
         {candidate.imageUrl && candidate.imageUrl !== '' && (
-          <img src={candidate.imageUrl} alt={name} style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee' }} />
+          <img src={candidate.imageUrl} alt={name} style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee', flexShrink: 0 }} />
         )}
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           {/* Name */}
-          <Typography variant="h3" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a' }}>{name}</Typography>
+          <Typography variant="h3" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}>{name}</Typography>
           {/* LinkedIn-Profil-Link */}
-          <Link href={candidate.linkedinProfile} target="_blank" rel="noopener noreferrer" sx={{ color: '#001B41', textDecoration: 'none', '&:hover': { color: '#FF8000' } }}>LinkedIn Profil</Link>
+          <Link href={candidate.linkedinProfile} target="_blank" rel="noopener noreferrer" sx={{fontSize: '0.8rem', color: '#001B41', textDecoration: 'none', '&:hover': { color: '#FF8000' }, wordBreak: 'break-all', maxWidth: '100%', display: 'block' }}>LinkedIn Profil</Link>
         </Box>
       </Box>
 
       {/* Aktuelle Position anzeigen, falls vorhanden */}
-      {candidate.currentPosition && (<Typography sx={{ color: '#666', fontSize: '1rem', mt: 1 }}><b>Aktuelle Position:</b> {candidate.currentPosition}</Typography>)}
+      {candidate.currentPosition && (<Typography sx={{ color: '#666', fontSize: '1rem', mt: 1, wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}><b>Current Position:</b> {candidate.currentPosition}</Typography>)}
       {/* Standort anzeigen, falls vorhanden */}
-      {candidate.location && (<Typography sx={{ color: '#666', fontSize: '1rem' }}><b>Standort:</b> {candidate.location}</Typography>)}
+      {candidate.location && (<Typography sx={{ color: '#666', fontSize: '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}><b>Location:</b> {candidate.location}</Typography>)}
       {/* Branche anzeigen, falls vorhanden */}
-      {candidate.industry && (<Typography sx={{ color: '#666', fontSize: '1rem' }}><b>Branche:</b> {candidate.industry}</Typography>)}
+      {candidate.industry && (<Typography sx={{ color: '#666', fontSize: '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}><b>Industry:</b> {candidate.industry}</Typography>)}
 
       {/* Wechselwahrscheinlichkeit oder Wechseldatum */}
       <Box sx={{ mt: 2 }}>
@@ -77,11 +77,11 @@ const CandidateCard = ({ candidate }) => {
               fontSize: '1rem',
               fontWeight: 600 
             }}>
-              Voraussichtliches Wechseldatum
+             Anticipated Change Date
             </Typography>
             <Typography sx={{ 
               color: getConfidenceColor(confidence, true), 
-              fontSize: '1.2rem',
+              fontSize: '1.1rem',
               fontWeight: 700 
             }}>
               {new Date(Date.now() + getDaysFromConfidence(confidence) * 24 * 60 * 60 * 1000).toLocaleDateString('de-DE', {
@@ -94,11 +94,11 @@ const CandidateCard = ({ candidate }) => {
         ) : (
           // Klassifikations-Modell Anzeige
           <>
-            <Typography sx={{ color: getConfidenceColor(confidence, false), fontWeight: 600, mb: 1 }}>
-              {confidence * 100 <= 60 ? 'Geringe Wechselwahrscheinlichkeit' : confidence * 100 <= 80 ? 'Mittlere Wechselwahrscheinlichkeit' : 'Hohe Wechselwahrscheinlichkeit'}
+            <Typography sx={{ color: getConfidenceColor(confidence, false), fontWeight: 600, mb: 1 , fontSize: '1rem'}}>
+              {confidence * 100 <= 60 ? 'Unlikely to consider a change' : confidence * 100 <= 80 ? 'Might consider a change' : 'Likely to consider a change'}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-              <Typography sx={{ fontWeight: 600, minWidth: 50, color: getConfidenceColor(confidence, false) }}>
+              <Typography sx={{ fontWeight: 600, minWidth: 50, color: getConfidenceColor(confidence, false), fontSize: '0.95rem' }}>
                 {(confidence * 100).toFixed(0)}%
               </Typography>
               <Box sx={{ flexGrow: 1, height: 8, bgcolor: '#eee', borderRadius: 1, overflow: 'hidden' }}>

@@ -8,17 +8,17 @@ const modelOptions = [
   {
     value: 'gru',
     title: 'Gated Recurrent Unit (GRU)',
-    description: 'Sequenzmodell für Zeitreihen und Karriereverläufe'
+    description: 'Sequence model for time series and career trajectories'
   },
   {
     value: 'xgboost',
     title: 'Extreme Gradient Boosting (XGBoost)',
-    description: 'Leistungsstarkes Machine-Learning-Modell für strukturierte Daten'
+    description: 'Powerful machine learning model for structured data'
   },
   {
     value: 'tft',
     title: 'Temporal Fusion Transformer (TFT)',
-    description: 'Modernes Deep-Learning-Modell für komplexe Zeitreihen'
+    description: 'Modern deep learning model for complex time series'
   }
 ];
 
@@ -37,7 +37,7 @@ const BatchUpload = () => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
     if (!selectedFile.name.endsWith('.csv')) {
-      alert("Bitte wählen Sie eine gültige CSV-Datei aus.");
+      alert("Please select a valid CSV file.");
       return;
     }
     setFile(selectedFile);
@@ -45,7 +45,7 @@ const BatchUpload = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Bitte wählen Sie eine CSV-Datei aus.");
+      alert("Please select a CSV file.");
       return;
     }
     setLoading(true);
@@ -58,13 +58,13 @@ const BatchUpload = () => {
         body: formData
       });
       if (!response.ok) {
-        throw new Error('Upload fehlgeschlagen');
+        throw new Error('Upload failed');
       }
       const data = await response.json();
       if (data.error) {
         setResults({
           error: data.error,
-          message: "Bitte überprüfen Sie das Format Ihrer CSV-Datei."
+          message: "Please check the format of your CSV file."
         });
         return;
       }
@@ -74,12 +74,12 @@ const BatchUpload = () => {
       setError(error.message);
       setResults({
         error: error.message,
-        message: "Bitte stellen Sie sicher, dass Ihre CSV-Datei folgende Spalten enthält:",
+        message: "Please make sure your CSV file contains the following columns:",
         requirements: [
-          "firstName (Vorname)",
-          "lastName (Nachname)",
+          "firstName (first name)",
+          "lastName (last name)",
           "linkedinProfile (LinkedIn-URL)",
-          "positions (Berufserfahrungen im JSON-Format)"
+          "positions (experience in JSON format)"
         ]
       });
     } finally {
@@ -105,7 +105,7 @@ const BatchUpload = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Fehler beim Speichern der Kandidaten');
+        throw new Error(data.error || 'Error saving candidates');
       }
       setSaveSuccess(true);
       setResults(null); // Reset results after successful save
@@ -120,10 +120,10 @@ const BatchUpload = () => {
   return (
     <Box sx={{ maxWidth: '1200px', ml: 0 }}>
       <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Batch Upload</Typography>
-      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit mehrerer Kandidaten gleichzeitig zu analysieren.</Typography>     
+      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Upload a CSV file to analyze the job change probability of multiple candidates at once.</Typography>     
       {/* Upload-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a', mb: 2.4 }}>CSV-Datei hochladen</Typography>
+        <Typography variant="h2" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a', mb: 2.4 }}>Upload CSV file</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.4 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, width: '100%' }}>
             <Button
@@ -154,22 +154,22 @@ const BatchUpload = () => {
               }}
             >
               <span style={{ fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6.4 }}>
-                DATEI AUSWÄHLEN
+                SELECT FILE
               </span>
               <input type="file" id="csvFile" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} />
             </Button>
-            <Typography sx={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', paddingTop: '8px' }}>{file ? file.name : 'Keine ausgewählt'}</Typography>
+            <Typography sx={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', paddingTop: '8px' }}>{file ? file.name : 'No file selected'}</Typography>
           </Box>
         </Box>
       </Box>
 
       {/* Modellauswahl-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 1.6 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#2C425C', mb: 0.8 }}>
-          KI-Modell auswählen
+        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
+          Select AI model
         </Typography>
         <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
-          Wählen Sie das passende Modell für eine präzise Prognose.
+          Select the appropriate model for a precise prediction.
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
           {modelOptions.map(option => (
@@ -214,7 +214,7 @@ const BatchUpload = () => {
               },
             }}
           >
-            Prognose starten
+            Start prediction
           </Button>
         </Box>
       </Box>
@@ -231,7 +231,7 @@ const BatchUpload = () => {
       )}
       {saveSuccess && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Kandidaten wurden erfolgreich gespeichert!
+          Candidates were successfully saved!
         </Alert>
       )}
       {loading && <LoadingSpinner />}

@@ -3,31 +3,50 @@ from sklearn.metrics import f1_score, accuracy_score, classification_report
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from scipy.stats import uniform, randint
+import numpy as np
 
 class XGBoostModel:
     def __init__(self, params=None):
         default_params = {
             "objective": "binary:logistic",
             "tree_method": "hist",
-            "max_depth": 6,
-            "min_child_weight": 10,
-            "subsample": 0.8,
-            "colsample_bytree": 0.8,
-            "eta": 0.1,
+            "grow_policy": "depthwise",
+            "enable_categorical": True,  
+            "max_depth": 47,
+            "max_leaves": 151,
+            "min_child_weight": 21,
+            "subsample": 0.79,
+            "colsample_bytree": 0.9,
+            "learning_rate": 0.05,
             "eval_metric": "logloss",
-            "n_estimators": 100,
-            "random_state": 42
+            "n_estimators": 1015,
+            "random_state": 42,
+            "lambda": 1.0,
+            "alpha": 0.5,
+            "num_boost_round": 1000, 
+            'scale_pos_weight': 5, 
+            'max_delta_step': 3,
+            'max_leaves': 151,
+            'reg_alpha': 7.464914051180242,
+            'reg_lambda': 9.74449348570822,
+            'sampling_method': 'uniform',
+            'grow_policy': 'depthwise',
+            'tree_method': 'hist',
+            'colsample_bytree': 0.815137118615616,
+            'eta': 0.19906876525575415,
+            'gamma': 1.121346547302799,
         }
+
         self.params = params or default_params
-        self.model = xgb.XGBClassifier(**self.params, num_boost_round=100)
+        self.model = xgb.XGBClassifier(**self.params)
 
 
-    def train(self, X_train, y_train, X_val=None, y_val=None, early_stopping_rounds=10):
+    def train(self, X_train, y_train, X_val=None, y_val=None, early_stopping_rounds=50):
         print("[INFO] Training XGBoost model...")
 
         if hasattr(X_train, 'isnull') and X_train.isnull().any().any():
             raise ValueError("Trainingsdaten enthalten NaN-Werte.")
-        
+
         eval_set = None
         if X_val is not None and y_val is not None:
             eval_set = [(X_train, y_train), (X_val, y_val)]
@@ -36,7 +55,7 @@ class XGBoostModel:
             X_train,
             y_train,
             eval_set=eval_set,
-            verbose=False
+            verbose=False,
         )
 
         print("[INFO] Training completed.")
@@ -92,20 +111,23 @@ class XGBoostModel:
         return grid_search.best_params_
 
     def randomized_search(self, X_train, y_train):
+
         param_dist = {
-            'max_depth': randint(3, 15),
-            'min_child_weight': randint(1, 20),
-            'subsample': uniform(0.5, 0.5),
-            'colsample_bytree': uniform(0.5, 0.5),
-            'eta': uniform(0.01, 0.19),
-            'gamma': uniform(0, 1),
-            'reg_alpha': uniform(0, 5),
-            'reg_lambda': uniform(0.5, 9.5),
-            'scale_pos_weight': [1, 2, 5, 10],
-            'n_estimators': randint(100, 400),
-            'max_delta_step': randint(0, 11),
-            'max_leaves': randint(0, 51),
-            'grow_policy': ['depthwise', 'lossguide']
+            'max_depth': randint(15, 50),                         # Tiefer für komplexe Muster
+            'min_child_weight': randint(1, 30),                  # Feinere Regularisierung
+            'subsample': uniform(0.4, 0.6),                      # 0.4 bis 1.0
+            'colsample_bytree': uniform(0.4, 0.6),               # 0.4 bis 1.0
+            'eta': uniform(0.01, 0.29),                          # Feinere Lernraten
+            'gamma': uniform(0, 5),                              # Pruning-Kontrolle
+            'reg_alpha': uniform(0, 10),                         # L1-Regularisierung
+            'reg_lambda': uniform(0, 15),                        # L2-Regularisierung
+            'scale_pos_weight': [1, 2, 5, 10, 20, 50],           # Für Imbalance
+            'n_estimators': randint(200, 2000),                  # Längeres Training
+            'max_delta_step': randint(0, 10),                    # Für Class Imbalance
+            'max_leaves': randint(10, 256),                      # Bei lossguide relevant
+            'grow_policy': ['depthwise', 'lossguide'],
+            'tree_method': ['hist'],                             # Optional: 'gpu_hist'
+            'sampling_method': ['uniform', 'gradient_based']     # Sampling-Strategien
         }
 
         xgb_clf = xgb.XGBClassifier(tree_method="hist", objective="binary:logistic", use_label_encoder=False)

@@ -3,7 +3,7 @@ import torch.nn as nn
 import pytorch_lightning as pl
 
 class GRUModel(pl.LightningModule):
-    def __init__(self, seq_input_size=7, hidden_size=128, num_layers=2, dropout=0.3, lr=0.001):
+    def __init__(self, seq_input_size=7, hidden_size=256, num_layers=2, dropout=0.2, lr=0.001):
         super().__init__()
         self.save_hyperparameters()
 
@@ -12,19 +12,28 @@ class GRUModel(pl.LightningModule):
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True,
-            dropout=dropout if num_layers > 1 else 0
+            dropout=dropout if num_layers > 1 else 0,
+            bidirectional=False  # auf True setzen für BiGRU!
         )
 
-        # Nur eine einzelne Ausgabeschicht
-        self.fc_out = nn.Linear(hidden_size, 1)
-        self.loss_fn = nn.MSELoss()  # Für Regression
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_size, 128),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(64, 1)
+        )
+
+        self.loss_fn = nn.MSELoss()
         self.lr = lr
 
     def forward(self, x_seq):
         gru_out, _ = self.gru(x_seq)
-        last_out = gru_out[:, -1, :]  # Nur den letzten Output der Sequenz nehmen
-        out = self.fc_out(last_out)
-        return out
+        last_out = gru_out[:, -1, :]
+        return self.fc(last_out)
+
 
     def step(self, batch, stage):
         x_seq, y = batch

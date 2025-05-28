@@ -4,9 +4,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import json
 from typing import Tuple
-from difflib import SequenceMatcher
 import os
-from ..position_classifier import PositionClassifier
+from rapidfuzz import process, fuzz
 
 class FeatureEngineering:
     
@@ -17,107 +16,26 @@ class FeatureEngineering:
         Args:
             use_llm: Nicht mehr verwendet, nur für Kompatibilität
         """
-
         json_path = os.path.join("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json")
-        
-        # Lade die Position-Level-Zuordnungen
+        # Lade die Position-Level-Zuordnungen als Dict: {"position": (level, branche, durchschnittszeit_tage)}
         with open(json_path, "r", encoding="utf-8") as f:
-            self.position_levels = json.load(f)
-            
-        # Initialisiere den PositionClassifier
-        self.classifier = PositionClassifier()  # Kein API-Key mehr nötig
-        
-        # Erstelle eine Liste aller Positionen mit ihren Eigenschaften
-        self.all_positions = []
-        for entry in self.position_levels:
-            self.all_positions.append({
-                'position': entry['position'].lower(),
-                'level': entry['level'],
-                'branche': entry['branche']
-            })
-        
-        # Sortiere Positionen nach Länge (längere zuerst)
-        self.all_positions.sort(key=lambda x: len(x['position']), reverse=True)
-        
-        # Erwartete Verweildauer pro Level und Branche (in Monaten)
-        self.expected_duration = {
-            # Sales (Branche 1)
-            (1, 1): 12,     # Junior Sales: 1 Jahr
-            (1, 2): 24,     # Regular Sales: 2 Jahre
-            (1, 3): 36,     # Senior Sales: 3 Jahre
-            (1, 4): 48,     # Lead Sales: 4 Jahre
-            
-            # Engineering (Branche 2)
-            (2, 1): 18,    # Junior Dev: 1.5 Jahre
-            (2, 2): 30,    # Regular Dev: 2.5 Jahre
-            (2, 3): 42,    # Senior Dev: 3.5 Jahre
-            (2, 4): 54,    # Lead Dev: 4.5 Jahre
-            
-            # Consulting (Branche 3)
-            (3, 1): 15,      # Junior Consulting: 1.25 Jahre
-            (3, 2): 27,      # Regular Consulting: 2.25 Jahre
-            (3, 3): 39,      # Senior Consulting: 3.25 Jahre
-            (3, 4): 51,      # Lead Consulting: 4.25 Jahre
-            
-            # Default für andere Branchen (Branche 0)
-            (0, 1): 15,        # Junior: 1.25 Jahre
-            (0, 2): 27,        # Regular: 2.25 Jahre
-            (0, 3): 39,        # Senior: 3.25 Jahre
-            (0, 4): 51,        # Lead: 4.25 Jahre
-        }
+            position_list = json.load(f)
+        self.position_map = {entry["position"]: (entry["level"], entry["branche"], entry["durchschnittszeit_tage"]) for entry in position_list}
+        self.all_positions = list(self.position_map.keys())
 
-    def similarity(self, a: str, b: str) -> float:
-        """
-        Berechnet die Ähnlichkeit zwischen zwei Strings
-        Verbesserte Version mit Wortübereinstimmung
-        """
-        # Exakte Übereinstimmung
-        if a == b:
-            return 1.0
-            
-        # Teilstring-Übereinstimmung
-        if a in b or b in a:
-            return 0.9
-            
-        # Wortweise Übereinstimmung
-        words_a = set(a.split())
-        words_b = set(b.split())
-        common_words = words_a.intersection(words_b)
-        
-        if common_words:
-            return len(common_words) / max(len(words_a), len(words_b))
-            
-        # Sequence Matcher als Fallback
-        return SequenceMatcher(None, a, b).ratio()
-
-    def find_best_match(self, title: str) -> Tuple[int, int]:
-        """
-        Findet die beste Übereinstimmung für einen Positionstitel und gibt (level, branche) zurück.
-        Nutzt den PositionClassifier für die Klassifizierung.
-        """
-        if not title:
-            return 0, 0  # Dummywert für Level und Branche
-
-        # Nutze den PositionClassifier für die Klassifizierung
-        level, branche = self.classifier.classify_position(title)
-        
-        # Validiere die Werte
-        if not (1 <= level <= 8):  # Wir haben jetzt 8 Level
-            print(f"Warnung: Ungültiges Level für '{title}': {level}")
-            level = 0  # Dummywert
-        if not branche in ["sales", "engineering", "consulting"]:
-            print(f"Warnung: Ungültige Branche für '{title}': {branche}")
-            branche = 0  # Dummywert
-
-        if branche == "sales":
-            branche = 1
-        elif branche == "engineering":
-            branche = 2
-        elif branche == "consulting":
-            branche = 3
-        else:
-            branche = 0
-        return level, branche
+    def find_best_match(self, pos, threshold=50):
+        pos_clean = pos.lower().strip()
+        # Exaktes Matching
+        if pos_clean in self.position_map:
+            level, branche, durchschnittszeit_tage = self.position_map[pos_clean]
+            return level, branche, durchschnittszeit_tage
+        # Fuzzy-Matching
+        match, score, _ = process.extractOne(pos_clean, self.all_positions, scorer=fuzz.ratio)
+        if score >= threshold:
+            level, branche, durchschnittszeit_tage = self.position_map[match]
+            return level, branche, durchschnittszeit_tage
+        # Kein guter Treffer
+        raise ValueError(f"Position '{pos}' konnte nicht sicher gemappt werden (Score: {score}).")
 
     def months_between(self, start, end):
         """Berechnet die Anzahl der Monate zwischen zwei Datumswerten"""
@@ -190,7 +108,7 @@ class FeatureEngineering:
         
         # Position Features
         position_title = current_position.get("position", "").strip()
-        level, branche = self.find_best_match(position_title)
+        level, branche, durchschnittszeit_tage = self.find_best_match(position_title)
         
         # Hole erwartete Verweildauer für Position und Branche
         expected = self.expected_duration.get(
@@ -272,7 +190,7 @@ class FeatureEngineering:
 
                 # Berechne Basisdaten
                 duration_months = self.months_between(start_date, end_date)
-                level, branche = self.find_best_match(job.get("position", "").strip())
+                level, branche, durchschnittszeit_tage = self.find_best_match(job.get("position", "").strip())
                 
                 # Hole erwartete Verweildauer
                 expected = self.expected_duration.get(
@@ -296,7 +214,7 @@ class FeatureEngineering:
                 if i < len(history) - 1:
                     # Prüfe ob die nächste Position ein Wechsel war
                     next_job = history[i + 1]
-                    next_level, next_branche = self.find_best_match(next_job.get("position", "").strip())
+                    next_level, next_branche, _ = self.find_best_match(next_job.get("position", "").strip())
                     
                     # Label ist 1 wenn:
                     # - Person die Branche gewechselt hat ODER
@@ -390,7 +308,7 @@ class FeatureEngineering:
                 
                 # Position Features
                 position_title = exp.get("position", "").strip()
-                level, branche = self.find_best_match(position_title)
+                level, branche, durchschnittszeit_tage = self.find_best_match(position_title)
                 
                 # Hole erwartete Verweildauer für Position und Branche
                 expected = self.expected_duration.get(
@@ -458,7 +376,7 @@ class FeatureEngineering:
                 
                 # Position Features
                 position_title = exp.get("position", "").strip()
-                level, branche = self.find_best_match(position_title)
+                level, branche, durchschnittszeit_tage = self.find_best_match(position_title)
                 
                 # Hole erwartete Verweildauer für Position und Branche
                 expected = self.expected_duration.get(

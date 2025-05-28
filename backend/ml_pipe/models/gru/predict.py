@@ -21,36 +21,36 @@ def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Ma
 
 def get_feature_names():
     return [
-        "Berufserfahrung",
-        "Anzahl Wechsel",
-        "Anzahl Jobs",
-        "Durchschnittsdauer Jobs",
-        "Level",
-        "Branche",
-        "Durchschnittszeit Position"
+        "Work Experience",
+        "Number of Changes",
+        "Number of Jobs",
+        "Average Job Duration",
+        "Position Level",
+        "Industry",
+        "Average Position Duration"
     ]
 
 def get_feature_description(name):
     descriptions = {
-        "Berufserfahrung": "Die Gesamtberufserfahrung bis zum aktuellen Zeitpunkt",
-        "Anzahl Wechsel": "Die Anzahl der bisherigen Jobwechsel",
-        "Anzahl Jobs": "Die Gesamtanzahl der bisherigen Jobs",
-        "Durchschnittsdauer Jobs": "Die durchschnittliche Dauer der bisherigen Jobs",
-        "Level": "Die Hierarchieebene der aktuellen Position",
-        "Branche": "Die Branchenzugehörigkeit",
-        "Durchschnittszeit Position": "Die durchschnittliche Verweildauer in der aktuellen Position"
+        "Work Experience": "Total professional experience accumulated over time",
+        "Number of Changes": "Total number of job transitions in career history",
+        "Number of Jobs": "Total number of positions held throughout career",
+        "Average Job Duration": "Mean duration across all previous positions",
+        "Position Level": "Current role's seniority and responsibility level",
+        "Industry": "Professional sector and business domain",
+        "Average Position Duration": "Typical tenure in similar positions"
     }
     return descriptions.get(name, "Dieses Feature beeinflusst die Vorhersage.")
 
 def get_status_and_recommendation(tage):
     if tage < 30:
-        return "baldiger Wechsel", "Sehr wahrscheinlicher Jobwechsel innerhalb des nächsten Monats"
+        return "short-term change", "High probability of job change within the next month"
     elif tage < 90:
-        return "mittelfristig", "Wahrscheinlicher Jobwechsel innerhalb der nächsten 3 Monate"
+        return "medium-term change", "High probability of job change within the next 3 months"
     elif tage < 180:
-        return "später Wechsel", "Möglicher Jobwechsel innerhalb der nächsten 6 Monate"
+        return "long-term change", "Possible job change within the next 6 months"
     else:
-        return "langfristig", "Jobwechsel in weiterer Zukunft (> 6 Monate)"
+        return "very long-term change", "Job change in further future (> 6 months)"
 
 '''
 Data Processing Functions
@@ -193,17 +193,27 @@ def get_branche_name(branche_num):
 Model Functions
 '''
 def load_model(model_path):
-    """Lädt das GRU-Modell."""
+    """Loads the GRU model."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    model = GRUModel(seq_input_size=7)  # 7 Features wie oben definiert
+    
+    # Create model with correct dimensions
+    model = GRUModel(
+        seq_input_size=7,      # Features pro Zeitschritt (level, branche, duration_months, etc.)
+        hidden_size=256,       # Größerer Hidden Layer für komplexere Muster
+        num_layers=4,          # 2 GRU-Schichten
+        dropout=0.5,           # Dropout gegen Overfitting
+        lr=0.001              # Lernrate
+    )
+    
+    # Load state dict
     model.load_state_dict(checkpoint)
     model.eval()
     
-    # Debug: Modellgewichte ausgeben
-    print("\nModellgewichte:")
+    # Debug: Print model weights
+    print("\nModel weights:")
     for name, param in model.named_parameters():
         if param.requires_grad:
-            print(f"{name}: {param.data.mean().item():.4f} (Mittelwert)")
+            print(f"{name}: {param.data.mean().item():.4f} (mean)")
     
     return model
 
@@ -234,10 +244,21 @@ def create_explanations(norm_shap):
         })
     return explanations
 
+def create_shap_summary(explanations):
+    # Sortiere nach Impact
+    sorted_exp = sorted(explanations, key=lambda x: -x['impact_percentage'])
+    if not sorted_exp:
+        return "No SHAP explanation available."
+    if len(sorted_exp) == 1:
+        return f"The prediction was mainly influenced by {sorted_exp[0]['feature']}."
+    # Nimm die Top 2 Features
+    top = sorted_exp[:2]
+    return f"The prediction was mainly influenced by {top[0]['feature']} and {top[1]['feature']}."
+
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, with_llm_explanation=True):
+def predict(profile_dict, model_path="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/saved_models/gru_model_20250526_173300.pt", with_llm_explanation=True):
     """Vorhersage der Tage bis zum Wechsel (Regression)."""
     if model_path is None:
         model_path = get_latest_model_path()
@@ -260,7 +281,7 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
         last_out = gru_out[:, -1, :]  # Nur den letzten Output der Sequenz nehmen
         print("GRU letzter Output:", last_out.mean().item())
         
-        pred = model.fc_out(last_out)
+        pred = model.fc(last_out)
         print("Finale Ausgabe:", pred.mean().item())
         
         tage = max(0, pred.item())  # Stelle sicher, dass die Tage nicht unter 0 sind
@@ -273,7 +294,9 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
     # SHAP-Explanations
     background_data = create_background_data(features)
     norm_shap = calculate_shap_values(model, background_data, features)
+    print(norm_shap)
     explanations = create_explanations(norm_shap)
+    shap_summary = create_shap_summary(explanations)
 
     print("\n=== Vorhersage abgeschlossen ===")
 
@@ -282,5 +305,6 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
         "recommendations": [recommendation],
         "status": status,
         "explanations": explanations,
+        "shap_summary": shap_summary,
         "llm_explanation": ""
     }
