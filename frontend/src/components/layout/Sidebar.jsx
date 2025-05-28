@@ -115,10 +115,12 @@ const Sidebar = () => {
               src={item.icon}
               alt={item.alt}
               style={{
-                width: 38,
-                height: 38,
+                width: 35,
+                height: 35,
                 objectFit: 'contain',
                 marginBottom: 0,
+                filter: location.pathname === item.path ? 'none' : 'brightness(0.7) grayscale(0.2)',
+                opacity: location.pathname === item.path ? 1 : 0.8,
               }}
             />   
             <Box

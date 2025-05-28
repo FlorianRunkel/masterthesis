@@ -73,7 +73,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
               }}>
                 <WorkIcon sx={{ 
                   color: '#FF8000', 
-                  fontSize: '1.5rem',
+                  fontSize: '1.6rem',
                   mt: 0.5
                 }} />
                 <Box>
@@ -100,6 +100,9 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
                   </Box>
                   <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 0.2 }}>
                     {exp.company || 'No company given'}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 0.2 }}>
+                    {exp.startDate ? exp.startDate : 'No Start Date'} - {exp.endDate ? exp.endDate : 'No End Date'}
                   </Typography>
                 </Box>
               </Box>
@@ -149,8 +152,8 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
       {/* Zusammenfassung, falls vorhanden */}
       {profile.summary && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" sx={{ fontSize: '1.15rem', fontWeight: 600, color: '#1a1a1a', mb: 2, pb: 1, borderBottom: '2px solid #e0e0e0' }}>Summary</Typography>
-          <Typography sx={{ color: '#666', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{profile.summary}</Typography>
+          <Typography variant="h3" sx={{ fontSize: '1rem', fontWeight: 600, color: '#1a1a1a', mb: 2, pb: 1, borderBottom: '2px solid #e0e0e0' }}>Summary</Typography>
+          <Typography sx={{ fontSize: '0.88rem', color: '#666', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{profile.summary}</Typography>
         </Box>
       )}
     </Box>
