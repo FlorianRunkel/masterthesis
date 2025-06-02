@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, Switch } from '@mui/material';
+import { Box, Typography, Button, TextField, Switch, Select, MenuItem } from '@mui/material';
 import PredictionResultTime from '../prediction/PredictionResultTime';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -22,6 +22,14 @@ const modelOptions = [
     title: 'Temporal Fusion Transformer (TFT)',
     description: 'Modern deep learning model for complex time series'
   }
+];
+
+const degreeOptions = [
+  { value: 'phd', label: 'PhD' },
+  { value: 'master', label: 'Master' },
+  { value: 'bachelor', label: 'Bachelor' },
+  { value: 'apprenticeship', label: 'Apprenticeship' },
+  { value: 'other', label: 'Other' }
 ];
 
 const ManualInput = () => {
@@ -258,13 +266,23 @@ const ManualInput = () => {
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
                     sx={{ '& .MuiInputLabel-root': { fontSize: '1rem', top: '10%' }, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                   />
-                  <TextField
-                    label="Degree"
+                  <Select
+                    displayEmpty
                     value={edu.degree}
                     size="small"
                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: '1rem', top: '10%' }, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
-                  />
+                    sx={{ '& .MuiInputBase-root': { fontSize: '0.88rem', minHeight: '46px' , color: '#888'}, width: '100%', '& .MuiSelect-select': {color: '#888', ml: 0 , border: 'none'} }}
+                    renderValue={selected => selected ? degreeOptions.find(opt => opt.value === selected)?.label : 'Degree'}
+                  >
+                    <MenuItem value="" disabled>
+                      Degree
+                    </MenuItem>
+                    {degreeOptions.map((option) => (
+                      <MenuItem value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, mb: 1.6 }}>
                   <TextField

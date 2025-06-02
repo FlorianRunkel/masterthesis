@@ -7,36 +7,48 @@ import numpy as np
 
 class XGBoostModel:
     def __init__(self, params=None):
+
+        #Default Parameters for XGBoost
+        default_params = {
+            "objective": "binary:logistic",       # Klassifikation mit Wahrscheinlichkeiten
+            "eval_metric": "logloss",             # Metrik für binäre Klassifikation
+            "tree_method": "hist",                # Schneller, speichereffizienter Baumalgorithmus
+            "enable_categorical": True,           
+            "learning_rate": 0.03,                 # Solide Lernrate
+            "max_depth": 4,                       # Gute Tiefe für generalisierende Modelle
+            "min_child_weight": 10,                # Weniger konservativ, mehr Splits erlaubt
+            "subsample": 0.8,                     # Random Sampling pro Baum (Overfitting-Schutz)
+            "colsample_bytree": 0.8,              # Feature Sampling pro Baum
+            "gamma": 2,                           # Kein Split-Penalty
+            "reg_alpha": 0.5,                       # Keine L1-Regularisierung (kann aktiviert werden)
+            "reg_lambda": 2,                      # Standardmäßige L2-Regularisierung
+            "n_estimators": 500,                  # Genug Bäume für sinnvolle Lernkurve
+            "random_state": 42                    # Reproduzierbarkeit
+        }
+        '''
         default_params = {
             "objective": "binary:logistic",
             "tree_method": "hist",
             "grow_policy": "depthwise",
-            "enable_categorical": True,  
-            "max_depth": 47,
+            "max_depth": 8,
             "max_leaves": 151,
             "min_child_weight": 21,
             "subsample": 0.79,
-            "colsample_bytree": 0.9,
             "learning_rate": 0.05,
             "eval_metric": "logloss",
             "n_estimators": 1015,
             "random_state": 42,
-            "lambda": 1.0,
-            "alpha": 0.5,
-            "num_boost_round": 1000, 
-            'scale_pos_weight': 5, 
+            "num_boost_round": 1000,
             'max_delta_step': 3,
             'max_leaves': 151,
             'reg_alpha': 7.464914051180242,
             'reg_lambda': 9.74449348570822,
             'sampling_method': 'uniform',
-            'grow_policy': 'depthwise',
             'tree_method': 'hist',
             'colsample_bytree': 0.815137118615616,
-            'eta': 0.19906876525575415,
             'gamma': 1.121346547302799,
         }
-
+        '''
         self.params = params or default_params
         self.model = xgb.XGBClassifier(**self.params)
 

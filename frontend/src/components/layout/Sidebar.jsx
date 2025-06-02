@@ -145,7 +145,7 @@ const Sidebar = () => {
             justifyContent: 'center',
             py: 3,
             borderBottom: '1px solid #eee',
-            bgcolor: '#fff'
+            bgcolor: '#fff',
           }}>
             <span style={{ fontWeight: 700, fontSize: '1.2rem', color: '#13213C', letterSpacing: 1 }}>Navigation</span>
           </Box>

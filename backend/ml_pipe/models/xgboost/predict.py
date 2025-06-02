@@ -248,10 +248,12 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
         # Convert features for XGBoost
         X = get_xgb_input(features)
         print(f"[DEBUG] XGBoost Input Shape: {X.shape}")
+        print(f"[DEBUG] XGBoost Input: {X}")
 
         # Load model and make prediction
         model = load_xgb_model(model_path)
         prob = model.predict_proba(X)[0]
+        print(f"[DEBUG] Probability: {prob}")
         status = get_status(prob[1])
         recommendations = [
             f"The candidate is {status}.",
