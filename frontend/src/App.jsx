@@ -1,6 +1,6 @@
 import React from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, useTheme } from '@mui/material/styles';
+import { CssBaseline, Box, useMediaQuery } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import theme from './theme';
 import Sidebar from './components/layout/Sidebar';
@@ -10,30 +10,34 @@ import ManualInput from './components/candidates/forms/ManualInput';
 import CandidatesPage from './pages/CandidatesPage';
 
 const App = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ display: 'flex' }}>
-          <Sidebar />
-          <Box 
-            component="main" 
-            sx={{ 
-              flexGrow: 1, 
-              marginLeft: '280px',
-              padding: '40px',
-              minHeight: '100vh',
-              maxWidth: '1600px',
-              bgcolor: 'background.default'
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<ManualInput />} />
-              <Route path="/batch" element={<BatchUpload />} />
-              <Route path="/linkedin" element={<LinkedInInput />} />
-              <Route path="/candidates" element={<CandidatesPage />} />
-            </Routes>
-          </Box>
+        <Sidebar />
+        <Box 
+          component="main"
+          sx={{
+            marginLeft: isMobile ? 0 : '260px',
+            marginTop: isMobile ? '70px' : 0,
+            padding: { xs: '8px', sm: '16px', md: '32px', lg: '40px', xl: '56px' },
+            minHeight: '100vh',
+            width: '100%',
+            maxWidth: { xs: '100vw', sm: 600, md: 1200, lg: 1200, xl: 1536 },
+            mx: 'auto',
+            boxSizing: 'border-box',
+            bgcolor: 'background.default'
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<ManualInput />} />
+            <Route path="/batch" element={<BatchUpload />} />
+            <Route path="/linkedin" element={<LinkedInInput />} />
+            <Route path="/candidates" element={<CandidatesPage />} />
+          </Routes>
         </Box>
       </Router>
     </ThemeProvider>

@@ -3,6 +3,8 @@ import { Box, Typography, Button, Alert } from '@mui/material';
 import ResultsTableClassification from '../display/ResultsTableClassification';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import ResultsTableTimeSeries from '../display/ResultsTableTimeSeries';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 const modelOptions = [
   {
@@ -32,6 +34,8 @@ const BatchUpload = () => {
   const [saveError, setSaveError] = useState(null);
   const [modelType, setModelType] = useState('');
   const [originalProfiles, setOriginalProfiles] = useState([]);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -118,9 +122,25 @@ const BatchUpload = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Batch Upload</Typography>
-      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Upload a CSV file to analyze the job change probability of multiple candidates at once.</Typography>     
+    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+
+      <Typography variant="h1" sx={{ 
+        fontSize: isMobile ? '1.8rem' : '2.5rem', 
+        fontWeight: 700, 
+        color: '#13213C', 
+        mb: 2 
+      }}>
+        Batch Upload
+      </Typography>
+      <Typography sx={{ 
+        color: '#666', 
+        mb: 4, 
+        fontSize: isMobile ? '0.9rem' : '1rem', 
+        maxWidth: '800px' 
+      }}>
+        Upload a CSV file to analyze the job change probability of multiple candidates at once.
+      </Typography>
+      
       {/* Upload-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
         <Typography variant="h2" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a', mb: 2.4 }}>Upload CSV file</Typography>
@@ -164,7 +184,7 @@ const BatchUpload = () => {
       </Box>
 
       {/* Modellauswahl-Box */}
-      <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 1.6 }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
         <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
           Select AI model
         </Typography>

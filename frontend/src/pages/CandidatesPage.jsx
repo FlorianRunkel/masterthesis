@@ -4,6 +4,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 import CandidateCard from '../components/candidates/display/CandidateCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 const CandidatesPage = () => {
   const [candidates, setCandidates] = useState([]);
@@ -12,6 +14,8 @@ const CandidatesPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const fetchCandidates = async () => {
@@ -62,15 +66,29 @@ const CandidatesPage = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Candidates</Typography>
-      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Here you can see all saved candidates.</Typography>
-
+    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+      <Typography variant="h1" sx={{ 
+        fontSize: isMobile ? '1.8rem' : '2.5rem', 
+        fontWeight: 700, 
+        color: '#13213C', 
+        mb: 2 
+      }}>
+        Candidates
+      </Typography>
+      <Typography sx={{ 
+        color: '#666', 
+        mb: 4, 
+        fontSize: isMobile ? '0.9rem' : '1rem', 
+        maxWidth: '800px' 
+      }}>
+        Here you can see all saved candidates.
+      </Typography>
+      
       <Box sx={{
         bgcolor: '#fff',
         borderRadius: '13px',
         p: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         mb: 3.2,
         width: '100%'
       }}>

@@ -102,40 +102,104 @@ const Timeline = ({ prediction, profile }) => {
       </Box>
 
       {/* Timeline */}
-      <Box sx={{ width: '100%', maxWidth: 1200, mb: 2, position: 'relative' }}>
-        {/* Linie */}
+      <Box sx={{ width: '100%', maxWidth: 1200, mb: 2, position: 'relative', minHeight: { xs: 500, md: 180 } }}>
+        {/* Horizontale Linie: Nur auf lg+ sichtbar */}
         <Box sx={{
           position: 'absolute',
           top: 36,
           left: 0,
           right: 0,
+          width: '100%',
           height: 6,
           background: 'linear-gradient(90deg, #3B82F6 0%, #F59E42 50%, #F87171 100%)',
           borderRadius: 3,
-          zIndex: 1
+          zIndex: 1,
+          display: { xs: 'none', sm: 'none', md: 'none', lg: 'block' }
         }} />
         {/* Phasen */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 2 }}>
+        <Box sx={{
+          display: { xs: 'flex', sm: 'flex', md: 'flex', lg: 'grid' },
+          flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'unset' },
+          gridTemplateColumns: { lg: 'repeat(auto-fit, minmax(0px, 1fr))' },
+          position: 'relative',
+          zIndex: 2,
+          gap: { xs: 4, sm: 4, md: 4, lg: 2 },
+          width: '100%',
+        }}>
           {phases.map((phase, idx) => (
-            <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 180 }}>
+            <Box
+              key={idx}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'row', sm: 'row', md: 'row', lg: 'column' },
+                alignItems: { xs: 'flex-start', sm: 'flex-start', md: 'flex-start', lg: 'center' },
+                justifyContent: 'center',
+                minWidth: { xs: 0, lg: 180 },
+                width: { xs: '100%', lg: '100%' },
+                mb: { xs: 2, sm: 2, md: 2, lg: 0 },
+                gap: { xs: 2, sm: 2, md: 2, lg: 0 },
+                position: 'relative',
+                flexWrap: { xs: 'nowrap', sm: 'nowrap', md: 'nowrap', lg: 'unset' },
+              }}
+            >
+              {/* Icon und vertikale Linie auf kleinen Screens, Icon oben auf lg+ */}
+              <Box
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: 3,
+                  boxShadow: '0 4px 16px #0001',
+                  transform: { xs: 'translateX(100%)', sm: 'translateX(100%)',  md: 'translateX(140%)', lg: 'none' },
+                  p: 2,
+                  mb: { xs: 0, sm: 0, md: 0, lg: 1 },
+                  mt: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minWidth: 70,
+                  minHeight: 70,
+                  position: 'relative',
+                  zIndex: 2 // Icon über der Linie
+                }}
+              >
+                {phase.icon}
+                {/* Vertikale Linie unter dem Icon (nur auf kleinen Screens) */}
+                {idx < phases.length - 1 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '100%',
+                      width: 4,
+                      height: 40,
+                      background:
+                        idx === 0
+                          ? 'linear-gradient(180deg, #3B82F6 0%, #F59E42 100%)' // blau zu orange
+                          : idx === 1
+                            ? 'linear-gradient(180deg, #F59E42 0%, #F59E42 100%)' // orange zu orange
+                            : 'linear-gradient(180deg, #F59E42 0%, #F87171 100%)', // orange zu rot
+                      transform: 'translateX(-50%)',
+                      zIndex: 1,
+                      display: { xs: 'block', sm: 'block', md: 'block', lg: 'none' }
+                    }}
+                  />
+                )}
+              </Box>
+              {/* Textblock */}
               <Box sx={{
-                bgcolor: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 4px 16px #0001',
-                p: 2,
-                mb: 1,
-                mt: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                minWidth: 70,
-                minHeight: 70
+                alignItems: { xs: 'flex-start', sm: 'flex-start', md: 'flex-start', lg: 'center' },
+                justifyContent: 'center',
+                transform: { xs: 'translateX(20%)', lg: 'none' },
+                minWidth: 0,
+                flex: 1,
+                textAlign: { xs: 'left', sm: 'left', md: 'left', lg: 'center' },
+                ml: { xs: 2, sm: 2, md: 2, lg: 0 },
               }}>
-                {phase.icon}
+                <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', color: phase.color, mb: 0.2 }}>{phase.label}</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '0.95rem', color: '#222', mb: 0.2 }}>{phase.desc}</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '0.9rem', color: '#888' }}>{phase.date}</Typography>
               </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', color: phase.color, mb: 0.2 }}>{phase.label}</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '0.95rem', color: '#222', mb: 0.2 }}>{phase.desc}</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '0.9rem', color: '#888' }}>{phase.date}</Typography>
             </Box>
           ))}
         </Box>
@@ -143,7 +207,7 @@ const Timeline = ({ prediction, profile }) => {
       {/* SHAP-Explanations */}
       {barData.length > 0 && (
         <Box sx={{ width: '100%', mb: 2 }}>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mb: 2, fontSize: '1.1rem', fontWeight: 700 }}>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ mb: 2, fontSize: '1.1rem', fontWeight: 900 , color: '#13213C'}}>
             Explanation of the prediction
           </Typography>
           <Typography sx={{ color: '#444', fontSize: '0.98rem', lineHeight: 1.7, textAlign: 'justify', mb: 2 }}>

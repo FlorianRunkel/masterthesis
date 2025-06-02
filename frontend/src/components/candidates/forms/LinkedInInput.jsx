@@ -5,6 +5,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProfileDisplay from '../display/ProfileDisplay';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 import PredictionResultTime from '../prediction/PredictionResultTime';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 const LinkedInInput = () => {
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -15,6 +17,8 @@ const LinkedInInput = () => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gru'); // Standardwert z.B. GRU
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -152,10 +156,31 @@ const LinkedInInput = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>LinkedIn Prediction</Typography>
-      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Enter a LinkedIn profile link to automatically create a career prediction based on the available work experience.</Typography>
-      <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4 }}>
+    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+      <Typography variant="h1" sx={{ 
+        fontSize: isMobile ? '1.8rem' : '2.5rem', 
+        fontWeight: 700, 
+        color: '#13213C', 
+        mb: 2 
+      }}>
+        LinkedIn Prediction
+      </Typography>
+      <Typography sx={{ 
+        color: '#666', 
+        mb: 4, 
+        fontSize: isMobile ? '0.9rem' : '1rem', 
+        maxWidth: '800px' 
+      }}>
+        Enter a LinkedIn profile link to automatically create a career prediction based on the available work experience.
+      </Typography>
+
+      <Box sx={{ 
+        bgcolor: '#fff', 
+        borderRadius: '16px', 
+        p: '30px', 
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)', 
+        mb: 4 
+      }}>
        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>LinkedIn Profile</Typography>
        <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.88rem' }}>
           Add the LinkedIn profile link to get a career prediction.
@@ -171,8 +196,8 @@ const LinkedInInput = () => {
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#fff',
                 fontSize: '0.88rem',
-                minHeight: '30px',
-                padding: '0px 0',
+                minHeight: '40px',
+                padding: '8px 16px',
                 '& fieldset': { borderColor: '#e0e0e0', borderWidth: 1 },
                 '&:hover fieldset': { borderColor: '#13213C' },
                 '&.Mui-focused fieldset': { borderColor: '#13213C' }
@@ -190,7 +215,7 @@ const LinkedInInput = () => {
           />
         </Box>
       </Box>
-      <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 1.6 }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
         <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
           Select AI model
         </Typography>

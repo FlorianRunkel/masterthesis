@@ -7,7 +7,7 @@ const PredictionResultTime = ({ prediction }) => {
 
   return (
     <Box sx={{ width: '100%', display: 'flex', mt: 4, mb: 4, justifyContent: 'center', height: '100%'}}>
-      <Box sx={{ bgcolor: '#fff', borderRadius: '22px', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)', p: { xs: 2, sm: 3 }, width: '100%', maxWidth: 1300, display: 'flex', flexDirection: 'column', gap: 1.5, border: '1.5px solid #e0e7ef'}}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '14px',boxShadow: { xs: 4, md: 8 }, p: { xs: 2, sm: 3 }, width: '100%', maxWidth: 1300, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {prediction.llm_explanation && (
           <Box sx={{ mt: 1, mb: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 2, width: '100%' }}>
             <Typography sx={{ color: '#444', fontSize: '1rem', lineHeight: 1.7, textAlign: 'center' }}>

@@ -3,6 +3,8 @@ import { Box, Typography, Button, TextField, Switch } from '@mui/material';
 import PredictionResultTime from '../prediction/PredictionResultTime';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 const modelOptions = [
   {
@@ -23,6 +25,8 @@ const modelOptions = [
 ];
 
 const ManualInput = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [experiences, setExperiences] = useState([{
     company: '',
     position: '',
@@ -159,22 +163,75 @@ const ManualInput = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
-      <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#13213C', mb: 2 }}>Manual Prediction</Typography>
-      <Typography sx={{ color: '#666', mb: 4, fontSize: '1rem', maxWidth: '800px' }}>Analyze the job change probability of a single candidate based on their work experience.</Typography>
+    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+      <Typography variant="h1" sx={{ 
+        fontSize: isMobile ? '1.8rem' : '2.5rem', 
+        fontWeight: 700, 
+        color: '#13213C', 
+        mb: 2 
+      }}>
+        Manual Prediction
+      </Typography>
+      <Typography sx={{ 
+        color: '#666', 
+        mb: 4, 
+        fontSize: isMobile ? '0.9rem' : '1rem', 
+        maxWidth: '800px' 
+      }}>
+        Analyze the job change probability of a single candidate based on their work experience.
+      </Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 4 }}>
-          <Box sx={{bgcolor: '#13213C', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
-            <Typography variant="h2" sx={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', mb: 0.8 }}>Education</Typography>
-            <Typography sx={{ color: '#fff', mb: 2.4, fontSize: '0.88rem' }}>
+        <Box sx={{ 
+          bgcolor: '#fff', 
+          borderRadius: '14px', 
+          p: isMobile ? '0 0px 20px 0' : '0 0px 32px 0', 
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)', 
+          mb: 4 
+        }}>
+          <Box sx={{
+            bgcolor: '#13213C', 
+            borderTopLeftRadius: '14px',
+            borderTopRightRadius: '14px',
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0, 
+            p: isMobile ? '20px 0 20px 20px' : '32px 0 32px 32px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            mb: 0 
+          }}>
+            <Typography variant="h2" sx={{ 
+              fontSize: isMobile ? '1.2rem' : '1.4rem', 
+              fontWeight: 800, 
+              color: '#fff', 
+              mb: 0.8 
+            }}>
+              Education
+            </Typography>
+            <Typography sx={{ 
+              color: '#fff', 
+              mb: 2.4, 
+              fontSize: isMobile ? '0.8rem' : '0.88rem' 
+            }}>
               Add information about the candidate's education.
             </Typography>
           </Box>
-          <Box sx={{ bgcolor: '#fff', borderRadius: '9.6px', p: 2.4, mb: 1.6 }}>
+          <Box sx={{ 
+            bgcolor: '#fff', 
+            borderRadius: '9.6px', 
+            p: isMobile ? 1.6 : 2.4, 
+            mb: 1.6 
+          }}>
             {education.map((edu, index) => (
               <Box
                 key={index}
-                sx={{ mb: 3.2, bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', p: { xs: 1.6, sm: 3.2 }, border: '1px solid #f0f0f0', position: 'relative' }}
+                sx={{ 
+                  mb: 3.2, 
+                  bgcolor: '#fff', 
+                  borderRadius: '14px', 
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)', 
+                  p: isMobile ? 1.6 : 3.2, 
+                  border: '1px solid #f0f0f0', 
+                  position: 'relative' 
+                }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
                   <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem' }}>
@@ -199,7 +256,7 @@ const ManualInput = () => {
                     value={edu.school}
                     size="small"
                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: '1rem', top: '10%' }, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '36px' }, input: { fontSize: '0.88rem' } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: '1rem', top: '10%' }, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
                   />
                   <TextField
                     label="Degree"
@@ -261,8 +318,8 @@ const ManualInput = () => {
             </Box>
           </Box>
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 4 }}>
-          <Box sx={{bgcolor: '#13213C', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.04)',mb: 0 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 4 }}>
+          <Box sx={{bgcolor: '#13213C', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.08)',mb: 0 }}>
             <Typography variant="h2" sx={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', mb: 0.8 }}>Work Experience</Typography>
             <Typography sx={{ color: '#fff', mb: 2.4, fontSize: '0.88rem' }}>
               Add information about the candidate's work experience.
@@ -272,7 +329,7 @@ const ManualInput = () => {
             {experiences.map((exp, index) => (
               <Box
                 key={index}
-                sx={{ mb: 3.2,  bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', p: { xs: 1.6, sm: 3.2 },border: '1px solid #f0f0f0',position: 'relative'}} >
+                sx={{ mb: 3.2,  bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', p: { xs: 1.6, sm: 3.2 },border: '1px solid #f0f0f0',position: 'relative'}} >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
                   <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem' }}>
                     Position {index + 1}
@@ -291,7 +348,7 @@ const ManualInput = () => {
                     value={exp.company}
                     size="small"
                     onChange={e => handleExperienceChange(index, 'company', e.target.value)}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: '1rem',top: '10%'}, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '36px'}, input: { fontSize: '0.88rem'} }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: '1rem',top: '10%'}, '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px'}, input: { fontSize: '0.88rem'} }}
                   />
                   <TextField
                     label="Position"
@@ -344,7 +401,7 @@ const ManualInput = () => {
             </Box>
           </Box>
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', mb: 1.6 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
           <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
             Select AI model
           </Typography>

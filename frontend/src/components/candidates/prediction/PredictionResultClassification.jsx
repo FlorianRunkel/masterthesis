@@ -54,13 +54,13 @@ const PredictionResult = ({ prediction }) => {
 
   return (
     <Box>
-      <Paper elevation={3} sx={{borderRadius: '12px' , boxShadow: '0 4px 18px 0 rgba(0,0,0,0.04)'}}>
+      <Paper elevation={3} sx={{borderRadius: '12px' , boxShadow: '0 4px 18px 0 rgba(0,0,0,0.04)', bgcolor: '#fff', p: 3}}>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.5rem', fontWeight: 700, mb: 4}}>
+          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.5rem', fontWeight: 700, mb: 4, color: '#001B41'}}>
           Career Change Prediction
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="h3" sx={{ color: '#001B41', mr: 2 ,fontSize: '3rem', fontWeight: 600}}>
+            <Typography variant="h3" sx={{ mr: 2 ,fontSize: '3rem', fontWeight: 600, color: probabilityClass === 'probability-low-single' ? '#001B41' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265'}}>
               {confidence}%
             </Typography>
             <Box sx={{ flex: 1, position: 'relative', height: '16px', mr: 2 }}>
@@ -73,7 +73,7 @@ const PredictionResult = ({ prediction }) => {
         </Box>
         {barData.length > 0 && (
         <>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2, mb: 1, fontSize: '1.1rem', fontWeight: 700}}>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2, mb: 1, fontSize: '1.1rem', fontWeight: 700, color: '#001B41'}}>
             Prediction Explanation
           </Typography>
           <Box sx={{ pt: 0, pb: 0 }}>
