@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Checkbox, CircularProgress, Link } from '@mui/material';
+import { Box, Typography, Button, Checkbox, CircularProgress, Link, useMediaQuery, useTheme, IconButton } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   if (!results) return null;
 
@@ -105,75 +113,141 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
         </Box>
 
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Change Probability</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((result, index) => {
-                const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Nicht angegeben';
-                const linkedin = result.linkedinProfile || 'Nicht angegeben';
+          {isMobile ? (
+            results.map((result, index) => {
+              const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Nicht angegeben';
+              const linkedin = result.linkedinProfile || 'Nicht angegeben';
+              const confidence = result.confidence ? result.confidence[0] * 100 : 0;
+              const probabilityClass = getProbabilityClass(confidence);
+              let color;
+              if (probabilityClass === 'probability-low') color = '#d81b3b';
+              else if (probabilityClass === 'probability-medium') color = '#FFC03D';
+              else color = '#2e6f40';
+              let statusIcon;
+              if (probabilityClass === 'probability-high') statusIcon = <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
+              else if (probabilityClass === 'probability-medium') statusIcon = <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
+              else statusIcon = <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
 
-                if (result.error) {
+              const isExpanded = expandedRows.has(index);
+
+              return (
+                <Box key={index} sx={{ 
+                  mb: 0, 
+                  p: 2,
+                  borderBottom: '1px solid #eee',
+                  '&:last-child': {
+                    borderBottom: 'none'
+                  }
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {name}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.85rem', color: '#888', mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#888', textDecoration: 'none' }}>
+                          {linkedin}
+                        </Link>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {statusIcon}
+                      <IconButton
+                        size="small"
+                        onClick={() => toggleDetails(index)}
+                        sx={{ ml: 1 }}
+                        aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                      >
+                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                  </Box>
+                  {isExpanded && (
+                    <Box sx={{ mt: 2, width: '100%' }}>
+                      <PredictionResultClassification prediction={result} />
+                    </Box>
+                  )}
+                </Box>
+              );
+            })
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Change Readiness</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((result, index) => {
+                  const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Nicht angegeben';
+                  const linkedin = result.linkedinProfile || 'Nicht angegeben';
+
+                  if (result.error) {
+                    return (
+                      <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}></td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>{name}</td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
+                        </td>
+                        <td colSpan="2" style={{ padding: '12px 24px', borderBottom: '1px solid #eee', color: '#FF2525' }}>{result.error}</td>
+                      </tr>
+                    );
+                  }
+
+                  const confidence = result.confidence ? result.confidence[0] * 100 : 0;
+                  const probabilityClass = getProbabilityClass(confidence);
+                  let color;
+                  if (probabilityClass === 'probability-low') color = '#d81b3b';
+                  else if (probabilityClass === 'probability-medium') color = '#FFC03D';
+                  else color = '#2e6f40';
+                  let statusIcon;
+                  if (probabilityClass === 'probability-high') statusIcon = <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
+                  else if (probabilityClass === 'probability-medium') statusIcon = <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
+                  else statusIcon = <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
+
                   return (
-                    <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}></td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>{name}</td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>
-                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
-                      </td>
-                      <td colSpan="2" style={{ padding: '12px 24px', borderBottom: '1px solid #eee', color: '#FF2525' }}>{result.error}</td>
-                    </tr>
-                  );
-                }
-
-                const confidence = result.confidence ? result.confidence[0] * 100 : 0;
-                const probabilityClass = getProbabilityClass(confidence);
-
-                return (
-                  <React.Fragment key={index}>
-                    <tr>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
-                        <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } }} />
-                      </td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>{name}</td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.88rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
-                      </td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Typography sx={{ fontWeight: 600, minWidth: 50, color: probabilityClass === 'probability-low' ? '#FF2525' : probabilityClass === 'probability-medium' ? '#FFC03D' : '#8AD265' , fontSize: '0.88rem'}}>{confidence.toFixed(0)}%</Typography>
-                          <Box sx={{ flexGrow: 1, height: 8, bgcolor: '#eee', borderRadius: 1, overflow: 'hidden' }}>
-                            <Box sx={{ height: '100%', width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low' ? '#FF2525' : probabilityClass === 'probability-medium' ? '#FFC03D' : '#8AD265', borderRadius: 1, transition: 'width 0.3s ease' }} />
-                          </Box>
-                        </Box>
-                      </td>
-                      <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                        <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, '&:hover': { bgcolor: '#FF8000' } }}>
-                          {expandedRows.has(index) ? 'Hide Details' : 'Show Details'}
-                        </Button>
-                      </td>
-                    </tr>
-                    {expandedRows.has(index) && (
+                    <React.Fragment key={index}>
                       <tr>
-                        <td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
-                          <Box sx={{margin: '0px auto', p: 3, maxWidth: '100%' }}>
-                            <PredictionResultClassification prediction={result} />
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
+                          <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } }} />
+                        </td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>{name}</td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.88rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
+                        </td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Typography sx={{ fontWeight: 600, minWidth: 50, color: color, fontSize: '1.6rem', alignItems: 'center', display: 'flex', justifyContent: 'center', gap: 0.5}}>
+                              {statusIcon}
+                            </Typography>
                           </Box>
                         </td>
+                        <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
+                          <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '8px', fontSize: '0.7rem', fontWeight: 600, '&:hover': { bgcolor: '#FF8000' } }}>
+                            {expandedRows.has(index) ? 'Collapse' : 'Expand'} 
+                          </Button>
+                        </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                      {expandedRows.has(index) && (
+                        <tr>
+                          <td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
+                            <Box sx={{margin: '0px auto', p: 3, maxWidth: '100%' }}>
+                              <PredictionResultClassification prediction={result} />
+                            </Box>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </Box>
       </Box>
     </Box>

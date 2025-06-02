@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip } from '@mui/material';
+import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -8,6 +8,9 @@ import Timeline from './Timeline';
 const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles }) => {
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   if (!results) return null;
 
@@ -89,86 +92,219 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
               onClick={handleSaveSelected}
               disabled={isSaving}
               startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />}
-              sx={{ bgcolor: '#13213C', color: 'white', p: '8px 16px', borderRadius: '6.4px', textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', '&:hover': { bgcolor: '#FF8000' } }}
+              sx={{ 
+                bgcolor: '#13213C', 
+                color: 'white', 
+                p: isMobile ? '6px 12px' : '8px 16px', 
+                borderRadius: '6.4px', 
+                textTransform: 'none', 
+                fontWeight: 600, 
+                fontSize: isMobile ? '0.75rem' : '0.8rem',
+                '&:hover': { bgcolor: '#FF8000' },
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                whiteSpace: 'nowrap'
+              }}
             >
-              {isSaving ? 'Saving...' : selectedCandidates.size + ' Save candidates'}
+              {isSaving ? 'Saving...' : `${selectedCandidates.size} ${isMobile ? 'Save' : 'Save candidates'}`}
             </Button>
           )}
         </Box>
 
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>LinkedIn</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Job change period</th>
-                <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((result, index) => {
-                const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
-                const linkedin = result.linkedinProfile || 'Not specified';
+          {isMobile ? (
+            results.map((result, index) => {
+              const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
+              const linkedin = result.linkedinProfile || 'Not specified';
+              const jobChangePeriod = result.confidence
+                ? `${(result.confidence / 30.44).toFixed(1)} month${(result.confidence / 30.44).toFixed(1) === '1.0' ? '' : 's'}`
+                : 'N/A';
+              const isExpanded = expandedRows.has(index);
 
-                if (result.error || result.status === 'error') {
+              return (
+                <Box key={index} sx={{ 
+                  mb: 0, 
+                  p: 2,
+                  borderBottom: '1px solid #eee',
+                  '&:last-child': {
+                    borderBottom: 'none'
+                  }
+                }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start', 
+                    justifyContent: 'space-between',
+                    gap: 1
+                  }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ 
+                        fontWeight: 700, 
+                        fontSize: '1.1rem', 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        color: '#13213C'
+                      }}>
+                        {name}
+                      </Typography>
+                      <Typography sx={{ 
+                        fontSize: '0.85rem', 
+                        color: '#888', 
+                        mt: 0.5, 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis' 
+                      }}>
+                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ 
+                          color: '#888', 
+                          textDecoration: 'none',
+                          '&:hover': { color: '#FF8000' }
+                        }}>
+                          {linkedin}
+                        </Link>
+                      </Typography>
+                      <Typography sx={{ 
+                        fontSize: '0.95rem', 
+                        color: '#13213C', 
+                        mt: 0.5, 
+                        fontWeight: 600 
+                      }}>
+                        Job Change Period: {jobChangePeriod}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexShrink: 0
+                    }}>
+                      <Checkbox
+                        checked={selectedCandidates.has(index)}
+                        onChange={() => handleSelectCandidate(index)}
+                        sx={{ 
+                          color: '#666', 
+                          '&.Mui-checked': { color: '#FF8000' },
+                          p: 0.5
+                        }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => toggleDetails(index)}
+                        sx={{ 
+                          p: 0.5,
+                          color: '#13213C',
+                          '&:hover': { color: '#FF8000' }
+                        }}
+                        aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                      >
+                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                  </Box>
+                  {isExpanded && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      width: '100%',
+                      borderTop: '1px solid #eee',
+                      pt: 2
+                    }}>
+                      <Timeline prediction={result} />
+                      {result.llm_explanation && (
+                        <Box sx={{ 
+                          mt: 3, 
+                          p: 2, 
+                          bgcolor: '#f5f5f5', 
+                          borderRadius: 2 
+                        }}>
+                          <Typography sx={{ 
+                            color: '#444', 
+                            fontSize: '0.88rem', 
+                            lineHeight: 1.9 
+                          }}>
+                            {result.llm_explanation}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              );
+            })
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>LinkedIn</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Job change period</th>
+                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((result, index) => {
+                  const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
+                  const linkedin = result.linkedinProfile || 'Not specified';
+
+                  if (result.error || result.status === 'error') {
+                    return (
+                      <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}></td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>
+                          <Chip label={result.confidence} sx={{ bgcolor: 'grey', color: '#fff', fontWeight: 700, fontSize: '0.85rem', px: 2, py: 0.5, borderRadius: 2 }} />
+                        </td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>{name}</td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.75rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
+                        </td>
+                          <td colSpan="2" style={{ padding: '10px 22px', borderBottom: '1px solid #eee', color: '#FF2525' , fontSize: '0.88rem'}}>{result.error || 'Processing error'}</td>
+                      </tr>
+                    );
+                  }
+                  // Tage werden direkt aus der Confidence genommen
+
                   return (
-                    <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}></td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>
-                        <Chip label={result.confidence} sx={{ bgcolor: 'grey', color: '#fff', fontWeight: 700, fontSize: '0.85rem', px: 2, py: 0.5, borderRadius: 2 }} />
-                      </td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>{name}</td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' , fontSize: '0.88rem'}}>
-                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.75rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
-                      </td>
-                        <td colSpan="2" style={{ padding: '10px 22px', borderBottom: '1px solid #eee', color: '#FF2525' , fontSize: '0.88rem'}}>{result.error || 'Processing error'}</td>
-                    </tr>
-                  );
-                }
-                // Tage werden direkt aus der Confidence genommen
-
-                return (
-                  <React.Fragment key={index}>
-                    <tr style={{ transition: 'background 0.2s', cursor: 'pointer', ':hover': { background: '#f5f8ff' } }}>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-                        <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } , width: '10px', height: '10px'}} />
-                      </td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', fontWeight: 500, fontSize: '0.88rem' }}>{name}</td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
-                        <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#13213C', fontWeight: 500, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1, '&:hover': { color: '#FF8000', textDecoration: 'underline' } }}>{linkedin.replace(/^https?:\/\/|^www\./, '')}</Link>
-                      </td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
-                        <Chip 
-                          label={`${(result.confidence / 30.44).toFixed(1)} Monat${(result.confidence / 30.44).toFixed(1) === '1.0' ? '' : 'e'}`} 
-                          sx={{ color: '#000', fontWeight: 700,  fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent'}}/>
-                      </td>
-                      <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-                        <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2.5, py: 1.2, borderRadius: '6.4px', fontSize: '0.88rem', fontWeight: 600, minWidth: 0, '&:hover': { bgcolor: '#FF8000' }, display: 'flex', alignItems: 'center', gap: 1 }} endIcon={expandedRows.has(index) ? <ExpandLessIcon /> : <ExpandMoreIcon />}>
-                          {expandedRows.has(index) ? 'Close details' : 'Show details'}
-                        </Button>
-                      </td>
-                    </tr>
-                    {expandedRows.has(index) && (
-                      <tr>
-                        <td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
-                          <Box sx={{ borderRadius: '13px', p: '16px', margin: '16px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', maxWidth: '95%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <Timeline prediction={result} />
-                            {result.llm_explanation && (
-                              <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-                                <Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9 }}>{result.llm_explanation}</Typography>
-                              </Box>
-                            )}
-                          </Box>
+                    <React.Fragment key={index}>
+                      <tr style={{ transition: 'background 0.2s', cursor: 'pointer', ':hover': { background: '#f5f8ff' } }}>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+                          <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } , width: '10px', height: '10px'}} />
+                        </td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', fontWeight: 500, fontSize: '0.88rem' }}>{name}</td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#13213C', fontWeight: 500, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1, '&:hover': { color: '#FF8000', textDecoration: 'underline' } }}>{linkedin.replace(/^https?:\/\/|^www\./, '')}</Link>
+                        </td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
+                          <Chip 
+                            label={`${(result.confidence / 30.44).toFixed(1)} Monat${(result.confidence / 30.44).toFixed(1) === '1.0' ? '' : 'e'}`} 
+                            sx={{ color: '#000', fontWeight: 700,  fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent'}}/>
+                        </td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+                          <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2.5, py: 1.2, borderRadius: '6.4px', fontSize: '0.88rem', fontWeight: 600, minWidth: 0, '&:hover': { bgcolor: '#FF8000' }, display: 'flex', alignItems: 'center', gap: 1 }} endIcon={expandedRows.has(index) ? <ExpandLessIcon /> : <ExpandMoreIcon />}>
+                            {expandedRows.has(index) ? 'Collapse' : 'Expand'}   
+                          </Button>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                      {expandedRows.has(index) && (
+                        <tr>
+                          <td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
+                            <Box sx={{ borderRadius: '13px', p: '16px', margin: '16px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', maxWidth: '95%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <Timeline prediction={result} />
+                              {result.llm_explanation && (
+                                <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                                  <Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9 }}>{result.llm_explanation}</Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </Box>
       </Box>
     </Box>

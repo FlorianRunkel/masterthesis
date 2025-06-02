@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 
 const getBarColors = [
   '#8AD265', // grün
@@ -9,6 +9,9 @@ const getBarColors = [
 ];
 
 const PredictionResult = ({ prediction }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   if (!prediction) return null;
 
   const recommendations = Array.isArray(prediction.recommendations) 
@@ -27,6 +30,15 @@ const PredictionResult = ({ prediction }) => {
     
   const confidence = Math.round(confidenceValue * 100);
   const probabilityClass = getProbabilityClass(confidence);
+
+  let userConfidence;
+  if (confidence <= 10 || confidence >= 90) {
+    userConfidence = "High";
+  } else if (confidence >= 40 && confidence <= 60) {
+    userConfidence = "Low";
+  } else {
+    userConfidence = "Medium";
+  }
 
   // Feature Importances für gestapelten Balken vorbereiten
   let explanations = prediction.explanations || [];
@@ -54,11 +66,18 @@ const PredictionResult = ({ prediction }) => {
 
   return (
     <Box>
-      <Paper elevation={3} sx={{ borderRadius: '14px',boxShadow: { xs: 4, md: 8 }, bgcolor: '#fff', p: 3}}>
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h1" color="primary" gutterBottom sx={{fontSize: '1.5rem', fontWeight: 700, mb: 4, color: '#001B41'}}>
-          Career Change Prediction
+      
+      <Paper elevation={3} sx={{ borderRadius: '14px',boxShadow: { xs: 4, md: 8 }, bgcolor: '#fff', p: isMobile ? 2 : 3}}>
+        <Box sx={{ mb: isMobile ? 2 : 3 }}>
+          <Typography variant="h1" color="primary" gutterBottom sx={{
+            fontSize: isMobile ? '1.2rem' : '1.5rem', 
+            fontWeight: 700, 
+            mb: isMobile ? 2 : 4, 
+            color: '#001B41'
+          }}>
+            Career Change Prediction
           </Typography>
+          {/*
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Typography variant="h3" sx={{ mr: 2 ,fontSize: '3rem', fontWeight: 600, color: probabilityClass === 'probability-low-single' ? '#001B41' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265'}}>
               {confidence}%
@@ -70,24 +89,78 @@ const PredictionResult = ({ prediction }) => {
                 sx={{position: 'absolute', top: 0, left: 0,  height: '100%',  width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low-single' ? '#FF2525' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265', borderRadius: '6px', transition: 'width 0.3s ease',}} />
             </Box>
           </Box>
+          */}
+          {/* Neue Anzeige für Klassifikationsergebnis und Confidence */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: isMobile ? 1 : 2, mb: isMobile ? 1 : 2 }}>
+            <Typography variant="h3" sx={{ 
+              fontSize: isMobile ? '1.6rem' : '2.2rem', 
+              fontWeight: 700, 
+              color: probabilityClass === 'probability-low-single' ? '#d81b3b' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#2e6f40' 
+            }}>
+              {confidence >= 50 ? 'Open to new opportunities' : 'Unlikely to switch jobs'}
+            </Typography>
+          </Box>
+          <Typography sx={{ 
+            fontSize: isMobile ? '0.8rem' : '0.9rem', 
+            fontWeight: 600, 
+            color: '#888' 
+          }}>
+            Confidence: {userConfidence}
+          </Typography>
+          <Typography sx={{ 
+            fontSize: isMobile ? '0.5rem' : '0.6rem', 
+            color: '#888', 
+            mb: 1 
+          }}>
+            Note: "High" means the model is very sure. "Low" means the model is uncertain.
+          </Typography>
         </Box>
         {barData.length > 0 && (
         <>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2, mb: 1, fontSize: '1.1rem', fontWeight: 700, color: '#001B41'}}>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ 
+            mt: isMobile ? 1 : 2, 
+            mb: isMobile ? 0.5 : 1, 
+            fontSize: isMobile ? '0.9rem' : '1.1rem', 
+            fontWeight: 700, 
+            color: '#001B41'
+          }}>
             Prediction Explanation
           </Typography>
           <Box sx={{ pt: 0, pb: 0 }}>
-            <Typography sx={{ color: '#444', fontSize: '0.9rem', lineHeight: 1.9, textAlign: 'justify'}}>
+            <Typography sx={{ 
+              color: '#444', 
+              fontSize: isMobile ? '0.8rem' : '0.9rem', 
+              lineHeight: 1.9, 
+              textAlign: 'justify'
+            }}>
               The following bar shows which features most strongly influenced the result. The larger the colored portion, the more important this feature was for the prediction. The legend below explains what the colors represent.
             </Typography>
           </Box>
-          <Box sx={{ mt: 4, mb: 3 }}>
-            {/* Gestapelter Balken */}
-            <Box sx={{ display: 'flex', width: '100%', height: 32, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
+          <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              width: '100%', 
+              height: isMobile ? 24 : 32, 
+              borderRadius: 2, 
+              overflow: 'hidden', 
+              boxShadow: 1, 
+              mb: isMobile ? 1 : 2 
+            }}>
               {barData.map((item, idx) => (
                 <Box
                   key={item.feature}
-                  sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}
+                  sx={{ 
+                    width: `${item.impact_percentage}%`, 
+                    bgcolor: item.color, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: '#fff', 
+                    fontWeight: 600, 
+                    fontSize: isMobile ? '0.8rem' : '0.95rem', 
+                    borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', 
+                    transition: 'width 0.3s ease' 
+                  }}
                 >
                   {item.impact_percentage > 8
                     ? `${item.impact_percentage.toFixed(1)}%`
@@ -100,12 +173,11 @@ const PredictionResult = ({ prediction }) => {
                 </Box>
               ))}
             </Box>
-            {/* Legende */}
-            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap'}}>
+            <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, mt: isMobile ? 1 : 2, flexWrap: 'wrap'}}>
               {barData.map(item => (
                 <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                  <Typography variant="body2" sx={{ fontSize: '0.8rem'}}>{item.feature}</Typography>
+                  <Box sx={{ width: isMobile ? 12 : 16, height: isMobile ? 12 : 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem'}}>{item.feature}</Typography>
                 </Box>
               ))}
             </Box>
@@ -116,10 +188,15 @@ const PredictionResult = ({ prediction }) => {
       {/* KI-Erklärung anzeigen, falls vorhanden */}
       {prediction.llm_explanation && (
         <Box sx={{
-          mb: 3,
-          p: 3,
+          mb: isMobile ? 2 : 3,
+          p: isMobile ? 2 : 3,
         }}>
-          <Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9, textAlign: 'justify' }}>
+          <Typography sx={{ 
+            color: '#444', 
+            fontSize: isMobile ? '0.8rem' : '0.88rem', 
+            lineHeight: 1.9, 
+            textAlign: 'justify' 
+          }}>
             {prediction.llm_explanation}
           </Typography>
         </Box>

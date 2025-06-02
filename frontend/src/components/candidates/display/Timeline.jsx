@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Tooltip } from '@mui/material';
+import { Box, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -14,6 +14,9 @@ const getBarColors = [
 ];
 
 const Timeline = ({ prediction, profile }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   if (!prediction) return null;
 
   // Werte berechnen
@@ -78,25 +81,43 @@ const Timeline = ({ prediction, profile }) => {
   ];
 
   return (
-    <Box sx={{ width: '100%', my: 0, p: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, position: 'relative', overflow: 'visible' }}>
+    <Box sx={{ width: '100%', my: 0, p: isMobile ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 2 : 4, position: 'relative', overflow: 'visible' }}>
 
       {/* Erklärung über der Timeline */}
-      <Box sx={{ width: '100%', mb: 0
-       }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#13213C', mb: 1, fontSize: '1.5rem' }}>
+      <Box sx={{ width: '100%', mb: 0 }}>
+        <Typography variant="h6" sx={{ 
+          fontWeight: 800, 
+          color: '#13213C', 
+          mb: isMobile ? 0.5 : 1, 
+          fontSize: isMobile ? '1.2rem' : '1.5rem' 
+        }}>
           Career Change Prediction Timeline
         </Typography>
-        <Typography sx={{ color: '#444', fontSize: '1rem', lineHeight: 1.7 }}>
+        <Typography sx={{ 
+          color: '#444', 
+          fontSize: isMobile ? '0.9rem' : '1rem', 
+          lineHeight: 1.7 
+        }}>
           This timeline visualizes the predicted career change process for the candidate. It shows the current status, the expected start of job search activities, the phase of intensive job seeking, and the estimated date of the next job change.
         </Typography>
       </Box>
       {/* Tage bis Wechsel ganz oben */}
-      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', mb: 1, justifyContent: 'left', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', mb: isMobile ? 0.5 : 1, justifyContent: 'left', alignItems: 'center', gap: isMobile ? 0.5 : 1 }}>
 
-        <Typography sx={{ fontWeight: 900, fontSize: 54, color: '#F59E42', mb: 0.5, lineHeight: 1 }}>
+        <Typography sx={{ 
+          fontWeight: 900, 
+          fontSize: isMobile ? 40 : 54, 
+          color: '#F59E42', 
+          mb: isMobile ? 0.2 : 0.5, 
+          lineHeight: 1 
+        }}>
           {tageBisWechsel}
         </Typography>
-        <Typography sx={{ fontWeight: 600, fontSize: '1rem', color: '#13213C' }}>
+        <Typography sx={{ 
+          fontWeight: 600, 
+          fontSize: isMobile ? '0.9rem' : '1rem', 
+          color: '#13213C' 
+        }}>
           Days until job change
         </Typography>
       </Box>
@@ -206,19 +227,48 @@ const Timeline = ({ prediction, profile }) => {
       </Box>
       {/* SHAP-Explanations */}
       {barData.length > 0 && (
-        <Box sx={{ width: '100%', mb: 2 }}>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mb: 2, fontSize: '1.1rem', fontWeight: 900 , color: '#13213C'}}>
+        <Box sx={{ width: '100%', mb: isMobile ? 1 : 2 }}>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ 
+            mb: isMobile ? 1 : 2, 
+            fontSize: isMobile ? '0.9rem' : '1.1rem', 
+            fontWeight: 900, 
+            color: '#13213C'
+          }}>
             Explanation of the prediction
           </Typography>
-          <Typography sx={{ color: '#444', fontSize: '0.98rem', lineHeight: 1.7, textAlign: 'justify', mb: 2 }}>
+          <Typography sx={{ 
+            color: '#444', 
+            fontSize: isMobile ? '0.85rem' : '0.98rem', 
+            lineHeight: 1.7, 
+            textAlign: 'justify', 
+            mb: isMobile ? 1 : 2 
+          }}>
             The following bar shows which features had the greatest impact on the result. The larger the colored section, the more important this feature was for the prediction. The legend below explains what the colors stand for.
           </Typography>
-          {/* Gestapelter Balken */}
-          <Box sx={{ display: 'flex', width: '100%', height: 32, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            width: '100%', 
+            height: isMobile ? 24 : 32, 
+            borderRadius: 2, 
+            overflow: 'hidden', 
+            boxShadow: 1, 
+            mb: isMobile ? 1 : 2 
+          }}>
             {barData.map((item, idx) => (
               <Box
                 key={item.feature}
-                sx={{ width: `${item.impact_percentage}%`, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.95rem', borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', transition: 'width 0.3s ease' }}
+                sx={{ 
+                  width: `${item.impact_percentage}%`, 
+                  bgcolor: item.color, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: '#fff', 
+                  fontWeight: 600, 
+                  fontSize: isMobile ? '0.8rem' : '0.95rem', 
+                  borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none', 
+                  transition: 'width 0.3s ease' 
+                }}
               >
                 {item.impact_percentage > 8
                   ? `${item.impact_percentage.toFixed(1)}%`
@@ -231,12 +281,17 @@ const Timeline = ({ prediction, profile }) => {
               </Box>
             ))}
           </Box>
-          {/* Legende */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, mt: isMobile ? 1 : 2, flexWrap: 'wrap' }}>
             {barData.map(item => (
               <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 16, height: 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>{item.feature}</Typography>
+                <Box sx={{ 
+                  width: isMobile ? 12 : 16, 
+                  height: isMobile ? 12 : 16, 
+                  bgcolor: item.color, 
+                  borderRadius: 1, 
+                  mr: 0.5 
+                }} />
+                <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>{item.feature}</Typography>
               </Box>
             ))}
           </Box>
