@@ -34,6 +34,8 @@ const BatchUpload = () => {
   const [saveError, setSaveError] = useState(null);
   const [modelType, setModelType] = useState('');
   const [originalProfiles, setOriginalProfiles] = useState([]);
+  const [showModelChangeHint, setShowModelChangeHint] = useState(false);
+  const [resultsModelType, setResultsModelType] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -48,10 +50,14 @@ const BatchUpload = () => {
   };
 
   const handleUpload = async () => {
+    setShowModelChangeHint(false);
     if (!file) {
       alert("Please select a CSV file.");
       return;
     }
+    setResults(null);
+    setOriginalProfiles([]);
+    setResultsModelType(modelType);
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
@@ -119,6 +125,11 @@ const BatchUpload = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleModelChange = (value) => {
+    setModelType(value);
+    setShowModelChangeHint(true);
   };
 
   return (
@@ -193,7 +204,7 @@ const BatchUpload = () => {
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
           {modelOptions.map(option => (
-            <Box key={option.value} onClick={() => setModelType(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: modelType === option.value ? '1.6px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: modelType === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: modelType === option.value ? '1.6px solid #FF8000' : 'none', mb: 0.8 }}>
+            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: modelType === option.value ? '1.6px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: modelType === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: modelType === option.value ? '1.6px solid #FF8000' : 'none', mb: 0.8 }}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                 {option.title}
               </Typography>
@@ -203,6 +214,11 @@ const BatchUpload = () => {
             </Box>
           ))}
         </Box>
+        {showModelChangeHint && (
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+              Please click 'Start prediction' to run the new model.
+            </Box>
+          )}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.6 }}>
           <Button
             onClick={handleUpload}
@@ -257,7 +273,7 @@ const BatchUpload = () => {
       {loading && <LoadingSpinner />}
       {results && !loading && (
         <Box sx={{ mt: 3 }}>
-          {modelType === 'tft' || modelType === 'gru' ? (
+          {resultsModelType === 'tft' || resultsModelType === 'gru' ? (
             <ResultsTableTimeSeries
               results={results}
               onSave={handleSaveCandidates}

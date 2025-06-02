@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, CircularProgress, Button, Alert, Fade, FormControl} from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { Box, Typography, TextField, CircularProgress, Button, FormControl} from '@mui/material';
 import ProfileDisplay from '../display/ProfileDisplay';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
 import PredictionResultTime from '../prediction/PredictionResultTime';
@@ -17,15 +15,19 @@ const LinkedInInput = () => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gru'); // Standardwert z.B. GRU
+  const [showModelChangeHint, setShowModelChangeHint] = useState(false);
+  const [predictionModelType, setPredictionModelType] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPredictionData(null);
+    setProfileData(null);
     setLoading(true);
     setError(null);
-    setProfileData(null);
-    setPredictionData(null);
+    setShowModelChangeHint(false);
+    setPredictionModelType(selectedModel);
 
     try {
       // LinkedIn-Profil abrufen
@@ -155,6 +157,11 @@ const LinkedInInput = () => {
     }
   };
 
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    setShowModelChangeHint(true);
+  };
+
   return (
     <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
       <Typography variant="h1" sx={{ 
@@ -241,7 +248,7 @@ const LinkedInInput = () => {
               description: 'Modern deep learning model for complex time series'
             }
           ].map(option => (
-            <Box key={option.value} onClick={() => setSelectedModel(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none', mb: 0.8 }}>
+            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none', mb: 0.8 }}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                 {option.title}
               </Typography>
@@ -251,6 +258,11 @@ const LinkedInInput = () => {
             </Box>
           ))}
         </Box>
+        {showModelChangeHint && (
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+              Please click 'Start prediction' to run the new model.
+            </Box>
+          )}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.6 }}>
           <Button
             onClick={handleSubmit}
@@ -298,7 +310,7 @@ const LinkedInInput = () => {
       )}
       {predictionData && (
         <>
-          {(selectedModel === 'tft' || selectedModel === 'gru') ? (
+          {(predictionModelType === 'tft' || predictionModelType === 'gru') ? (
             <PredictionResultTime prediction={predictionData} />
           ) : (
             <PredictionResultClassification prediction={predictionData} />

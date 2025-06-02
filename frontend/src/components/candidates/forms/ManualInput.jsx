@@ -52,6 +52,8 @@ const ManualInput = () => {
     startDate: '',
     endDate: ''
   }]);
+  const [showModelChangeHint, setShowModelChangeHint] = useState(false);
+  const [predictionModelType, setPredictionModelType] = useState('');
 
   const handleAddExperience = () => {
     setExperiences([...experiences, {
@@ -99,9 +101,11 @@ const ManualInput = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPrediction(null);
     setLoading(true);
     setError(null);
-    setPrediction(null);
+    setShowModelChangeHint(false);
+    setPredictionModelType(selectedModel);
 
     try {
       const profile_data = {
@@ -157,6 +161,11 @@ const ManualInput = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    setShowModelChangeHint(true);
   };
 
   // Hilfsfunktion zum Formatieren der Daten
@@ -428,7 +437,7 @@ const ManualInput = () => {
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
             {modelOptions.map(option => (
-              <Box key={option.value}onClick={() => setSelectedModel(option.value)} sx={{cursor: 'pointer',bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.5px solid #e3e6f0', borderRadius: '16px', p: 3, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none'}} >
+              <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{cursor: 'pointer',bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.5px solid #e3e6f0', borderRadius: '16px', p: 3, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none'}} >
                 <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                   {option.title}
                 </Typography>
@@ -438,6 +447,11 @@ const ManualInput = () => {
               </Box>
             ))}
           </Box>
+          {showModelChangeHint && (
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+              Please click 'Start prediction' to run the new model.
+            </Box>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               type="submit"
@@ -475,9 +489,9 @@ const ManualInput = () => {
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #FF8000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography></Box>)}
-      {prediction && selectedModel === 'tft' && (<><PredictionResultTime prediction={prediction} /></>)}
-      {prediction && selectedModel === 'gru' && <PredictionResultTime prediction={prediction} />}
-      {prediction && selectedModel === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
+      {prediction && predictionModelType === 'tft' && (<><PredictionResultTime prediction={prediction} /></>)}
+      {prediction && predictionModelType === 'gru' && <PredictionResultTime prediction={prediction} />}
+      {prediction && predictionModelType === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
     </Box>
   );
 };
