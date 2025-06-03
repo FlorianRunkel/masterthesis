@@ -31,7 +31,7 @@ class DataModule(LightningDataModule):
     def setup(self, stage=None):
         if self.train_data is None:
             # Hole Rohdaten aus MongoDB
-            result = self.mongo_client.get_all('time_dataset')
+            result = self.mongo_client.get_all('timeseries_dataset')
             raw_data = result.get('data', [])
             
             if not raw_data:

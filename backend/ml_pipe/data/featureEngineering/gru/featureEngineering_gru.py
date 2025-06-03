@@ -22,6 +22,20 @@ class FeatureEngineering:
             "engineering": ["engineer", "developer", "software", "system", "tech", "it", "architect"],
             "consulting": ["consultant", "consulting", "berater", "beratung", "strategy"]
         }
+        self.branche_set = set(entry["branche"].lower() for entry in self.position_levels)
+
+        study_field_path = os.path.join(
+            "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/study_field_map.json"
+        )
+        with open(study_field_path, "r", encoding="utf-8") as f:
+            self.study_field_map = json.load(f)
+
+        # Position-zu-Index Mapping laden
+        position_idx_path = os.path.join(
+            "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/dataModule/tft/position_to_idx.json"
+        )
+        with open(position_idx_path, "r", encoding="utf-8") as f:
+            self.position_to_idx = json.load(f)
 
     def get_branche_from_keywords(self, pos):
         """Ermittelt die Branche basierend auf Schlüsselwörtern."""
@@ -56,25 +70,106 @@ class FeatureEngineering:
 
     def get_branche_num(self, branche):
         """Konvertiert Branchennamen in numerische Werte."""
-        branche_map = {"sales": 1, "engineering": 2, "consulting": 3}
-        return branche_map.get(branche, 0)
+        branche_map = {
+            "bau": 1,
+            "consulting": 2,
+            "customerservice": 3,
+            "design": 4,
+            "education": 5,
+            "einkauf": 6,
+            "engineering": 7,
+            "finance": 8,
+            "freelance": 9,
+            "gesundheit": 10,
+            "healthcare": 11,
+            "hr": 12,
+            "immobilien": 13,
+            "it": 14,
+            "legal": 15,
+            "logistik": 16,
+            "marketing": 17,
+            "medien": 18,
+            "operations": 19,
+            "produktion": 20,
+            "projektmanagement": 21,
+            "research": 22,
+            "sales": 23,
+            "verwaltung": 24
+        }
+        return branche_map.get(branche.lower(), 0)
+
+    def map_branche(self, doc):
+        # 1. Company-Industry bevorzugen, falls vorhanden und bekannt
+        company_industry = doc.get("company_industry", "")
+        if company_industry:
+            # Falls mehrere Branchen als String: nur die erste nehmen
+            industry = company_industry.split(",")[0].strip().lower()
+            if industry in self.branche_set:
+                return self.get_branche_num(industry)
+        # 2. Fallback: wie bisher über Position
+        pos = doc.get("aktuelle_position", "")
+        return self.map_position(pos)[1]  # gibt die Branchen-Nummer zurück
+
+    def get_study_field_num(self, study_field):
+        if not study_field:
+            return 0
+        field = study_field.lower().strip()
+        for key in self.study_field_map:
+            if key in field:
+                return self.study_field_map[key]
+        return 0
+
+    def get_position_idx(self, pos):
+        """Gibt die ID der Position zurück (oder 0, falls nicht gefunden)."""
+        if not pos:
+            return 0
+        pos_clean = pos.lower().strip()
+        return self.position_to_idx.get(pos_clean, 0)
 
     def extract_features_and_labels_for_training(self, documents):
         all_sequences = []
         all_labels = []
         for doc in documents:
-            features = [
-                float(doc.get("berufserfahrung_bis_zeitpunkt", 0)),
-                float(doc.get("anzahl_wechsel_bisher", 0)),
-                float(doc.get("anzahl_jobs_bisher", 0)),
-                float(doc.get("durchschnittsdauer_bisheriger_jobs", 0)),
-            ]
-            level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
-            features.append(level)
-            features.append(branche)
-            features.append(durchschnittszeit)
-            all_sequences.append([features])
-            all_labels.append([float(doc.get("label", 0))])
+            try:
+                # Basis-Features mit Fehlerbehandlung
+                features = [
+                    float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
+                    float(doc.get("anzahl_wechsel_bisher", 0) or 0),
+                    float(doc.get("anzahl_jobs_bisher", 0) or 0),
+                    float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                    float(doc.get("highest_degree", 0) or 0),
+                    float(doc.get("age_category", 0) or 0),
+                    float(doc.get("anzahl_standortwechsel", 0) or 0),
+                    float(self.get_study_field_num(doc.get("study_field", "")) or 0),
+                    float(doc.get("company_size_category", 0) or 0),
+                ]
+
+                # Position-bezogene Features mit Fehlerbehandlung
+                level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
+                features.extend([
+                    float(level or 0),
+                    float(branche or 0),
+                    float(durchschnittszeit or 0)
+                ])
+
+                # Positions-ID mit Fehlerbehandlung
+                position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
+                features.append(float(position_idx or 0))
+
+                # Label mit Fehlerbehandlung
+                label = float(doc.get("label", 0) or 0)
+
+                all_sequences.append([features])
+                all_labels.append([label])
+
+            except Exception as e:
+                print(f"Fehler bei der Verarbeitung eines Dokuments: {str(e)}")
+                print(f"Problemdokument: {doc}")
+                continue
+
+        if not all_sequences:
+            raise ValueError("Keine gültigen Sequenzen konnten extrahiert werden")
+
         return (
             torch.tensor(all_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32)
