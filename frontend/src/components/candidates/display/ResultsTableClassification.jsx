@@ -9,14 +9,20 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
+  // State
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Early Return bei fehlenden Ergebnissen
   if (!results) return null;
 
+  // Statistiken
+  const successCount = results.filter(r => !r.error).length;
+  const errorCount = results.filter(r => r.error).length;
+
+  // Handler-Funktionen
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
     if (newSelected.has(index)) {
@@ -36,21 +42,50 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     onSave(candidatesToSave);
   };
 
+  const toggleDetails = (index) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(index)) {
+      newExpandedRows.delete(index);
+    } else {
+      newExpandedRows.add(index);
+    }
+    setExpandedRows(newExpandedRows);
+  };
+
+  const getProbabilityClass = (confidence) => {
+    if (confidence < 60) return 'probability-low';
+    if (confidence < 85) return 'probability-medium';
+    return 'probability-high';
+  };
+
+  const getStatusIcon = (probabilityClass) => {
+    switch (probabilityClass) {
+      case 'probability-high':
+        return <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
+      case 'probability-medium':
+        return <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
+      default:
+        return <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
+    }
+  };
+
+  const getColorByProbability = (probabilityClass) => {
+    switch (probabilityClass) {
+      case 'probability-low':
+        return '#d81b3b';
+      case 'probability-medium':
+        return '#FFC03D';
+      default:
+        return '#2e6f40';
+    }
+  };
+
+  // Error Handling
   if (results.error) {
     return (
       <Box sx={{ maxWidth: '1200px', ml: 0 }}>
-        <Box
-          sx={{
-            p: '30px',
-            width: '100%'
-          }}
-        >
-          <Typography variant="h2" sx={{ 
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: '#1a1a1a',
-            mb: 2
-          }}>
+        <Box sx={{ p: '30px', width: '100%' }}>
+          <Typography variant="h2" sx={{ fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
             Error during processing
           </Typography>
           <Typography sx={{ color: '#666', mb: 1 }}>{results.error}</Typography>
@@ -70,33 +105,20 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     );
   }
 
-  const successCount = results.filter(r => !r.error).length;
-  const errorCount = results.filter(r => r.error).length;
-
-  const toggleDetails = (index) => {
-    const newExpandedRows = new Set(expandedRows);
-    if (newExpandedRows.has(index)) {
-      newExpandedRows.delete(index);
-    } else {
-      newExpandedRows.add(index);
-    }
-    setExpandedRows(newExpandedRows);
-  };
-
-  const getProbabilityClass = (confidence) => {
-    if (confidence < 60) return 'probability-low';
-    if (confidence < 85) return 'probability-medium';
-    return 'probability-high';
-  };
-
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
       <Box sx={{ bgcolor: '#fff', borderRadius: '13px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2, width: '100%' }}>
         <Box sx={{ p: '24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <Typography variant="h2" sx={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a1a1a', mb: 1.6 }}>Summary of batch processing</Typography>
-            <Typography sx={{ mb: 0.8, color: '#666' , fontSize: '0.88rem'}}><strong>Successfully processed:</strong> {successCount} candidates</Typography>
-            <Typography sx={{ color: '#666' , fontSize: '0.88rem'}}><strong>Error:</strong> {errorCount} candidates</Typography>
+            <Typography variant="h2" sx={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a1a1a', mb: 1.6 }}>
+              Summary of batch processing
+            </Typography>
+            <Typography sx={{ mb: 0.8, color: '#666', fontSize: '0.88rem' }}>
+              <strong>Successfully processed:</strong> {successCount} candidates
+            </Typography>
+            <Typography sx={{ color: '#666', fontSize: '0.88rem' }}>
+              <strong>Error:</strong> {errorCount} candidates
+            </Typography>
           </div>
           {selectedCandidates.size > 0 && (
             <Button
@@ -105,9 +127,18 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
               onClick={handleSaveSelected}
               disabled={isSaving}
               startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />}
-              sx={{ bgcolor: '#13213C', color: 'white', p: '8px 16px', borderRadius: '6.4px', textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', '&:hover': { bgcolor: '#FF8000' } }}
+              sx={{
+                bgcolor: '#13213C',
+                color: 'white',
+                p: '8px 16px',
+                borderRadius: '6.4px',
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                '&:hover': { bgcolor: '#FF8000' }
+              }}
             >
-              {isSaving ? 'Save...' : selectedCandidates.size + ' candidates to save'}
+              {isSaving ? 'Save...' : `${selectedCandidates.size} candidates to save`}
             </Button>
           )}
         </Box>
@@ -119,15 +150,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
               const linkedin = result.linkedinProfile || 'Nicht angegeben';
               const confidence = result.confidence ? result.confidence[0] * 100 : 0;
               const probabilityClass = getProbabilityClass(confidence);
-              let color;
-              if (probabilityClass === 'probability-low') color = '#d81b3b';
-              else if (probabilityClass === 'probability-medium') color = '#FFC03D';
-              else color = '#2e6f40';
-              let statusIcon;
-              if (probabilityClass === 'probability-high') statusIcon = <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
-              else if (probabilityClass === 'probability-medium') statusIcon = <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
-              else statusIcon = <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
-
+              const color = getColorByProbability(probabilityClass);
+              const statusIcon = getStatusIcon(probabilityClass);
               const isExpanded = expandedRows.has(index);
 
               return (
@@ -135,9 +159,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                   mb: 0, 
                   p: 2,
                   borderBottom: '1px solid #eee',
-                  '&:last-child': {
-                    borderBottom: 'none'
-                  }
+                  '&:last-child': { borderBottom: 'none' }
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -185,6 +207,11 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                 {results.map((result, index) => {
                   const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Nicht angegeben';
                   const linkedin = result.linkedinProfile || 'Nicht angegeben';
+                  const confidence = result.confidence ? result.confidence[0] * 100 : 0;
+                  const probabilityClass = getProbabilityClass(confidence);
+                  const color = getColorByProbability(probabilityClass);
+                  const statusIcon = getStatusIcon(probabilityClass);
+                  const isExpanded = expandedRows.has(index);
 
                   if (result.error) {
                     return (
@@ -192,33 +219,32 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}></td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>{name}</td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>
-                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>
+                            {linkedin}
+                          </Link>
                         </td>
-                        <td colSpan="2" style={{ padding: '12px 24px', borderBottom: '1px solid #eee', color: '#FF2525' }}>{result.error}</td>
+                        <td colSpan="2" style={{ padding: '12px 24px', borderBottom: '1px solid #eee', color: '#FF2525' }}>
+                          {result.error}
+                        </td>
                       </tr>
                     );
                   }
-
-                  const confidence = result.confidence ? result.confidence[0] * 100 : 0;
-                  const probabilityClass = getProbabilityClass(confidence);
-                  let color;
-                  if (probabilityClass === 'probability-low') color = '#d81b3b';
-                  else if (probabilityClass === 'probability-medium') color = '#FFC03D';
-                  else color = '#2e6f40';
-                  let statusIcon;
-                  if (probabilityClass === 'probability-high') statusIcon = <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
-                  else if (probabilityClass === 'probability-medium') statusIcon = <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
-                  else statusIcon = <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
 
                   return (
                     <React.Fragment key={index}>
                       <tr>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
-                          <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } }} />
+                          <Checkbox 
+                            checked={selectedCandidates.has(index)} 
+                            onChange={() => handleSelectCandidate(index)} 
+                            sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } }} 
+                          />
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>{name}</td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.88rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link>
+                          <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.88rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>
+                            {linkedin}
+                          </Link>
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -228,12 +254,25 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                           </Box>
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                          <Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#13213C', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '8px', fontSize: '0.7rem', fontWeight: 600, '&:hover': { bgcolor: '#FF8000' } }}>
-                            {expandedRows.has(index) ? 'Collapse' : 'Expand'} 
+                          <Button 
+                            onClick={() => toggleDetails(index)} 
+                            sx={{ 
+                              bgcolor: '#13213C', 
+                              color: 'white', 
+                              textTransform: 'none', 
+                              px: 2, 
+                              py: 1, 
+                              borderRadius: '8px', 
+                              fontSize: '0.7rem', 
+                              fontWeight: 600, 
+                              '&:hover': { bgcolor: '#FF8000' } 
+                            }}
+                          >
+                            {isExpanded ? 'Collapse' : 'Expand'} 
                           </Button>
                         </td>
                       </tr>
-                      {expandedRows.has(index) && (
+                      {isExpanded && (
                         <tr>
                           <td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}>
                             <Box sx={{margin: '0px auto', p: 3, maxWidth: '100%' }}>

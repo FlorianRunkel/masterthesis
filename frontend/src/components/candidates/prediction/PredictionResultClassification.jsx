@@ -77,7 +77,7 @@ const PredictionResult = ({ prediction }) => {
           }}>
             Career Change Prediction
           </Typography>
-          {/*
+          
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Typography variant="h3" sx={{ mr: 2 ,fontSize: '3rem', fontWeight: 600, color: probabilityClass === 'probability-low-single' ? '#001B41' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265'}}>
               {confidence}%
@@ -89,31 +89,35 @@ const PredictionResult = ({ prediction }) => {
                 sx={{position: 'absolute', top: 0, left: 0,  height: '100%',  width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low-single' ? '#FF2525' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265', borderRadius: '6px', transition: 'width 0.3s ease',}} />
             </Box>
           </Box>
-          */}
+          
           {/* Neue Anzeige für Klassifikationsergebnis und Confidence */}
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: isMobile ? 1 : 2, mb: isMobile ? 1 : 2 }}>
             <Typography variant="h3" sx={{ 
-              fontSize: isMobile ? '1.6rem' : '2.2rem', 
+              fontSize: isMobile ? '1.2rem' : '1.8rem', 
               fontWeight: 700, 
               color: probabilityClass === 'probability-low-single' ? '#d81b3b' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#2e6f40' 
             }}>
               {confidence >= 50 ? 'Open to new opportunities' : 'Unlikely to switch jobs'}
             </Typography>
           </Box>
+          {/*
           <Typography sx={{ 
             fontSize: isMobile ? '0.8rem' : '0.9rem', 
             fontWeight: 600, 
             color: '#888' 
           }}>
-            Confidence: {userConfidence}
+            Confidence: {confidenceValue}
           </Typography>
+
           <Typography sx={{ 
             fontSize: isMobile ? '0.5rem' : '0.6rem', 
             color: '#888', 
             mb: 1 
           }}>
             Note: "High" means the model is very sure. "Low" means the model is uncertain.
-          </Typography>
+          </Typography>           
+              Confidence: {userConfidence}
+        */}
         </Box>
         {barData.length > 0 && (
         <>

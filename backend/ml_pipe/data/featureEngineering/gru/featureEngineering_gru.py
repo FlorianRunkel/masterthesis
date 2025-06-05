@@ -2,6 +2,7 @@ import torch
 import json
 import os
 from rapidfuzz import process, fuzz
+from collections import defaultdict
 
 class FeatureEngineering:
     def __init__(self):
@@ -37,6 +38,14 @@ class FeatureEngineering:
         with open(position_idx_path, "r", encoding="utf-8") as f:
             self.position_to_idx = json.load(f)
 
+        # Mapping für Unternehmensgrößen
+        self.company_size_map = {
+            "small": 1,
+            "medium": 2,
+            "large": 3,
+            "enterprise": 4
+        }
+
     def get_branche_from_keywords(self, pos):
         """Ermittelt die Branche basierend auf Schlüsselwörtern."""
         pos_lower = pos.lower()
@@ -54,7 +63,7 @@ class FeatureEngineering:
         # Direktes Mapping versuchen
         if pos_clean in self.position_map:
             level, branche, durchschnittszeit = self.position_map[pos_clean]
-            print(f"Exaktes Match gefunden für Position: '{pos}'")
+            #print(f"Exaktes Match gefunden für Position: '{pos}'")
             return float(level), float(self.get_branche_num(branche)), float(durchschnittszeit)
         
         # Fuzzy Matching mit Schwellenwert von 30
@@ -62,10 +71,11 @@ class FeatureEngineering:
         
         if score >= 30:
             level, branche, durchschnittszeit = self.position_map[match]
-            print(f"Fuzzy Match gefunden: '{pos}' -> '{match}' (Score: {score})")
+            
+            #print(f"Fuzzy Match gefunden: '{pos}' -> '{match}' (Score: {score})")
             return float(level), float(self.get_branche_num(branche)), float(durchschnittszeit)
         
-        print(f"Kein Match gefunden für Position: '{pos}'")
+        #print(f"Kein Match gefunden für Position: '{pos}'")
         return 0, 0, 0
 
     def get_branche_num(self, branche):
@@ -126,6 +136,12 @@ class FeatureEngineering:
         pos_clean = pos.lower().strip()
         return self.position_to_idx.get(pos_clean, 0)
 
+    def get_company_size_num(self, size):
+        """Konvertiert Unternehmensgrößen-Strings in numerische Werte."""
+        if not size:
+            return 0
+        return self.company_size_map.get(size.lower(), 0)
+
     def extract_features_and_labels_for_training(self, documents):
         all_sequences = []
         all_labels = []
@@ -139,9 +155,9 @@ class FeatureEngineering:
                     float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
                     float(doc.get("highest_degree", 0) or 0),
                     float(doc.get("age_category", 0) or 0),
-                    float(doc.get("anzahl_standortwechsel", 0) or 0),
-                    float(self.get_study_field_num(doc.get("study_field", "")) or 0),
-                    float(doc.get("company_size_category", 0) or 0),
+                    #float(doc.get("anzahl_standortwechsel", 0) or 0),
+                    #float(self.get_study_field_num(doc.get("study_field", "")) or 0),
+                    #float(self.get_company_size_num(doc.get("company_size_category", "")) or 0),
                 ]
 
                 # Position-bezogene Features mit Fehlerbehandlung
@@ -174,3 +190,61 @@ class FeatureEngineering:
             torch.tensor(all_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32)
         )
+    
+    from collections import defaultdict
+
+def extract_sequences_by_profile(self, documents, min_seq_len=2):
+    profile_groups = defaultdict(list)
+
+    for doc in documents:
+        profile_id = doc.get("profile_id")
+        if profile_id:
+            profile_groups[profile_id].append(doc)
+
+    all_sequences = []
+    all_labels = []
+
+    for profile_id, entries in profile_groups.items():
+        # Sortiere die Zeitpunkte chronologisch
+        entries = sorted(entries, key=lambda x: x.get("zeitpunkt", 0))
+
+        # Optional: überspringe zu kurze Verläufe
+        if len(entries) < min_seq_len:
+            continue
+
+        sequence = []
+        for doc in entries:
+            try:
+                # Basis-Features
+                features = [
+                    float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
+                    float(doc.get("anzahl_wechsel_bisher", 0) or 0),
+                    float(doc.get("anzahl_jobs_bisher", 0) or 0),
+                    float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                    float(doc.get("highest_degree", 0) or 0),
+                    float(doc.get("age_category", 0) or 0),
+                ]
+
+                # Positionen + Mapping
+                level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
+                features.extend([level or 0, branche or 0, durchschnittszeit or 0])
+
+                position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
+                features.append(float(position_idx or 0))
+
+                sequence.append(features)
+            except Exception as e:
+                print(f"[WARN] Fehler bei {profile_id}: {e}")
+                continue
+
+        if sequence:
+            all_sequences.append(sequence)
+            all_labels.append(float(entries[-1].get("label", 0) or 0))  # Label vom letzten Zeitpunkt
+
+    if not all_sequences:
+        raise ValueError("Keine gültigen Sequenzen gefunden.")
+
+    return (
+        torch.tensor(all_sequences, dtype=torch.float32),
+        torch.tensor(all_labels, dtype=torch.float32)
+    )

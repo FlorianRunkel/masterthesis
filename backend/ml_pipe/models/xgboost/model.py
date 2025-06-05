@@ -1,5 +1,5 @@
 import xgboost as xgb
-from sklearn.metrics import f1_score, accuracy_score, classification_report
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from scipy.stats import uniform, randint
@@ -14,7 +14,7 @@ class XGBoostModel:
             "eval_metric": "logloss",             # Metrik für binäre Klassifikation
             "tree_method": "hist",                # Schneller, speichereffizienter Baumalgorithmus
             "enable_categorical": True,           
-            "learning_rate": 0.03,                 # Solide Lernrate
+            "learning_rate": 0.005,                 # Solide Lernrate
             "max_depth": 4,                       # Gute Tiefe für generalisierende Modelle
             "min_child_weight": 10,                # Weniger konservativ, mehr Splits erlaubt
             "subsample": 0.8,                     # Random Sampling pro Baum (Overfitting-Schutz)
@@ -52,7 +52,6 @@ class XGBoostModel:
         self.params = params or default_params
         self.model = xgb.XGBClassifier(**self.params)
 
-
     def train(self, X_train, y_train, X_val=None, y_val=None, early_stopping_rounds=50):
         print("[INFO] Training XGBoost model...")
 
@@ -72,17 +71,17 @@ class XGBoostModel:
 
         print("[INFO] Training completed.")
 
-    def evaluate(self, X_val, y_val, show_report=False):
-        print("[INFO] Evaluating model...")
-        preds = self.model.predict(X_val)
-        f1 = f1_score(y_val, preds)
-        acc = accuracy_score(y_val, preds)
-        print(f"F1 Score:     {f1:.4f}")
-        print(f"Accuracy:     {acc:.4f}")
-        if show_report:
-            print("\nKlassifikationsbericht:")
-            print(classification_report(y_val, preds))
-        return f1
+    def evaluate(self, X_test, y_test):
+        y_pred = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        print(f"📊 Evaluationsergebnisse:")
+        print(f"🔹 MSE : {mse:.3f}")
+        print(f"🔹 MAE : {mae:.3f}")
+        print(f"🔹 R²  : {r2:.3f}")
+        return {"mse": mse, "mae": mae, "r2": r2}
 
     def predict(self, X):
         return self.model.predict(X)

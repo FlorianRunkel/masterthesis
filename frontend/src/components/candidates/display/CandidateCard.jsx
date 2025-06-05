@@ -1,44 +1,32 @@
 import React from 'react';
 import { Box, Typography, Link, useTheme, useMediaQuery } from '@mui/material';
 
-// CandidateCard-Komponente: Zeigt die wichtigsten Infos eines Kandidaten in einer Card an
 const CandidateCard = ({ candidate }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Name zusammensetzen
   const name = `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim();
-  
-  // Konfidenz oder Wechseldatum je nach Modelltyp
+
   const isTimeSeriesModel = candidate.modelType === 'tft' || candidate.modelType === 'gru';
   
-  // Konfidenz korrekt extrahieren
   const confidence = candidate.confidence ? candidate.confidence[0] : 0;
 
-  // Für Zeitreihen-Modelle: Konfidenz als Tage interpretieren
   const getDaysFromConfidence = (conf) => {
     if (!conf) return 0;
-    // Konfidenz in Tage umrechnen (Beispiel: 0.8 = 80 Tage)
     return Math.round(conf);
   };
 
-  // Gibt die Farbe je nach Konfidenz/Zeit zurück
   const getConfidenceColor = (value, isTimeSeries) => {
     if (isTimeSeries) {
-      // Für Zeitreihen-Modelle: 
-      // - unter 6 Monaten (180 Tage) = grün
-      // - 6 Monate bis 1 Jahr (180-365 Tage) = orange
-      // - über 1 Jahr = rot
       const days = getDaysFromConfidence(value);
-      if (days <= 180) return '#8AD265'; // grün
-      if (days <= 365) return '#FFC03D'; // orange
-      return '#FF2525'; // rot
+      if (days <= 180) return '#8AD265';
+      if (days <= 365) return '#FFC03D';
+      return '#FF2525';
     } else {
-      // Für Klassifikations-Modelle: Je höher die Wahrscheinlichkeit, desto roter
       const percentage = value * 100;
-      if (percentage <= 50) return '#FF2525'; // rot
-      if (percentage <= 75) return '#FFC03D'; // gelb
-      return '#8AD265'; // grün
+      if (percentage <= 50) return '#FF2525';
+      if (percentage <= 75) return '#FFC03D';
+      return '#8AD265';
     }
   };
 
@@ -47,16 +35,14 @@ const CandidateCard = ({ candidate }) => {
       bgcolor: '#fff', 
       borderRadius: '16px', 
       p: isMobile ? '20px' : '30px', 
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)', 
+      boxShadow: { xs: 1, md: 2 },
       height: '95%', 
       display: 'flex', 
       flexDirection: 'column', 
       gap: isMobile ? 1 : 2, 
       overflow: 'hidden' 
     }}>
-      {/* Bild und Name/Link nebeneinander */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, minWidth: 0 }}>
-        {/* Profilbild, falls vorhanden */}
         {candidate.imageUrl && candidate.imageUrl !== '' && (
           <img 
             src={candidate.imageUrl} 
@@ -72,7 +58,6 @@ const CandidateCard = ({ candidate }) => {
           />
         )}
         <Box sx={{ minWidth: 0 }}>
-          {/* Name */}
           <Typography variant="h3" sx={{ 
             fontSize: isMobile ? '1rem' : '1.2rem', 
             fontWeight: 600, 
@@ -83,7 +68,6 @@ const CandidateCard = ({ candidate }) => {
           }}>
             {name}
           </Typography>
-          {/* LinkedIn-Profil-Link */}
           <Link 
             href={candidate.linkedinProfile} 
             target="_blank" 
@@ -103,7 +87,6 @@ const CandidateCard = ({ candidate }) => {
         </Box>
       </Box>
 
-      {/* Aktuelle Position anzeigen, falls vorhanden */}
       {candidate.currentPosition && (
         <Typography sx={{ 
           color: '#666', 
@@ -116,7 +99,6 @@ const CandidateCard = ({ candidate }) => {
           <b>Current Position:</b> {candidate.currentPosition}
         </Typography>
       )}
-      {/* Standort anzeigen, falls vorhanden */}
       {candidate.location && (
         <Typography sx={{ 
           color: '#666', 
@@ -128,7 +110,6 @@ const CandidateCard = ({ candidate }) => {
           <b>Location:</b> {candidate.location}
         </Typography>
       )}
-      {/* Branche anzeigen, falls vorhanden */}
       {candidate.industry && (
         <Typography sx={{ 
           color: '#666', 
@@ -141,10 +122,8 @@ const CandidateCard = ({ candidate }) => {
         </Typography>
       )}
 
-      {/* Wechselwahrscheinlichkeit oder Wechseldatum */}
       <Box sx={{ mt: isMobile ? 1 : 2 }}>
         {isTimeSeriesModel ? (
-          // Zeitreihen-Modell Anzeige
           <Box sx={{ 
             display: 'flex',
             flexDirection: 'column',
@@ -171,7 +150,6 @@ const CandidateCard = ({ candidate }) => {
             </Typography>
           </Box>
         ) : (
-          // Klassifikations-Modell Anzeige
           <>
             <Typography sx={{ 
               color: getConfidenceColor(confidence, false), 

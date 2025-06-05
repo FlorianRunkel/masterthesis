@@ -27,9 +27,9 @@ def get_feature_names():
         "durchschnittsdauer_bisheriger_jobs",
         "highest_degree",
         "age_category",
-        "anzahl_standortwechsel",
-        "study_field",
-        "company_size_category",
+        #"anzahl_standortwechsel",
+        #"study_field",
+        #"company_size_category",
         "position_level",
         "branche",
         "durchschnittszeit_position",
@@ -44,9 +44,9 @@ def get_feature_description(name):
         "durchschnittsdauer_bisheriger_jobs": "Durchschnittliche Dauer bisheriger Positionen in Tagen",
         "highest_degree": "Höchster Bildungsabschluss (1-5)",
         "age_category": "Alterskategorie basierend auf Karrierestart (1-5)",
-        "anzahl_standortwechsel": "Anzahl verschiedener Arbeitsstandorte",
-        "study_field": "Studienfach aus der Ausbildung",
-        "company_size_category": "Größenkategorie des aktuellen Unternehmens",
+        #"anzahl_standortwechsel": "Anzahl verschiedener Arbeitsstandorte",
+       # "study_field": "Studienfach aus der Ausbildung",
+        #"company_size_category": "Größenkategorie des aktuellen Unternehmens",
         "position_level": "Hierarchielevel der aktuellen Position",
         "branche": "Branche/Industrie des aktuellen Unternehmens",
         "durchschnittszeit_position": "Durchschnittliche Verweildauer in ähnlichen Positionen",
@@ -231,8 +231,8 @@ def prepare_features(profile_dict):
             float(latest_sample.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
             float(extract_highest_degree(education_data) or 0),
             float(estimate_age_category(profile_info) or 0),
-            float(extract_anzahl_standortwechsel(experiences) or 0),
-            float(fe.get_study_field_num(extract_study_field(education_data)) or 0)
+            #float(extract_anzahl_standortwechsel(experiences) or 0),
+            #float(fe.get_study_field_num(extract_study_field(education_data)) or 0)
         ]
 
         # Company Size Feature
@@ -241,7 +241,7 @@ def prepare_features(profile_dict):
             current_exp.get('employee_count') or 
             (current_exp.get('companyInformation', {}) or {}).get('employee_count')
         )
-        features.append(float(map_company_size_category(company_size_cat) or 0))
+        #features.append(float(map_company_size_category(company_size_cat) or 0))
 
         # Position-bezogene Features
         level, branche, durchschnittszeit = fe.map_position(latest_sample.get("aktuelle_position", ""))
@@ -277,31 +277,25 @@ Model Functions
 def load_model(model_path):
     """Loads the GRU model."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    
+
     # Create model with correct dimensions
-    model = GRUModel(
-        seq_input_size=13,      # Features pro Zeitschritt (level, branche, duration_months, etc.)
-        hidden_size=256,       # Größerer Hidden Layer für komplexere Muster
-        num_layers=4,          # 2 GRU-Schichten
-        dropout=0.5,           # Dropout gegen Overfitting
-        lr=0.001              # Lernrate
-    )
-    
+    model = GRUModel(seq_input_size=10, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
+
     # Load state dict
     model.load_state_dict(checkpoint)
     model.eval()
-    
+
     # Debug: Print model weights
     print("\nModel weights:")
     for name, param in model.named_parameters():
         if param.requires_grad:
             print(f"{name}: {param.data.mean().item():.4f} (mean)")
-    
+
     return model
 
 def create_background_data(seq_tensor):
-    """Erstellt Hintergrunddaten für SHAP mit der richtigen Dimension (12 Features)."""
-    background_seq = torch.zeros((10, seq_tensor.shape[1], 13))  # 12 Features
+    """Erstellt Hintergrunddaten für SHAP mit der richtigen Dimension (13 Features)."""
+    background_seq = torch.zeros((10, seq_tensor.shape[1], 10))  # 12 Features
     return background_seq
 
 '''
@@ -366,13 +360,32 @@ def create_shap_summary(explanations):
     
     return "Feature-Einflüsse auf die Vorhersage:\n" + "\n".join(summary_parts)
 
+
+import numpy as np
+import torch
+import joblib
+
+def transform_features_for_gru(profile_data, scaler_path="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/scaler_gru.joblib"):
+    """Skaliert und transformiert das Profil für das GRU-Modell."""
+    # Features extrahieren
+    raw_features = prepare_features(profile_data)
+    flat = np.array(raw_features).flatten().reshape(1, -1)
+
+    # Skaler laden
+    scaler = joblib.load(scaler_path)
+    scaled = scaler.transform(flat)
+
+    # In GRU-kompatiblen Tensor umwandeln: (1, 1, F)
+    return torch.tensor(scaled, dtype=torch.float32).unsqueeze(0)
+
+
 '''
 Main Prediction Function
 '''
 def predict(profile_dict, model_path=None, with_llm_explanation=True):
     """Vorhersage der Tage bis zum Wechsel (Regression)."""
     try:
-        # Wenn kein model_path angegeben wurde, lade das neueste Modell
+        # Modellpfad bestimmen
         if model_path is None:
             model_path = get_latest_model_path()
             print(f"\nLade neuestes Modell: {model_path}")
@@ -381,40 +394,37 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
             raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
         print("\n=== Starte Vorhersage ===")
-        
+
         # Profil verarbeiten
         profile_data = parse_profile_data(profile_dict)
-        features = prepare_features(profile_data)
 
-        # Modell laden und Vorhersage machen
+        # Skaliertes Input-Feature für GRU erzeugen
+        features_tensor = transform_features_for_gru(profile_data)
+
+        # Modell laden
         model = load_model(model_path)
-        
-        # Modell in eval-Modus setzen
         model.eval()
-        
+
         with torch.no_grad():
-            # Debug: Zwischenwerte der Schichten ausgeben
-            gru_out, _ = model.gru(features)
+            gru_out, _ = model.gru(features_tensor)
             print("\nGRU Ausgabe:", gru_out.mean().item())
-            
-            # Aufmerksamkeitsmechanismus
+
             context, attention_weights = model.attention(gru_out)
             print("Attention Weights:", attention_weights.mean().item())
-            
-            # Finale Vorhersage
+
             pred = model.fc(context)
             print("Finale Ausgabe:", pred.mean().item())
-            
-            tage = max(0, pred.item())  # Stelle sicher, dass die Tage nicht unter 0 sind
+
+            tage = max(0, pred.item())
             print(f"\nModell-Ausgabe:")
             print(f"Rohausgabe: {pred}")
             print(f"Tage bis zum Wechsel: {tage:.2f}")
 
         status, recommendation = get_status_and_recommendation(tage)
 
-        # SHAP-Explanations
-        background_data = create_background_data(features)
-        norm_shap = calculate_shap_values(model, background_data, features)
+        # SHAP-Analyse
+        background_data = create_background_data(features_tensor)
+        norm_shap = calculate_shap_values(model, background_data, features_tensor)
         explanations = create_explanations(norm_shap)
         shap_summary = create_shap_summary(explanations)
         print(shap_summary)
@@ -422,12 +432,12 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
         print("\n=== Vorhersage abgeschlossen ===")
 
         return {
-            "confidence": tage,
+            "confidence": torch.expm1(torch.tensor(tage)).item(),  # Rücktransformation
             "recommendations": [recommendation],
             "status": status,
             "explanations": explanations,
             "shap_summary": shap_summary,
-            "llm_explanation": ""
+            "llm_explanation": "" if not with_llm_explanation else "LLM Explanation folgt."
         }
 
     except Exception as e:

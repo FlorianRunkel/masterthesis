@@ -4,28 +4,22 @@ import WorkIcon from '@mui/icons-material/Work';
 import SchoolIcon from '@mui/icons-material/School';
 import SaveIcon from '@mui/icons-material/Save';
 
-// ProfileDisplay-Komponente: Zeigt die wichtigsten Profildaten eines Kandidaten an
 const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
-  // Falls kein Profil übergeben wurde, nichts anzeigen
   if (!profile) return null;
 
   return (
     <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: { xs: 2, sm: 3, md: 4 }, boxShadow: { xs: 4, md: 8 }, mb: 4, width: '100%', mx: 'auto' }}>
-      {/* Kopfbereich mit Bild und Basisinfos und Save-Button */}
       <Box className="profile-header" sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', gap: { xs: 2, sm: '20px' }, mb: { xs: 2, sm: '30px' } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 2, sm: '20px' } }}>
-          {/* Profilbild, falls vorhanden */}
           {profile.imageUrl && (
             <Box component="img" src={profile.imageUrl} alt="Profilbild" sx={{ width: { xs: '80px', sm: '100px' }, height: { xs: '80px', sm: '100px' }, borderRadius: '50%', objectFit: 'cover' }} />
           )}
-          {/* Name, aktuelle Position und Standort */}
           <Box className="profile-info">
             <Typography variant="h2" sx={{ fontSize: { xs: '1.1rem', sm: '1.4rem' }, fontWeight: 600, color: '#1a1a1a', m: 0, mb: 0.5 }}>{profile.name || 'No name available'}</Typography>
             <Typography sx={{ fontSize: { xs: '0.95rem', sm: '1rem' }, color: '#666', mb: 1 }}>{profile.currentTitle || 'No position given'}</Typography>
             <Typography sx={{ fontSize: { xs: '0.95rem', sm: '1rem' }, color: '#666' }}>{profile.location || 'No location given'}</Typography>
           </Box>
         </Box>
-        {/* Save Candidate Button, nur anzeigen wenn Funktion übergeben */}
         {onSaveCandidate && (
           <Button
             variant="contained"
@@ -50,9 +44,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
         )}
       </Box>
 
-      {/* Berufserfahrung und Ausbildung nebeneinander */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 2, md: 4 }, mb: 4 }}>
-        {/* Berufserfahrung */}
         <Box>
           <Typography variant="h3" sx={{ fontSize: { xs: '1.05rem', sm: '1.2rem' }, fontWeight: 700, color: '#1a1a1a', mb: 2, pb: 1, borderBottom: '2px solid #e0e0e0' }}>Work Experiences</Typography>
           {profile.experience && profile.experience.length > 0 ? (
@@ -112,7 +104,6 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
             <Typography sx={{ color: '#aaa', fontSize: { xs: '0.95rem', sm: '0.98rem' } }}>No experience given</Typography>
           )}
         </Box>
-        {/* Ausbildung */}
         <Box>
           <Typography variant="h3" sx={{ fontSize: { xs: '1.05rem', sm: '1.2rem' }, fontWeight: 700, color: '#1a1a1a', mb: 2, pb: 1, borderBottom: '2px solid #e0e0e0' }}>Education</Typography>
           {profile.education && profile.education.length > 0 ? (
@@ -149,8 +140,6 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
           )}
         </Box>
       </Box>
-
-      {/* Zusammenfassung, falls vorhanden */}
       {profile.summary && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h3" sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 600, color: '#1a1a1a', mb: 2, pb: 1, borderBottom: '2px solid #e0e0e0' }}>Summary</Typography>
