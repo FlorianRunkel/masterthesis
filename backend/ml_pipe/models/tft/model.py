@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 from pytorch_forecasting import TemporalFusionTransformer, QuantileLoss
+from torchmetrics import MeanAbsoluteError, MeanSquaredError, R2Score, MeanAbsolutePercentageError, SymmetricMeanAbsolutePercentageError
 
 class TFTModel(pl.LightningModule):
     def __init__(self, training_dataset, learning_rate=0.03, hidden_size=32, attention_head_size=2,
@@ -20,18 +21,44 @@ class TFTModel(pl.LightningModule):
             **kwargs
         )
         print(f"Number of parameters in network: {self.tft.size()/1e3:.1f}k")
+        self.mae = MeanAbsoluteError()
+        self.mse = MeanSquaredError()
+        self.rmse = MeanSquaredError(squared=False)
+        self.r2 = R2Score()
+        self.mape = MeanAbsolutePercentageError()
+        self.smape = SymmetricMeanAbsolutePercentageError()
 
     def forward(self, *args, **kwargs):
         return self.tft(*args, **kwargs)
 
     def training_step(self, batch, batch_idx):
-        return self.tft.training_step(batch, batch_idx)
+        output = self.tft.training_step(batch, batch_idx)
+        loss = output["loss"]
+        if batch_idx == 0:
+            print(f"Train Loss (Epoch {self.current_epoch}): {loss.item():.4f}")
+        return output
 
     def validation_step(self, batch, batch_idx):
-        return self.tft.validation_step(batch, batch_idx)
+        output = self.tft.validation_step(batch, batch_idx)
+        y_hat = output["prediction"]
+        y = batch[0]["target"]
+        self.log("val_mae", self.mae(y_hat, y))
+        self.log("val_mse", self.mse(y_hat, y))
+        self.log("val_rmse", self.rmse(y_hat, y))
+        self.log("val_r2", self.r2(y_hat, y))
+        self.log("val_mape", self.mape(y_hat, y))
+        return output
 
     def test_step(self, batch, batch_idx):
-        return self.tft.test_step(batch, batch_idx)
+        output = self.tft.test_step(batch, batch_idx)
+        y_hat = output["prediction"]
+        y = batch[0]["target"]
+        self.log("test_mae", self.mae(y_hat, y))
+        self.log("test_mse", self.mse(y_hat, y))
+        self.log("test_rmse", self.rmse(y_hat, y))
+        self.log("test_r2", self.r2(y_hat, y))
+        self.log("test_mape", self.mape(y_hat, y))
+        return output
 
     def configure_optimizers(self):
         return self.tft.configure_optimizers()

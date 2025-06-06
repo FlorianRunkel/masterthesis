@@ -7,6 +7,9 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PersonIcon from '@mui/icons-material/Person';
+import DescriptionIcon from '@mui/icons-material/Description';
+import BlockIcon from '@mui/icons-material/Block';
 
 const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
   // State
@@ -61,11 +64,13 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
   const getStatusIcon = (probabilityClass) => {
     switch (probabilityClass) {
       case 'probability-high':
-        return <CheckCircleIcon sx={{ color: '#2e6f40', fontSize: 20 }} />;
-      case 'probability-medium':
-        return <HelpOutlineIcon sx={{ color: '#FFC03D', fontSize: 20 }} />;
+        return (
+          <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: 22, verticalAlign: 'middle' }} />
+        );
       default:
-        return <CancelIcon sx={{ color: '#d81b3b', fontSize: 20 }} />;
+        return (
+          <CancelIcon sx={{ color: '#F44336', fontSize: 22, verticalAlign: 'middle' }} />
+        );
     }
   };
 
@@ -199,7 +204,18 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                   <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
                   <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
                   <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Change Readiness</th>
+                  <th
+                    style={{
+                      background: '#13213C',
+                      color: 'white',
+                      padding: '12px 24px',
+                      textAlign: 'center',
+                      fontWeight: 900,
+                      fontSize: '0.88rem'
+                    }}
+                  >
+                    Propensity to Change
+                  </th>
                   <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
                 </tr>
               </thead>
@@ -247,10 +263,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                           </Link>
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Typography sx={{ fontWeight: 600, minWidth: 50, color: color, fontSize: '1.6rem', alignItems: 'center', display: 'flex', justifyContent: 'center', gap: 0.5}}>
-                              {statusIcon}
-                            </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                            {statusIcon}
                           </Box>
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>

@@ -5,6 +5,7 @@ import joblib
 import os
 import glob
 import json
+import shap
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -264,11 +265,19 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
         feature_names = get_feature_names()
         explanations = get_explanations(model, feature_names)
 
+        # SHAP-Explainer und Werte berechnen
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X)
+
+        # Optional: SHAP-Werte ausgeben
+        print("[DEBUG] SHAP values:", shap_values)
+
         result = {
             "confidence": [float(prob[1])],
             "recommendations": recommendations,
             "status": status,
             "explanations": explanations,
+            "shap_values": shap_values.tolist(),  # SHAP-Werte als Liste
         }
 
         if with_llm_explanation:

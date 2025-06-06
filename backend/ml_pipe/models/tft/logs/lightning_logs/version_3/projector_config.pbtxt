@@ -1,0 +1,5 @@
+embeddings {
+  tensor_name: "mapped_position:02674"
+  metadata_path: "02674/mapped_position/metadata.tsv"
+  tensor_path: "02674/mapped_position/tensors.tsv"
+}

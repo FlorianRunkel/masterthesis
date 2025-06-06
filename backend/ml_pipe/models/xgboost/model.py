@@ -1,5 +1,5 @@
 import xgboost as xgb
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from scipy.stats import uniform, randint
@@ -10,20 +10,20 @@ class XGBoostModel:
 
         #Default Parameters for XGBoost
         default_params = {
-            "objective": "binary:logistic",       # Klassifikation mit Wahrscheinlichkeiten
-            "eval_metric": "logloss",             # Metrik für binäre Klassifikation
-            "tree_method": "hist",                # Schneller, speichereffizienter Baumalgorithmus
-            "enable_categorical": True,           
-            "learning_rate": 0.005,                 # Solide Lernrate
-            "max_depth": 4,                       # Gute Tiefe für generalisierende Modelle
-            "min_child_weight": 10,                # Weniger konservativ, mehr Splits erlaubt
-            "subsample": 0.8,                     # Random Sampling pro Baum (Overfitting-Schutz)
-            "colsample_bytree": 0.8,              # Feature Sampling pro Baum
-            "gamma": 2,                           # Kein Split-Penalty
-            "reg_alpha": 0.5,                       # Keine L1-Regularisierung (kann aktiviert werden)
-            "reg_lambda": 2,                      # Standardmäßige L2-Regularisierung
-            "n_estimators": 500,                  # Genug Bäume für sinnvolle Lernkurve
-            "random_state": 42                    # Reproduzierbarkeit
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "tree_method": "hist",
+            "enable_categorical": True,
+            "learning_rate": 0.03,          # nicht zu niedrig
+            "max_depth": 6,
+            "min_child_weight": 5,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "gamma": 0.5,
+            "reg_alpha": 0.1,
+            "reg_lambda": 1,
+            "n_estimators": 500,
+            "random_state": 42
         }
         '''
         default_params = {
@@ -71,17 +71,27 @@ class XGBoostModel:
 
         print("[INFO] Training completed.")
 
+
     def evaluate(self, X_test, y_test):
         y_pred = self.model.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
+        y_proba = self.model.predict_proba(X_test)[:, 1]
 
-        print(f"📊 Evaluationsergebnisse:")
-        print(f"🔹 MSE : {mse:.3f}")
-        print(f"🔹 MAE : {mae:.3f}")
-        print(f"🔹 R²  : {r2:.3f}")
-        return {"mse": mse, "mae": mae, "r2": r2}
+        acc = accuracy_score(y_test, y_pred)
+        prec = precision_score(y_test, y_pred)
+        rec = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        auc = roc_auc_score(y_test, y_proba)
+        cm = confusion_matrix(y_test, y_pred)
+
+        print("Evaluationsergebnisse:")
+        print(f"Accuracy:  {acc:.3f}")
+        print(f"Precision: {prec:.3f}")
+        print(f"Recall:    {rec:.3f}")
+        print(f"F1-Score:  {f1:.3f}")
+        print(f"ROC AUC:   {auc:.3f}")
+        print("Confusion Matrix:\n", cm)
+
+        return {"accuracy": acc, "precision": prec, "recall": rec, "f1": f1, "roc_auc": auc}
 
     def predict(self, X):
         return self.model.predict(X)
@@ -124,32 +134,48 @@ class XGBoostModel:
     def randomized_search(self, X_train, y_train):
 
         param_dist = {
-            'max_depth': randint(15, 50),                         # Tiefer für komplexe Muster
-            'min_child_weight': randint(1, 30),                  # Feinere Regularisierung
-            'subsample': uniform(0.4, 0.6),                      # 0.4 bis 1.0
-            'colsample_bytree': uniform(0.4, 0.6),               # 0.4 bis 1.0
-            'eta': uniform(0.01, 0.29),                          # Feinere Lernraten
-            'gamma': uniform(0, 5),                              # Pruning-Kontrolle
-            'reg_alpha': uniform(0, 10),                         # L1-Regularisierung
-            'reg_lambda': uniform(0, 15),                        # L2-Regularisierung
-            'scale_pos_weight': [1, 2, 5, 10, 20, 50],           # Für Imbalance
-            'n_estimators': randint(200, 2000),                  # Längeres Training
-            'max_delta_step': randint(0, 10),                    # Für Class Imbalance
-            'max_leaves': randint(10, 256),                      # Bei lossguide relevant
+            'max_depth': randint(4, 12),
+            'min_child_weight': randint(1, 20),
+            'subsample': uniform(0.6, 0.4),
+            'colsample_bytree': uniform(0.6, 0.4),
+            'learning_rate': uniform(0.001, 0.2),  # war vorher fälschlich `eta`
+            'gamma': uniform(0, 5),
+            'reg_alpha': uniform(0, 5),
+            'reg_lambda': uniform(0, 10),
+            'n_estimators': randint(200, 800),
+            'max_delta_step': randint(0, 10),
+            'max_leaves': randint(10, 128),
             'grow_policy': ['depthwise', 'lossguide'],
-            'tree_method': ['hist'],                             # Optional: 'gpu_hist'
-            'sampling_method': ['uniform', 'gradient_based']     # Sampling-Strategien
+            'tree_method': ['hist'],
+            'sampling_method': ['uniform', 'gradient_based']
         }
 
-        xgb_clf = xgb.XGBClassifier(tree_method="hist", objective="binary:logistic", use_label_encoder=False)
-        random_search = RandomizedSearchCV(
-            xgb_clf, param_distributions=param_dist, n_iter=30, scoring='f1', cv=3, verbose=2, n_jobs=-1, random_state=42
+        xgb_clf = xgb.XGBClassifier(
+            objective="binary:logistic",
+            enable_categorical=True,
+            tree_method="hist",
+            use_label_encoder=False,  # wird ggf. ignoriert, aber harmlos
+            eval_metric="logloss",
+            random_state=42
         )
+
+        random_search = RandomizedSearchCV(
+            xgb_clf,
+            param_distributions=param_dist,
+            n_iter=30,
+            scoring='f1',
+            cv=3,
+            verbose=2,
+            n_jobs=-1,
+            random_state=42
+        )
+
+        print("[INFO] Starte Randomized Search...")
         random_search.fit(X_train, y_train)
 
-        print("Beste Parameter:", random_search.best_params_)
-        print("Bester F1-Score:", random_search.best_score_)
+        print("\n✅ Beste Parameter:", random_search.best_params_)
+        print("📈 Bester F1-Score :", random_search.best_score_)
 
         self.params.update(random_search.best_params_)
-        self.model = xgb.XGBClassifier(**self.params, num_boost_round=100)
+        self.model = xgb.XGBClassifier(**self.params)
         return random_search.best_params_
