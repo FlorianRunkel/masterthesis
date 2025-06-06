@@ -65,9 +65,9 @@ class DataModule(LightningDataModule):
             val_size = int(n * self.val_split)
             
             fe = FeatureEngineering()
-            train_features, train_labels = fe.extract_features_and_labels_for_training(raw_data[:train_size])
-            val_features, val_labels = fe.extract_features_and_labels_for_training(raw_data[train_size:train_size + val_size])
-            test_features, test_labels = fe.extract_features_and_labels_for_training(raw_data[train_size + val_size:])
+            train_features, train_labels = fe.extract_sequences_by_profile_new(raw_data[:train_size])
+            val_features, val_labels = fe.extract_sequences_by_profile_new(raw_data[train_size:train_size + val_size])
+            test_features, test_labels = fe.extract_sequences_by_profile_new(raw_data[train_size + val_size:])
 
             self.scaler = MinMaxScaler()
             train_features_np = np.array(train_features).squeeze()  # (N, seq_len, features) → (N, F)

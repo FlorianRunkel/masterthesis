@@ -27,7 +27,7 @@ class AttentionLayer(nn.Module):
 GRU Model
 '''
 class GRUModel(pl.LightningModule):
-    def __init__(self, seq_input_size=10, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003):
+    def __init__(self, seq_input_size=16, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003):
         super().__init__()
         self.save_hyperparameters()
 

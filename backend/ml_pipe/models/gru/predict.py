@@ -260,6 +260,50 @@ def prepare_features(profile_dict):
         for i, (name, val) in enumerate(zip(get_feature_names(), features)):
             print(f"{name}: {val}")
 
+        N = 2
+        career_path_features = []
+        used_positions = set()
+        count = 0
+
+        # Extrahiere echte Positionswechsel (wie im Training)
+        experiences = profile_info.get('workExperience', [])
+        experiences = sorted(
+            experiences,
+            key=lambda x: parse_date(x.get('startDate', '')) or datetime(1900, 1, 1)
+        )
+        last_position = None
+        echte_positionen = []
+        for exp in experiences:
+            pos = exp.get("position", "")
+            if pos != last_position:
+                echte_positionen.append({
+                    "position": pos,
+                    "branche": fe.map_position(pos)[1],
+                    "durchschnittsdauer": float(latest_sample.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                    "zeitpunkt": parse_date(exp.get("startDate", "")).timestamp() if parse_date(exp.get("startDate", "")) else 0
+                })
+                last_position = pos
+
+        # Aktueller Zeitpunkt (z.B. Startdatum der aktuellen Position)
+        current_time = parse_date(current_exp.get("startDate", "")).timestamp() if parse_date(current_exp.get("startDate", "")) else 0
+
+        for prev in reversed(echte_positionen):
+            if prev["zeitpunkt"] < current_time and prev["position"] not in used_positions:
+                career_path_features.extend([
+                    float(fe.map_position(prev["position"])[0]),  # Level
+                    float(prev["branche"]),
+                    float(prev["durchschnittsdauer"])
+                ])
+                used_positions.add(prev["position"])
+                count += 1
+                if count == N:
+                    break
+        while count < N:
+            career_path_features.extend([0.0, 0.0, 0.0])
+            count += 1
+
+        features.extend(career_path_features)
+
         return torch.tensor([features], dtype=torch.float32).unsqueeze(0)  # (1, 1, 13)
 
     except Exception as e:
@@ -279,7 +323,7 @@ def load_model(model_path):
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
 
     # Create model with correct dimensions
-    model = GRUModel(seq_input_size=10, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
+    model = GRUModel(seq_input_size=16, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
 
     # Load state dict
     model.load_state_dict(checkpoint)
@@ -295,7 +339,7 @@ def load_model(model_path):
 
 def create_background_data(seq_tensor):
     """Erstellt Hintergrunddaten für SHAP mit der richtigen Dimension (13 Features)."""
-    background_seq = torch.zeros((10, seq_tensor.shape[1], 10))  # 12 Features
+    background_seq = torch.zeros((10, seq_tensor.shape[1], 16))  # 12 Features
     return background_seq
 
 '''

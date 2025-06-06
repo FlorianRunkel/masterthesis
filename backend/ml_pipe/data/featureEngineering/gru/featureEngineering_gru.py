@@ -191,60 +191,147 @@ class FeatureEngineering:
             torch.tensor(all_labels, dtype=torch.float32)
         )
     
-    from collections import defaultdict
+    def extract_sequences_by_profile(self, documents, min_seq_len=2):
+        profile_groups = defaultdict(list)
 
-def extract_sequences_by_profile(self, documents, min_seq_len=2):
-    profile_groups = defaultdict(list)
+        for doc in documents:
+            profile_id = doc.get("profile_id")
+            if profile_id:
+                profile_groups[profile_id].append(doc)
 
-    for doc in documents:
-        profile_id = doc.get("profile_id")
-        if profile_id:
-            profile_groups[profile_id].append(doc)
+        all_sequences = []
+        all_labels = []
 
-    all_sequences = []
-    all_labels = []
+        for profile_id, entries in profile_groups.items():
+            # Sortiere die Zeitpunkte chronologisch
+            entries = sorted(entries, key=lambda x: x.get("zeitpunkt", 0))
 
-    for profile_id, entries in profile_groups.items():
-        # Sortiere die Zeitpunkte chronologisch
-        entries = sorted(entries, key=lambda x: x.get("zeitpunkt", 0))
-
-        # Optional: überspringe zu kurze Verläufe
-        if len(entries) < min_seq_len:
-            continue
-
-        sequence = []
-        for doc in entries:
-            try:
-                # Basis-Features
-                features = [
-                    float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
-                    float(doc.get("anzahl_wechsel_bisher", 0) or 0),
-                    float(doc.get("anzahl_jobs_bisher", 0) or 0),
-                    float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-                    float(doc.get("highest_degree", 0) or 0),
-                    float(doc.get("age_category", 0) or 0),
-                ]
-
-                # Positionen + Mapping
-                level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
-                features.extend([level or 0, branche or 0, durchschnittszeit or 0])
-
-                position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
-                features.append(float(position_idx or 0))
-
-                sequence.append(features)
-            except Exception as e:
-                print(f"[WARN] Fehler bei {profile_id}: {e}")
+            # Optional: überspringe zu kurze Verläufe
+            if len(entries) < min_seq_len:
                 continue
 
-        if sequence:
-            all_sequences.append(sequence)
-            all_labels.append(float(entries[-1].get("label", 0) or 0))  # Label vom letzten Zeitpunkt
+            sequence = []
+            for doc in entries:
+                try:
+                    # Basis-Features
+                    features = [
+                        float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
+                        float(doc.get("anzahl_wechsel_bisher", 0) or 0),
+                        float(doc.get("anzahl_jobs_bisher", 0) or 0),
+                        float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                        float(doc.get("highest_degree", 0) or 0),
+                        float(doc.get("age_category", 0) or 0),
+                    ]
 
-    if not all_sequences:
-        raise ValueError("Keine gültigen Sequenzen gefunden.")
+                    # Positionen + Mapping
+                    level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
+                    features.extend([level or 0, branche or 0, durchschnittszeit or 0])
 
-    return (
-        torch.tensor(all_sequences, dtype=torch.float32),
-        torch.tensor(all_labels, dtype=torch.float32)
-    )
+                    position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
+                    features.append(float(position_idx or 0))
+
+                    sequence.append(features)
+                except Exception as e:
+                    print(f"[WARN] Fehler bei {profile_id}: {e}")
+                    continue
+
+            if sequence:
+                all_sequences.append(sequence)
+                all_labels.append(float(entries[-1].get("label", 0) or 0))  # Label vom letzten Zeitpunkt
+
+        if not all_sequences:
+            raise ValueError("Keine gültigen Sequenzen gefunden.")
+
+        return (
+            torch.tensor(all_sequences, dtype=torch.float32),
+            torch.tensor(all_labels, dtype=torch.float32)
+        )
+
+    def extract_sequences_by_profile_new(self, documents, min_seq_len=2):
+        profile_groups = defaultdict(list)
+        N = 2
+
+        for doc in documents:
+            profile_id = doc.get("profile_id")
+            if profile_id:
+                profile_groups[profile_id].append(doc)
+
+        all_sequences = []
+        all_labels = []
+
+        for profile_id, entries in profile_groups.items():
+            # Sortiere die Zeitpunkte chronologisch
+            entries = sorted(entries, key=lambda x: x.get("zeitpunkt", 0))
+
+            # 1. Liste der echten Positionswechsel (ohne Duplikate, chronologisch)
+            echte_positionen = []
+            last_position = None
+            for doc in entries:
+                pos = doc.get("aktuelle_position", "")
+                if pos != last_position:
+                    echte_positionen.append({
+                        "position": pos,
+                        "branche": self.map_position(pos)[1],
+                        "durchschnittsdauer": float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                        "zeitpunkt": doc.get("zeitpunkt", 0)
+                    })
+                    last_position = pos
+
+            for i, doc in enumerate(entries):
+                try:
+                    # Basis-Features
+                    features = [
+                        float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
+                        float(doc.get("anzahl_wechsel_bisher", 0) or 0),
+                        float(doc.get("anzahl_jobs_bisher", 0) or 0),
+                        float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
+                        float(doc.get("highest_degree", 0) or 0),
+                        float(doc.get("age_category", 0) or 0),
+                    ]
+
+                    # Positionen + Mapping
+                    level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
+                    features.extend([level or 0, branche or 0, durchschnittszeit or 0])
+
+                    position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
+                    features.append(float(position_idx or 0))
+
+                    # 2. Karrierepfad-Feature: letzte N echte Positionen vor aktuellem Zeitpunkt
+                    current_time = doc.get("zeitpunkt", 0)
+                    path_features = []
+                    used_positions = set()
+                    count = 0
+                    for prev in reversed(echte_positionen):
+                        if prev["zeitpunkt"] < current_time and prev["position"] not in used_positions:
+                            path_features.extend([
+                                float(self.map_position(prev["position"])[0]),  # Level
+                                float(prev["branche"]),
+                                float(prev["durchschnittsdauer"])
+                            ])
+                            used_positions.add(prev["position"])
+                            count += 1
+                            if count == N:
+                                break
+                    # Padding falls weniger als N gefunden
+                    while count < N:
+                        path_features.extend([0.0, 0.0, 0.0])
+                        count += 1
+
+                    features.extend(path_features)
+
+                    # Label mit Fehlerbehandlung
+                    label = float(doc.get("label", 0) or 0)
+
+                    all_sequences.append([features])
+                    all_labels.append([label])
+                except Exception as e:
+                    print(f"[WARN] Fehler bei {profile_id}: {e}")
+                    continue
+
+        if not all_sequences:
+            raise ValueError("Keine gültigen Sequenzen gefunden.")
+
+        return (
+            torch.tensor(all_sequences, dtype=torch.float32),
+            torch.tensor(all_labels, dtype=torch.float32)
+        )
