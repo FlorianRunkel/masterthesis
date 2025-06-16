@@ -6,13 +6,19 @@ import os
 import glob
 import json
 import shap
+import pickle
 
+from collections import defaultdict
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import joblib
-position_classes = joblib.load("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl")
+
+with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
+    position_categories = pickle.load(f)
+position_mapping = {name: idx for idx, name in enumerate(position_categories, 1)}
+
 position_encoder = LabelEncoder()
-position_encoder.classes_ = np.array(position_classes)
+position_encoder.classes_ = np.array(position_categories)
 
 '''
 Helper Functions
@@ -124,6 +130,50 @@ def get_xgb_input(features):
     X = np.array([xgb_features], dtype=np.float32)
     return X
 
+def extract_career_history_features(career_history, branche_levels, position_mapping):
+    durations = [pos.get("duration", 0) for pos in career_history.values()]
+    avg_duration = sum(durations) / len(durations) if durations else 0
+
+    branches = [pos.get("branche", "") for pos in career_history.values()]
+    branche_changes = sum(1 for i in range(1, len(branches)) if branches[i] != branches[i-1])
+    num_unique_branches = len(set(branches))
+
+    positions = [pos.get("position", "") for pos in career_history.values()]
+    position_changes = sum(1 for i in range(1, len(positions)) if positions[i] != positions[i-1])
+    num_unique_positions = len(set(positions))
+
+    branche_days = defaultdict(int)
+    for pos in career_history.values():
+        branche_days[pos.get("branche", "")] += pos.get("duration", 0)
+    top_branche_days = sorted(branche_days.items(), key=lambda x: x[1], reverse=True)[:3]
+    branche1_days = top_branche_days[0][1] if len(top_branche_days) > 0 else 0
+    branche2_days = top_branche_days[1][1] if len(top_branche_days) > 1 else 0
+    branche3_days = top_branche_days[2][1] if len(top_branche_days) > 2 else 0
+
+    max_level = max([pos.get("level", 0) for pos in career_history.values()] or [0])
+
+    # Optional: weitere Features, z.B. durchschnittlicher Level, etc.
+
+    # Optional: Die letzten N Positionen als numerische Features (hier N=3)
+    last_positions = list(career_history.values())
+    last_positions_features = []
+    for pos in last_positions:
+        last_positions_features.append(pos.get("duration", 0))
+        last_positions_features.append(branche_levels.get(pos.get("branche", ""), 0))
+        last_positions_features.append(pos.get("level", 0))
+        last_positions_features.append(position_mapping.get(pos.get("position", ""), 0))
+
+    return [
+        avg_duration,
+        branche_changes,
+        position_changes,
+        num_unique_branches,
+        num_unique_positions,
+        branche1_days,
+        branche2_days,
+        branche3_days,
+        max_level
+    ]
 '''
 Model Functions
 '''
@@ -142,32 +192,65 @@ def load_xgb_model(model_path):
 Explanation Functions
 '''
 def get_feature_names():
-    return [
+    names = [
         "Company Changes",
         "Total Experience (Days)",
         "Location Changes",
-        "Average Position Duration (Days)",
         "Highest Degree",
         "Position Level",
-        "Position Industry",
+        "Age Category",
+        "Current Position (encoded)",
+        "Current Position Branche (encoded)",
         "Current Position Duration (Days)",
-        "Average Position Duration (Days)",
-        "Age Category"
+        "Current Position Avg Duration (Days)",
+        "Avg Duration All Positions",
+        "Branche Changes",
+        "Position Changes",
+        "Unique Branches",
+        "Unique Positions",
+        "Top Branche 1 Days",
+        "Top Branche 2 Days",
+        "Top Branche 3 Days",
+        "Max Level"
     ]
+    # Für alle Positionen in der Karrierehistorie (z.B. 10)
+    for i in range(1, 11):
+        names += [
+            f"CareerHistory Position {i} Duration",
+            f"CareerHistory Position {i} Branche (encoded)",
+            f"CareerHistory Position {i} Level",
+            f"CareerHistory Position {i} (encoded)"
+        ]
+    return names
 
 def get_feature_description(name):
     descriptions = {
-        "Company Changes": "Many company changes may indicate willingness to change.",
-        "Total Experience (Days)": "More experience can influence the probability of change.",
-        "Location Changes": "Many location changes show mobility.",
-        "Average Position Duration (Days)": "Short duration suggests frequent changes.",
-        "Highest Degree": "A higher degree can influence career opportunities and willingness to change.",
-        "Position Level": "The level of the current position influences the probability of change.",
-        "Position Industry": "The industry can influence the motivation to change.",
-        "Current Position Duration (Days)": "Long duration suggests stability, short duration suggests willingness to change.",
-        "Average Position Duration (Days)": "Average time spent in positions.",
-        "Age Category": "Age influences career phase and motivation to change."
+        "Company Changes": "Number of company changes in the career.",
+        "Total Experience (Days)": "Total professional experience in days.",
+        "Location Changes": "Number of location changes in the career.",
+        "Highest Degree": "Highest educational degree achieved.",
+        "Position Level": "Level of the current position.",
+        "Age Category": "Age group of the candidate.",
+        "Current Position (encoded)": "Numerical encoding of the current position.",
+        "Current Position Branche (encoded)": "Numerical encoding of the current position's industry.",
+        "Current Position Duration (Days)": "Duration in the current position (days).",
+        "Current Position Avg Duration (Days)": "Average duration in the current position (days).",
+        "Avg Duration All Positions": "Average duration across all positions.",
+        "Branche Changes": "Number of industry changes in the career.",
+        "Position Changes": "Number of position title changes in the career.",
+        "Unique Branches": "Number of unique industries in the career.",
+        "Unique Positions": "Number of unique position titles in the career.",
+        "Top Branche 1 Days": "Days spent in the most frequent industry.",
+        "Top Branche 2 Days": "Days spent in the second most frequent industry.",
+        "Top Branche 3 Days": "Days spent in the third most frequent industry.",
+        "Max Level": "Highest position level achieved in the career."
     }
+    # Für die Karrierehistorie-Features
+    for i in range(1, 11):
+        descriptions[f"CareerHistory Position {i} Duration"] = f"Duration (days) in career history position {i}."
+        descriptions[f"CareerHistory Position {i} Branche (encoded)"] = f"Industry (encoded) in career history position {i}."
+        descriptions[f"CareerHistory Position {i} Level"] = f"Level in career history position {i}."
+        descriptions[f"CareerHistory Position {i} (encoded)"] = f"Position (encoded) in career history position {i}."
     return descriptions.get(name, "This feature influences the prediction.")
 
 def get_status(prob):
@@ -239,15 +322,42 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
             "highest_degree": extract_additional_features(career_history, education_data, fe, age_category)['highest_degree'],
             "position_level": last_position['level'],
             "position_branche": last_position['branche'],
-            "duration_days": int(last_position['duration_months'] * 30.44),
-            "position_duration_days": int(last_position.get('durchschnittszeit_tage', last_position['duration_months'] * 30.44)),
-            "age_category": age_category
+            "position": last_position['position'],
+            "position_duration": int(last_position['duration_months'] * 30.44),
+            "avg_position_duration_days": last_position.get('durchschnittszeit_tage', 0),
+            "age_category": age_category,
+            "career_history": {}  # wird gleich befüllt
         }
         
-        print("[DEBUG] Features calculated:", features)
-        
-        # Convert features for XGBoost
-        X = get_xgb_input(features)
+        # Karrierehistorie als Dict wie im Training
+        career_history_features = {}
+        for j, prev_pos in enumerate(reversed(career_history[1:])):
+            career_history_features[f"position_{j+1}"] = {
+                "duration": int(prev_pos['duration_months'] * 30.44),
+                "branche": prev_pos['branche'],
+                "level": prev_pos['level'],
+                "position": prev_pos['position']
+            }
+        features["career_history"] = career_history_features
+
+        # Alle numerischen Features extrahieren
+        feature_vector = [
+            features["company_changes"],
+            features["total_experience_days"],
+            features["location_changes"],
+            features["highest_degree"],
+            features["position_level"],
+            features["age_category"],
+            position_mapping.get(features["position"], 0),
+            position_mapping.get(features["position_branche"], 0),
+            features["position_duration"],
+        ]
+        feature_vector.extend(
+            extract_career_history_features(features["career_history"], position_mapping, position_mapping)
+        )
+
+        # In XGBoost-kompatibles Format bringen
+        X = np.array([feature_vector], dtype=np.float32)
         print(f"[DEBUG] XGBoost Input Shape: {X.shape}")
         print(f"[DEBUG] XGBoost Input: {X}")
 

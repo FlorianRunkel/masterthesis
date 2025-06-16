@@ -56,8 +56,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
   };
 
   const getProbabilityClass = (confidence) => {
-    if (confidence < 60) return 'probability-low';
-    if (confidence < 85) return 'probability-medium';
+    if (confidence < 50) return 'probability-low';
+    if (confidence < 75) return 'probability-medium';
     return 'probability-high';
   };
 
@@ -264,7 +264,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                            {statusIcon}
+                            <span style={{ color , fontSize: '0.88rem', fontWeight: 800 }}>{`${Math.round(confidence)}%`}</span>
                           </Box>
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>

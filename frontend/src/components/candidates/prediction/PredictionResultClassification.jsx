@@ -19,8 +19,8 @@ const PredictionResult = ({ prediction }) => {
     : [prediction.recommendations];
 
   const getProbabilityClass = (confidence) => {
-    if (confidence < 60) return 'probability-low-single';
-    if (confidence < 85) return 'probability-medium-single';
+    if (confidence < 50) return 'probability-low-single';  
+    if (confidence < 75) return 'probability-medium-single';
     return 'probability-high-single';
   };
 
@@ -30,15 +30,6 @@ const PredictionResult = ({ prediction }) => {
     
   const confidence = Math.round(confidenceValue * 100);
   const probabilityClass = getProbabilityClass(confidence);
-
-  let userConfidence;
-  if (confidence <= 10 || confidence >= 90) {
-    userConfidence = "High";
-  } else if (confidence >= 40 && confidence <= 60) {
-    userConfidence = "Low";
-  } else {
-    userConfidence = "Medium";
-  }
 
   // Feature Importances für gestapelten Balken vorbereiten
   let explanations = prediction.explanations || [];
@@ -95,9 +86,18 @@ const PredictionResult = ({ prediction }) => {
             <Typography variant="h3" sx={{ 
               fontSize: isMobile ? '1.2rem' : '1.8rem', 
               fontWeight: 700, 
-              color: probabilityClass === 'probability-low-single' ? '#d81b3b' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#2e6f40' 
+              color: '#444' 
             }}>
-              {confidence >= 50 ? 'Open to new opportunities' : 'Unlikely to switch jobs'}
+              {confidence >= 80
+                ? 'Very likely to switch jobs'
+                : confidence >= 60
+                  ? 'Open to new opportunities'
+                  : confidence >= 40
+                    ? 'Not actively looking'
+                    : confidence >= 20
+                      ? 'Unlikely to switch jobs'
+                      : 'Very unlikely to switch jobs'
+              }
             </Typography>
           </Box>
           {/*

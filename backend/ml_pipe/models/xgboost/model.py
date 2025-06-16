@@ -173,8 +173,8 @@ class XGBoostModel:
         print("[INFO] Starte Randomized Search...")
         random_search.fit(X_train, y_train)
 
-        print("\n✅ Beste Parameter:", random_search.best_params_)
-        print("📈 Bester F1-Score :", random_search.best_score_)
+        print("\nBeste Parameter:", random_search.best_params_)
+        print("Bester F1-Score :", random_search.best_score_)
 
         self.params.update(random_search.best_params_)
         self.model = xgb.XGBClassifier(**self.params)

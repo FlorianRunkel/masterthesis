@@ -203,62 +203,90 @@ def extract_additional_features(career_history, education_data, fe, age_category
 
 def generate_career_sequences(career_history, education_data, fe, age_category):
     # Aggregierte Features für die gesamte Karriere
-    all_companies = set(p['company'] for p in career_history)
-    all_locations = set(p['location'] for p in career_history if p['location'])
-    total_duration_months = sum(p['duration_months'] for p in career_history)
-    total_duration_days = int(total_duration_months * 30.44)
-    position_durations = [p['duration_months'] for p in career_history]
-    avg_position_duration_days = int(sum(position_durations) * 30.44 / len(position_durations)) if position_durations else 0
     highest_degree = extract_additional_features(career_history, education_data, fe, age_category)['highest_degree']
 
     sequence_examples = []
     for i, pos in enumerate(career_history):
-        # Überspringe aktuelle Position
         if pos['is_current']:
             continue
-            
-        current_sequence = career_history[:i+1]
-        current_pos = current_sequence[-1]
-        dauer_tage = int(current_pos['duration_months'] * 30.44)
+        current_sequence = career_history[i:]
+        companies = set(p['company'] for p in current_sequence)
+        locations = set(p['location'] for p in current_sequence if p['location'])
+        total_duration_months = sum(p['duration_months'] for p in current_sequence)
+
+        total_experience_days = int(total_duration_months * 30.44)
+        company_changes = len(companies) - 1
+        location_changes = len(locations) - 1 if len(locations) > 0 else 0
+        current_pos = current_sequence[0]
+        duration = int(current_pos['duration_months']*30.44) 
+        
+        # Vorherige Positionen als Features (nur die Positionen vor der aktuellen)
+        career_history_features = {}
+        for j, prev_pos in enumerate(reversed(career_history[i+1:])):
+            career_history_features[f"position_{j+1}"] = {
+                "duration": int(prev_pos['duration_months'] * 30.44),
+                "branche": prev_pos['branche'],
+                "level": prev_pos['level'],
+                "position": prev_pos['position']
+            }
+        
+        # Basis-Features
+        career_history_durations = sum(
+            v["duration"] for v in career_history_features.values()
+        )
+        total_experience_days = career_history_durations + duration
         sequence_features = {
-            "company_changes": len(all_companies) - 1,
-            "total_experience_days": total_duration_days,
-            "location_changes": len(all_locations) - 1,
-            "average_days_per_position": avg_position_duration_days,
+            "company_changes": company_changes,
+            "total_experience_days": total_experience_days,
+            "location_changes": location_changes,
+            #"average_months_per_position": avg_months_per_position,
             "highest_degree": highest_degree,
             "position": current_pos['position'],
             "position_level": current_pos['level'],
             "position_branche": current_pos['branche'],
-            "duration_days": dauer_tage,
-            "position_duration_days": current_pos.get('durchschnittszeit_tage', None),
-            "age_category": age_category
+            "position_duration": int(duration),
+            "avg_position_duration_days": current_pos.get('durchschnittszeit_tage', None),
+            "age_category": age_category,   
+            "career_history": career_history_features
         }
+            
         label = 1
         sequence_examples.append({
             "features": sequence_features,
             "label": label
         })
-        if dauer_tage > 1:
-            random_tag = randint(1, dauer_tage - 1)
+        
+        if duration > 1:
+
+            career_history_durations = sum(
+                v["duration"] for v in career_history_features.values()
+            )
+            
+            random_tag = randint(1, duration - 1)
             random_pos = dict(current_pos)
-            random_pos['duration_days'] = random_tag
+            random_pos['duration'] = random_tag
+            total_experience_days = career_history_durations + int(random_pos['duration'])
+
             sequence_features_random = {
-                "company_changes": len(all_companies) - 1,
-                "total_experience_days": total_duration_days,
-                "location_changes": len(all_locations) - 1,
-                "average_days_per_position": avg_position_duration_days,
+                "company_changes": company_changes,
+                "total_experience_days": total_experience_days,
+                "location_changes": location_changes,
+                #"average_months_per_position": avg_months_per_position,
                 "highest_degree": highest_degree,
                 "position": current_pos['position'],
                 "position_level": current_pos['level'],
                 "position_branche": current_pos['branche'],
-                "duration_days": random_pos['duration_days'],
-                "position_duration_days": current_pos.get('durchschnittszeit_tage', None),
-                "age_category": age_category
+                "position_duration": int(random_pos['duration']),
+                "avg_position_duration_days": current_pos.get('durchschnittszeit_tage', None),
+                "age_category": age_category,
+                "career_history": career_history_features
             }
+                
             sequence_examples.append({
                 "features": sequence_features_random,
                 "label": 0
             })
+
     return sequence_examples
 
 def is_valid_sequence(seq_features):
@@ -306,6 +334,7 @@ def import_candidates_from_csv(csv_file):
                             failed_imports += 1
             else:
                 logger.info(f"Profil {index} übersprungen (keine Profildaten)")
+
         except Exception as e:
             logger.error(f"Fehler beim Import des Kandidaten {index}: {str(e)}")
             failed_imports += 1
@@ -331,7 +360,6 @@ def handler(file_path):
         logger.error(f"Kritischer Fehler beim Verarbeiten der Datei: {str(e)}")
         return
 
-'''
 csv_folder = "backend/ml_pipe/data/datafiles/"
 if not os.path.exists(csv_folder):
     logger.error(f"Ordner nicht gefunden: {csv_folder}")
@@ -340,4 +368,3 @@ else:
         if filename.endswith(".csv"):
             file_path = os.path.join(csv_folder, filename)
             handler(file_path)
-'''

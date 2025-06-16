@@ -14,7 +14,7 @@ const LinkedInInput = () => {
   const [predictionData, setPredictionData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('gru'); // Standardwert z.B. GRU
+  const [selectedModel, setSelectedModel] = useState(''); // Standardwert z.B. GRU
   const [showModelChangeHint, setShowModelChangeHint] = useState(false);
   const [predictionModelType, setPredictionModelType] = useState('');
   const theme = useTheme();

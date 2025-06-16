@@ -1,5 +1,0 @@
-dropout: 0.2
-hidden_size: 128
-lr: 0.0003
-num_layers: 4
-seq_input_size: 10
