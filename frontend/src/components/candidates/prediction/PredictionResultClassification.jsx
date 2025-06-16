@@ -20,7 +20,7 @@ const PredictionResult = ({ prediction }) => {
 
   const getProbabilityClass = (confidence) => {
     if (confidence < 50) return 'probability-low-single';  
-    if (confidence < 75) return 'probability-medium-single';
+    if (confidence < 80) return 'probability-medium-single';
     return 'probability-high-single';
   };
 

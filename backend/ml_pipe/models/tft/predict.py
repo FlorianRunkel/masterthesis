@@ -185,7 +185,7 @@ def predict(linkedin_data, with_llm_explanation=False):
     new_dataloader = new_dataset.to_dataloader(train=False, batch_size=1)
 
     tft = TemporalFusionTransformer.load_from_checkpoint(
-        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250522_165442.ckpt"
+        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250606_151628.ckpt"
     )
 
     output = tft.predict(new_dataloader, mode="raw", return_x=True)

@@ -57,7 +57,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
 
   const getProbabilityClass = (confidence) => {
     if (confidence < 50) return 'probability-low';
-    if (confidence < 75) return 'probability-medium';
+    if (confidence < 80) return 'probability-medium';
     return 'probability-high';
   };
 
