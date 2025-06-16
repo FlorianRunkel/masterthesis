@@ -101,11 +101,54 @@ const BatchUpload = () => {
     setIsSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
+
     try {
-      const candidatesWithModel = candidates.map(candidate => ({
+      // Hole für alle Kandidaten mit LinkedIn-Link die Profildaten
+      const candidatesWithProfile = await Promise.all(
+        candidates.map(async (candidate) => {
+          if (candidate.linkedinProfile) {
+            try {
+              const response = await fetch('http://localhost:5100/scrape-linkedin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: candidate.linkedinProfile }),
+              });
+              const data = await response.json();
+              if (data && !data.error) {
+                // Profildaten extrahieren und auf oberster Ebene speichern
+                const [firstName, ...rest] = (data.name || '').split(' ');
+                const lastName = rest.join(' ');
+                return {
+                  ...candidate,
+                  firstName: firstName || '',
+                  lastName: lastName || '',
+                  currentPosition: data.currentTitle || '',
+                  imageUrl: data.imageUrl || '',
+                  experience: data.experience || [],
+                  location: data.location || '',
+                  industry: data.industry || '',
+                  linkedinProfileInformation: JSON.stringify(data),
+                };
+              }
+            } catch (err) {
+              // Fehler beim Scrapen: Kandidat trotzdem speichern, aber mit Fehlerhinweis
+              return {
+                ...candidate,
+                scrapeError: 'LinkedIn scraping failed',
+              };
+            }
+          }
+          // Falls kein LinkedIn-Link, Kandidat unverändert zurückgeben
+          return candidate;
+        })
+      );
+
+      // Jetzt alle Kandidaten speichern
+      const candidatesWithModel = candidatesWithProfile.map(candidate => ({
         ...candidate,
         modelType: modelType
       }));
+
       const response = await fetch('http://localhost:5100/api/candidates', {
         method: 'POST',
         headers: {
