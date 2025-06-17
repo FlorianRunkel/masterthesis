@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, CircularProgress, Button, FormControl} from '@mui/material';
 import ProfileDisplay from '../display/ProfileDisplay';
 import PredictionResultClassification from '../prediction/PredictionResultClassification';
@@ -19,6 +19,29 @@ const LinkedInInput = () => {
   const [predictionModelType, setPredictionModelType] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    if (profileData && profileRef.current) {
+      profileRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    if (predictionData) {
+      localStorage.setItem('linkedinPrediction', JSON.stringify(predictionData));
+      localStorage.setItem('linkedinPredictionModelType', predictionModelType);
+    }
+  }, [predictionData, predictionModelType]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('linkedinPrediction');
+    const savedType = localStorage.getItem('linkedinPredictionModelType');
+    if (saved) {
+      setPredictionData(JSON.parse(saved));
+      setPredictionModelType(savedType || '');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -263,50 +286,52 @@ const LinkedInInput = () => {
               Please click 'Start prediction' to run the new model.
             </Box>
           )}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.6 }}>
-          <Button
-            onClick={handleSubmit}
-            disabled={loading || !selectedModel || !linkedinUrl}
-            sx={{
-              minWidth: 256,
-              px: 3.2,
-              py: 1.44,
-              fontSize: '0.94rem',
-              fontWeight: 700,
-              borderRadius: '11.2px',
-              color: '#fff',
-              background: 'linear-gradient(90deg, #f4a65892 0%, #f4a65892 100%)',
-              boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
-              textTransform: 'none',
-              letterSpacing: 0.16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1.2,
-              mt: 1.6,
-              mx: 'auto',
-              '&:hover': {
-                background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
-              },
-              '&.Mui-disabled': {
-                background: '#e3e6f0',
-                color: '#bdbdbd',
-              },
-            }}
-          >
-            Start prediction
-          </Button>
-        </Box>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Button
+          onClick={handleSubmit}
+          disabled={loading || !selectedModel || !linkedinUrl}
+          sx={{
+            minWidth: 256,
+            px: 3.2,
+            py: 1.44,
+            fontSize: '0.94rem',
+            fontWeight: 700,
+            borderRadius: '11.2px',
+            color: '#fff',
+            background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
+            textTransform: 'none',
+            letterSpacing: 0.16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.2,
+            mt: 1.6,
+            mb: 2,
+            '&:hover': {
+              background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            },
+            '&.Mui-disabled': {
+              background: '#e3e6f0',
+              color: '#bdbdbd',
+            },
+          }}
+        >
+          Start prediction
+        </Button>
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><CircularProgress size={40} thickness={4} sx={{ color: '#001B41' }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#FF2525', p: 3, borderRadius: 2, mb: 3 }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography><Box component="ul" sx={{ mt: 2, pl: 2 }}><li>Make sure the URL is correct</li><li>The profile must be publicly accessible</li><li>Try again later</li></Box></Box>)}
       {profileData && (
-        <ProfileDisplay
-          profile={profileData}
-          onSaveCandidate={handleSaveCandidate}
-          saving={saving}
-          saveSuccess={saveSuccess}
-        />
+        <div ref={profileRef}>
+          <ProfileDisplay
+            profile={profileData}
+            onSaveCandidate={handleSaveCandidate}
+            saving={saving}
+            saveSuccess={saveSuccess}
+          />
+        </div>
       )}
       {predictionData && (
         <>

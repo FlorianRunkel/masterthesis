@@ -321,20 +321,20 @@ Model Functions
 def load_model(model_path):
     """Loads the GRU model."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-
+    
     # Create model with correct dimensions
     model = GRUModel(seq_input_size=16, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
-
+    
     # Load state dict
     model.load_state_dict(checkpoint)
     model.eval()
-
+    
     # Debug: Print model weights
     print("\nModel weights:")
     for name, param in model.named_parameters():
         if param.requires_grad:
             print(f"{name}: {param.data.mean().item():.4f} (mean)")
-
+    
     return model
 
 def create_background_data(seq_tensor):
@@ -438,7 +438,7 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
             raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
 
         print("\n=== Starte Vorhersage ===")
-
+        
         # Profil verarbeiten
         profile_data = parse_profile_data(profile_dict)
 
@@ -448,17 +448,17 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
         # Modell laden
         model = load_model(model_path)
         model.eval()
-
+        
         with torch.no_grad():
             gru_out, _ = model.gru(features_tensor)
             print("\nGRU Ausgabe:", gru_out.mean().item())
-
+            
             context, attention_weights = model.attention(gru_out)
             print("Attention Weights:", attention_weights.mean().item())
-
+            
             pred = model.fc(context)
             print("Finale Ausgabe:", pred.mean().item())
-
+            
             tage = max(0, pred.item())
             print(f"\nModell-Ausgabe:")
             print(f"Rohausgabe: {pred}")

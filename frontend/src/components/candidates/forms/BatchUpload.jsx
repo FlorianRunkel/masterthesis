@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Button, Alert } from '@mui/material';
 import ResultsTableClassification from '../display/ResultsTableClassification';
 import LoadingSpinner from '../../common/LoadingSpinner';
 import ResultsTableTimeSeries from '../display/ResultsTableTimeSeries';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 
 const modelOptions = [
   {
@@ -22,7 +26,7 @@ const modelOptions = [
     title: 'Temporal Fusion Transformer (TFT)',
     description: 'Modern deep learning model for complex time series'
   }
-];
+  ];
 
 const BatchUpload = () => {
   const [file, setFile] = useState(null);
@@ -36,8 +40,32 @@ const BatchUpload = () => {
   const [originalProfiles, setOriginalProfiles] = useState([]);
   const [showModelChangeHint, setShowModelChangeHint] = useState(false);
   const [resultsModelType, setResultsModelType] = useState('');
+  const [dragActive, setDragActive] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const resultsRef = useRef(null);
+
+  useEffect(() => {
+    if (results && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [results]);
+
+  useEffect(() => {
+    if (results) {
+      localStorage.setItem('batchResults', JSON.stringify(results));
+      localStorage.setItem('batchResultsModelType', resultsModelType);
+    }
+  }, [results, resultsModelType]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('batchResults');
+    const savedType = localStorage.getItem('batchResultsModelType');
+    if (saved) {
+      setResults(JSON.parse(saved));
+      setResultsModelType(savedType || '');
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -47,6 +75,27 @@ const BatchUpload = () => {
       return;
     }
     setFile(selectedFile);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange({ target: { files: e.dataTransfer.files } });
+    }
   };
 
   const handleUpload = async () => {
@@ -197,44 +246,336 @@ const BatchUpload = () => {
       
       {/* Upload-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.2rem', fontWeight: 600, color: '#1a1a1a', mb: 2.4 }}>Upload CSV file</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.4 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, width: '100%' }}>
-            <Button
-              component="label"
-              htmlFor="csvFile"
-              sx={{
-                width: '100%',
-                height: '40px',
+        <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CloudUploadOutlinedIcon sx={{ color: '#13213C', fontSize: 24, mr: 1 }} />
+          Kandidaten CSV-Datei hochladen
+        </Typography>
+        <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 2 }}>
+          Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit von Kandidaten zu analysieren.
+        </Typography>
+        <Box
+          sx={{
+            border: dragActive ? '2px solid #FF8000' : '2px dashed #bdbdbd',
+            borderRadius: '12px',
+            bgcolor: '#F8F9FB',
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 2
+          }}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <InsertDriveFileOutlinedIcon sx={{ color: '#bdbdbd', fontSize: 48, mb: 1 }} />
+          <Typography sx={{ color: '#888', fontSize: '0.95rem'}}>CSV-Datei hier ablegen oder klicken</Typography>
+          <Typography sx={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', mb: '10px' }}>{file ? file.name : 'Unterstützte Formate: .csv'}</Typography>
+          <Button
+            component="label"
+            htmlFor="csvFile"
+            sx={{
+              bgcolor: '#fff',
+              color: '#001B41',
+              border: '1.6px solid #bdbdbd',
+              borderRadius: '9.6px',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              textTransform: 'none',
+              px: 2,
+              py: 1,
+              boxShadow: 'none',
+              '&:hover': {
                 bgcolor: '#fff',
-                color: '#001B41',
-                border: '1.6px dashed #001B41',
-                borderRadius: '9.6px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                textTransform: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                letterSpacing: 0.16,
-                transition: 'all 0.2s',
-                boxShadow: 'none',
-                '&:hover': {
-                  bgcolor: '#fff',
-                  border: '1.6px solid #FF8000',
-                  color: '#FF8000',
-                },
-              }}
-            >
-              <span style={{ fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6.4 }}>
-                SELECT FILE
-              </span>
-              <input type="file" id="csvFile" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} />
-            </Button>
-            <Typography sx={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', paddingTop: '8px' }}>{file ? file.name : 'No file selected'}</Typography>
+                border: '1.6px solid #FF8000',
+                color: '#FF8000',
+              },
+            }}
+          >
+            Datei auswählen
+            <input type="file" id="csvFile" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} />
+          </Button>
+         </Box>
+      </Box>
+
+      <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
+        <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningAmberOutlinedIcon sx={{ color: '#FFB300', fontSize: 22, mr: 1 }} />
+          CSV-Format & Anforderungen
+        </Typography>
+        <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 2 }}>
+          Die CSV-Datei muss folgende Spalten in der ersten Zeile enthalten:
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
+          <Box sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            borderRadius: '16px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.92rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            Erforderlich
           </Box>
+          <Box sx={{
+            bgcolor: '#F8F9FB',
+            border: '1px solid #bdbdbd',
+            borderRadius: '6px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            firstName
+          </Box>
+          <Typography sx={{
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            color: '#000',
+            alignSelf: 'center',
+            mx: 1,
+            flex: 1,
+            minWidth: 120,
+            mb: { xs: 0.5, sm: 0 },
+            wordBreak: 'break-word',
+          }}>
+            Vorname des Kandidaten
+          </Typography>
         </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
+          <Box sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            borderRadius: '16px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.92rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            Erforderlich
+          </Box>
+          <Box sx={{
+            bgcolor: '#F8F9FB',
+            border: '1px solid #bdbdbd',
+            borderRadius: '6px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            lastName
+          </Box>
+          <Typography sx={{
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            color: '#000',
+            alignSelf: 'center',
+            mx: 1,
+            flex: 1,
+            minWidth: 120,
+            mb: { xs: 0.5, sm: 0 },
+            wordBreak: 'break-word',
+          }}>
+            Nachname des Kandidaten
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
+          <Box sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            borderRadius: '16px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.92rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            Erforderlich
+          </Box>
+          <Box sx={{
+            bgcolor: '#F8F9FB',
+            border: '1px solid #bdbdbd',
+            borderRadius: '6px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            profileLink
+          </Box>
+          <Typography sx={{
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            color: '#000',
+            alignSelf: 'center',
+            mx: 1,
+            flex: 1,
+            minWidth: 120,
+            mb: { xs: 0.5, sm: 0 },
+            wordBreak: 'break-word',
+          }}>
+            Nachname des Kandidaten
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
+          <Box sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            borderRadius: '16px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.92rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            Erforderlich
+          </Box>
+          <Box sx={{
+            bgcolor: '#F8F9FB',
+            border: '1px solid #bdbdbd',
+            borderRadius: '6px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            firstName
+          </Box>
+          <Typography sx={{
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            color: '#000',
+            alignSelf: 'center',
+            mx: 1,
+            flex: 1,
+            minWidth: 120,
+            mb: { xs: 0.5, sm: 0 },
+            wordBreak: 'break-word',
+          }}>
+            Link zum LinkedIn-Profil
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
+          <Box sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            borderRadius: '16px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.92rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            Erforderlich
+          </Box>
+          <Box sx={{
+            bgcolor: '#F8F9FB',
+            border: '1px solid #bdbdbd',
+            borderRadius: '6px',
+            px: 1.2,
+            py: 0.1,
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            fontWeight: 600,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            mb: { xs: 0.5, sm: 0 },
+          }}>
+            linkedinProfileInformation
+          </Box>
+          <Typography sx={{
+            fontSize: { xs: '0.78rem', sm: '0.95rem' },
+            color: '#000',
+            alignSelf: 'center',
+            mx: 1,
+            flex: 1,
+            minWidth: 120,
+            mb: { xs: 0.5, sm: 0 },
+            wordBreak: 'break-word',
+          }}>
+            JSON-String mit LinkedIn-Informationen
+          </Typography>
+          <Box sx={{ bgcolor: '#FF2525', color: '#fff', borderRadius: '16px', fontSize: '0.7rem', fontWeight: 700, px: 1.2, py: 0.1, height: 28, display: 'flex', alignItems: 'center' }}>WICHTIG</Box>
+        </Box>
+        <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 1 , mt: 3 }}>
+          <InfoOutlinedIcon sx={{ color: '#888', fontSize: 18, mr: 0.5, mb: '2px' }} />
+          Die Struktur von <b>linkedinProfileInformation</b> muss exakt wie im folgenden Beispiel aussehen:
+        </Typography>
+        <Box sx={{ bgcolor: '#181C26', color: '#fff', borderRadius: '8px', p: 2, fontSize: '0.8rem', fontFamily: 'monospace', overflowX: 'auto', mb: 2, whiteSpace: 'pre', }}>
+          {`{
+  "skills": ["Python", "SQL", "Data Analysis"],
+  "firstName": "Florian",
+  "lastName": "Runkel",
+  "profilePicture": "https://media.licdn.com/dms/image/v2/D4D03AQFzqblQQVoUsA/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1723124243698?e=1755734400&v=beta&t=PfZPoNjZkF-e0Bhy-llpyagYBTsERaauYw5-cDpjk3I",
+  "linkedinProfile": "https://www.linkedin.com/in/florian-runkel-82b521228/",
+  "education": [
+    {
+      "duration": "01/10/2023 - 01/10/2025",
+      "institution": "University Regensburg",
+      "endDate": "01/10/2025",
+      "degree": "Master of Science - MS, Information Systems",
+      "location": "Regensburg, Bavaria, Germany",
+      "subjectStudy": "Information Systems",
+      "startDate": "01/10/2023"
+    }
+  ],
+  "workExperience": [
+    {
+      "duration": "17/06/2023 - Present",
+      "endDate": "Present",
+      "company": "aurio Technology GmbH",
+      "location": "Munich, Bayern, Deutschland",
+      "position": "Working Student",
+      "type": "fullTime",
+      "startDate": "17/06/2023"
+    }
+  ],
+  "location": "Munich, Bavaria, Germany",
+  "headline": "M.Sc. Information Systems @UR | Founders Associate Tech & AI @aurio",
+  "languageSkills": {}
+}`}
+        </Box>
+        <Button
+          variant="outlined"
+          sx={{ border: '1.6px solid #001B41', color: '#001B41', fontWeight: 600, fontSize: '0.8rem', borderRadius: '9.6px', textTransform: 'none', '&:hover': { border: '1.6px solid #FF8000', color: '#FF8000', background: '#fff' } }}
+          href="/testfile.csv"
+          download
+        >
+          Beispiel-CSV herunterladen
+        </Button>
       </Box>
 
       {/* Modellauswahl-Box */}
@@ -262,40 +603,40 @@ const BatchUpload = () => {
               Please click 'Start prediction' to run the new model.
             </Box>
           )}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.6 }}>
-          <Button
-            onClick={handleUpload}
-            disabled={!file || loading || !modelType}
-            sx={{
-              minWidth: 256,
-              px: 3.2,
-              py: 1.44,
-              fontSize: '0.94rem',
-              fontWeight: 700,
-              borderRadius: '11.2px',
-              color: '#fff',
-              background: 'linear-gradient(90deg, #f4a65892 0%, #f4a65892 100%)',
-              boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
-              textTransform: 'none',
-              letterSpacing: 0.16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1.2,
-              mt: 1.6,
-              mx: 'auto',
-              '&:hover': {
-                background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
-              },
-              '&.Mui-disabled': {
-                background: '#e3e6f0',
-                color: '#bdbdbd',
-              },
-            }}
-          >
-            Start prediction
-          </Button>
-        </Box>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Button
+          onClick={handleUpload}
+          disabled={!file || loading || !modelType}
+          sx={{
+            minWidth: 256,
+            px: 3.2,
+            py: 1.44,
+            fontSize: '0.94rem',
+            fontWeight: 700,
+            borderRadius: '11.2px',
+            color: '#fff',
+            background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
+            textTransform: 'none',
+            letterSpacing: 0.16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.2,
+            mt: 1.6,
+            mb: 6,
+            '&:hover': {
+              background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            },
+            '&.Mui-disabled': {
+              background: '#e3e6f0',
+              color: '#bdbdbd',
+            },
+          }}
+        >
+          Start prediction
+        </Button>
       </Box>
 
       {error && (
@@ -315,7 +656,7 @@ const BatchUpload = () => {
       )}
       {loading && <LoadingSpinner />}
       {results && !loading && (
-        <Box sx={{ mt: 3 }}>
+        <Box ref={resultsRef} sx={{ bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
           {resultsModelType === 'tft' || resultsModelType === 'gru' ? (
             <ResultsTableTimeSeries
               results={results}

@@ -220,7 +220,7 @@ def get_feature_names():
             f"CareerHistory Position {i} Branche (encoded)",
             f"CareerHistory Position {i} Level",
             f"CareerHistory Position {i} (encoded)"
-        ]
+    ]
     return names
 
 def get_feature_description(name):

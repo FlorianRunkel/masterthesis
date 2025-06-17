@@ -5,6 +5,11 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import FlagIcon from '@mui/icons-material/Flag';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import SearchIcon from '@mui/icons-material/Search';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 const getBarColors = [
   '#8AD265', // grün
@@ -34,28 +39,28 @@ const Timeline = ({ prediction, profile }) => {
   // Timeline-Phasen
   const phases = [
     {
-      icon: <PersonIcon sx={{ fontSize: 32, color: '#3B82F6' }} />,
+      icon: <CalendarTodayIcon sx={{ fontSize: 32, color: '#3B82F6' }} />,
       label: 'Today', 
       desc: 'Job change detected',  
       date: heute.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
       color: '#3B82F6'
     },
     {
-      icon: <WorkOutlineIcon sx={{ fontSize: 32, color: '#F59E42' }} />,
+      icon: <SearchIcon sx={{ fontSize: 32, color: '#F59E42' }} />,
       label: `In about ${tageBisBewerbung} days`,
       desc: 'First job search activities expected',
       date: bewerbungsDatum.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
       color: '#F59E42'
     },
     {
-      icon: <TrendingUpIcon sx={{ fontSize: 32, color: '#F59E42' }} />,
+      icon: <EditNoteIcon sx={{ fontSize: 32, color: '#F59E42' }} />,
       label: `In about ${tageBisIntensiveSuche} days`,
       desc: 'Intensive job search phase',
       date: intensiveSucheDatum.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
       color: '#F59E42'
     },
     {
-      icon: <FlagIcon sx={{ fontSize: 32, color: '#F87171' }} />,
+      icon: <SwapHorizIcon sx={{ fontSize: 32, color: '#F87171' }} />,
       label: wechselDatum.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
       desc: 'Expected job change',
       date: wechselDatum.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
