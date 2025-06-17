@@ -32,7 +32,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
               px: { xs: 1.5, sm: 2 },
               py: { xs: 1, sm: 1.2 },
               borderRadius: '8px',
-              '&:hover': { bgcolor: '#FF8000' },
+              '&:hover': { bgcolor: '#EB7836' },
               minWidth: { xs: '80px', sm: '100px' },
               fontSize: { xs: '0.8rem', sm: '0.8rem' },
               ml: { xs: 0, sm: 2 },
@@ -65,7 +65,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
                 } : {}
               }}>
                 <WorkIcon sx={{ 
-                  color: '#FF8000', 
+                  color: '#EB7836', 
                   fontSize: { xs: '1.2rem', sm: '1.6rem' },
                   mt: 0.5
                 }} />
@@ -124,7 +124,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
                 } : {}
               }}>
                 <SchoolIcon sx={{ 
-                  color: '#FF8000', 
+                  color: '#EB7836', 
                   fontSize: { xs: '1.1rem', sm: '1.5rem' },
                   mt: 0.5
                 }} />

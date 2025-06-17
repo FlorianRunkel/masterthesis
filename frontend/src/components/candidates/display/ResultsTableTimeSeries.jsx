@@ -58,7 +58,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   const formatJobChangePeriodDE = (confidence) => {
     if (!confidence) return 'N/A';
     const months = (confidence / 30.44).toFixed(1);
-    return `${months} Monat${months === '1.0' ? '' : 'e'}`;
+    return `${months} Month${months === '1.0' ? '' : 's'}`;
   };
 
   // Error Handling
@@ -115,14 +115,14 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
               disabled={isSaving}
               startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />}
               sx={{ 
-                bgcolor: '#13213C', 
+                bgcolor: '#001242', 
                 color: 'white', 
                 p: isMobile ? '6px 12px' : '8px 16px', 
                 borderRadius: '6.4px', 
                 textTransform: 'none', 
                 fontWeight: 600, 
                 fontSize: isMobile ? '0.75rem' : '0.8rem',
-                '&:hover': { bgcolor: '#FF8000' },
+                '&:hover': { bgcolor: '#EB7836' },
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
@@ -162,7 +162,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         whiteSpace: 'nowrap', 
                         overflow: 'hidden', 
                         textOverflow: 'ellipsis',
-                        color: '#13213C'
+                        color: '#001242'
                       }}>
                         {name}
                       </Typography>
@@ -177,14 +177,14 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ 
                           color: '#888', 
                           textDecoration: 'none',
-                          '&:hover': { color: '#FF8000' }
+                          '&:hover': { color: '#EB7836' }
                         }}>
                           {linkedin}
                         </Link>
                       </Typography>
                       <Typography sx={{ 
                         fontSize: '0.95rem', 
-                        color: '#13213C', 
+                        color: '#001242', 
                         mt: 0.5, 
                         fontWeight: 600 
                       }}>
@@ -202,7 +202,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         onChange={() => handleSelectCandidate(index)}
                         sx={{ 
                           color: '#666', 
-                          '&.Mui-checked': { color: '#FF8000' },
+                          '&.Mui-checked': { color: '#EB7836' },
                           p: 0.5
                         }}
                       />
@@ -211,10 +211,10 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         onClick={() => toggleDetails(index)}
                         sx={{ 
                           p: 0.5,
-                          color: '#13213C',
-                          '&:hover': { color: '#FF8000' }
+                          color: '#001242',
+                          '&:hover': { color: '#EB7836' }
                         }}
-                        aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
                       >
                         {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
@@ -222,7 +222,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                   </Box>
                   {isExpanded && (
                     <Box sx={{ 
-                      mt: 2, 
+                      mt: 1, 
                       width: '100%',
                       borderTop: '1px solid #eee',
                       pt: 2
@@ -231,7 +231,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                       {result.llm_explanation && (
                         <Box sx={{ 
                           mt: 3, 
-                          p: 2, 
+                          p: 1, 
                           bgcolor: '#f5f5f5', 
                           borderRadius: 2 
                         }}>
@@ -253,11 +253,11 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>LinkedIn</th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Job change period</th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>LinkedIn</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Job change period</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
                 </tr>
               </thead>
               <tbody>
@@ -293,20 +293,20 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                           <Checkbox 
                             checked={selectedCandidates.has(index)} 
                             onChange={() => handleSelectCandidate(index)} 
-                            sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' }, width: '10px', height: '10px' }} 
+                            sx={{ color: '#666', '&.Mui-checked': { color: '#EB7836' }, width: '10px', height: '10px' }} 
                           />
                         </td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', fontWeight: 500, fontSize: '0.88rem' }}>{name}</td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}>
                           <Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ 
-                            color: '#13213C', 
+                            color: '#001242', 
                             fontWeight: 500, 
                             fontSize: '0.88rem', 
                             textDecoration: 'none', 
                             display: 'flex', 
                             alignItems: 'center', 
                             gap: 1, 
-                            '&:hover': { color: '#FF8000', textDecoration: 'underline' } 
+                            '&:hover': { color: '#EB7836', textDecoration: 'underline' } 
                           }}>
                             {linkedin.replace(/^https?:\/\/|^www\./, '')}
                           </Link>
@@ -329,16 +329,16 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                           <Button 
                             onClick={() => toggleDetails(index)} 
                             sx={{ 
-                              bgcolor: '#13213C', 
+                              bgcolor: '#001242', 
                               color: 'white', 
                               textTransform: 'none', 
-                              px: 2.5, 
-                              py: 1.2, 
+                              px: 2, 
+                              py: 1, 
                               borderRadius: '6.4px', 
                               fontSize: '0.88rem', 
                               fontWeight: 600, 
                               minWidth: 0, 
-                              '&:hover': { bgcolor: '#FF8000' }, 
+                              '&:hover': { bgcolor: '#EB7836' }, 
                               display: 'flex', 
                               alignItems: 'center', 
                               gap: 1 

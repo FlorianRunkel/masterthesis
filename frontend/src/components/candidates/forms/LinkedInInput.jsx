@@ -141,6 +141,9 @@ const LinkedInInput = () => {
     setError(null);
 
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const uid = user?.uid;
+
       const candidateData = {
         firstName: profileData.name.split(' ')[0],
         lastName: profileData.name.split(' ').slice(1).join(' '),
@@ -157,7 +160,10 @@ const LinkedInInput = () => {
 
       const response = await fetch('/api/candidates', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Uid': uid,
+        },
         body: JSON.stringify([candidateData])
       });
 
@@ -190,7 +196,7 @@ const LinkedInInput = () => {
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
-        color: '#13213C', 
+        color: '#001242', 
         mb: 2 
       }}>
         LinkedIn Prediction
@@ -211,7 +217,7 @@ const LinkedInInput = () => {
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)', 
         mb: 4 
       }}>
-       <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>LinkedIn Profile</Typography>
+       <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>LinkedIn Profile</Typography>
        <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.88rem' }}>
           Add the LinkedIn profile link to get a career prediction.
         </Typography>
@@ -229,8 +235,8 @@ const LinkedInInput = () => {
                 minHeight: '40px',
                 padding: '8px 16px',
                 '& fieldset': { borderColor: '#e0e0e0', borderWidth: 1 },
-                '&:hover fieldset': { borderColor: '#13213C' },
-                '&.Mui-focused fieldset': { borderColor: '#13213C' }
+                '&:hover fieldset': { borderColor: '#001242' },
+                '&.Mui-focused fieldset': { borderColor: '#001242' }
               },
               input: {
                 fontSize: '0.88rem',
@@ -246,7 +252,7 @@ const LinkedInInput = () => {
         </Box>
       </Box>
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
+        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
           Select AI model
         </Typography>
         <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
@@ -271,7 +277,7 @@ const LinkedInInput = () => {
               description: 'Modern deep learning model for complex time series'
             }
           ].map(option => (
-            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none', mb: 0.8 }}>
+            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #EB7836' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #EB7836' : 'none', mb: 0.8 }}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                 {option.title}
               </Typography>
@@ -282,7 +288,7 @@ const LinkedInInput = () => {
           ))}
         </Box>
         {showModelChangeHint && (
-            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#EB7836', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
               Please click 'Start prediction' to run the new model.
             </Box>
           )}
@@ -299,7 +305,7 @@ const LinkedInInput = () => {
             fontWeight: 700,
             borderRadius: '11.2px',
             color: '#fff',
-            background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
             boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
             textTransform: 'none',
             letterSpacing: 0.16,
@@ -310,7 +316,7 @@ const LinkedInInput = () => {
             mt: 1.6,
             mb: 2,
             '&:hover': {
-              background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+              background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
             },
             '&.Mui-disabled': {
               background: '#e3e6f0',

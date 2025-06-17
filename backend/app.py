@@ -405,43 +405,63 @@ def scrape_linkedin():
 def save_candidates():
     try:
         candidates = request.json
-        
+        # UID aus Header oder JSON-Body holen
+        uid = request.headers.get('X-User-Uid')
+        if not uid:
+            if isinstance(candidates, dict) and 'uid' in candidates:
+                uid = candidates['uid']
+                candidates = candidates.get('candidates', [])
+        if not uid:
+            return jsonify({'error': 'Keine User-UID übergeben!'}), 400
         if not candidates:
             return jsonify({'error': 'Keine Kandidaten zum Speichern gefunden'}), 400
-            
         # Stelle sicher, dass die MongoDB-Verbindung hergestellt ist
         if mongo_db.db is None:
             mongo_db.get_mongo_client()
             if mongo_db.db is None:
                 return jsonify({'error': 'Fehler bei der Verbindung zur Datenbank'}), 500
-                
         saved_count = 0
         skipped_count = 0
         for candidate in candidates:
             app.logger.info(f"Speichere Kandidaten: {candidate}")
-
+            # UID immer setzen
+            candidate['uid'] = uid
             if not candidate_exists(candidate, mongo_db, 'candidates'):
                 result = mongo_db.create(candidate, 'candidates')
             else:
                 result = {'statusCode': 409, 'error': 'Kandidat existiert bereits.'}
-
             if result['statusCode'] == 200: 
                 saved_count += 1
-                app.logger.info(f"Kandidat erfolgreich gespeichert: {candidate['linkedinProfile']}")
+                app.logger.info(f"Kandidat erfolgreich gespeichert: {candidate.get('linkedinProfile','')} (UID: {uid})")
             else:
                 skipped_count += 1
                 app.logger.info(f"Fehler beim Speichern des Kandidaten: {result['error']}")
-
         return jsonify({
             'message': 'Kandidaten erfolgreich gespeichert',
             'savedCount': saved_count,
             'skippedCount': skipped_count,
             'reasonSkipped': 'Duplikate basierend auf LinkedIn-Profil-URL'
         }), 201
-        
     except Exception as e:
         logging.error(f"Fehler beim Speichern der Kandidaten: {str(e)}")
         return jsonify({'error': 'Interner Serverfehler: ' + str(e)}), 500
+
+@app.route('/api/login', methods=['POST'])
+def login_user():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        if not all([email, password]):
+            return jsonify({'error': 'E-Mail und Passwort sind erforderlich.'}), 400
+        result = mongo_db.check_user_credentials(email, password)
+        if result['statusCode'] == 200:
+            user = result['data']
+            return jsonify({'message': 'Login erfolgreich.', 'user': user}), 200
+        else:
+            return jsonify({'error': result.get('error', 'Falsche Anmeldedaten')}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5100, debug=True)

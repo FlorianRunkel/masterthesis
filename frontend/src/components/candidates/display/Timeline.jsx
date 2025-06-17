@@ -92,7 +92,7 @@ const Timeline = ({ prediction, profile }) => {
       <Box sx={{ width: '100%', mb: 0 }}>
         <Typography variant="h6" sx={{ 
           fontWeight: 800, 
-          color: '#13213C', 
+          color: '#001242', 
           mb: isMobile ? 0.5 : 1, 
           fontSize: isMobile ? '1.2rem' : '1.5rem' 
         }}>
@@ -121,7 +121,7 @@ const Timeline = ({ prediction, profile }) => {
         <Typography sx={{ 
           fontWeight: 600, 
           fontSize: isMobile ? '0.9rem' : '1rem', 
-          color: '#13213C' 
+          color: '#001242' 
         }}>
           Days until job change
         </Typography>
@@ -237,7 +237,7 @@ const Timeline = ({ prediction, profile }) => {
             mb: isMobile ? 1 : 2, 
             fontSize: isMobile ? '0.9rem' : '1.1rem', 
             fontWeight: 900, 
-            color: '#13213C'
+            color: '#001242'
           }}>
             Explanation of the prediction
           </Typography>

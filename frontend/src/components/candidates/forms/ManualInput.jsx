@@ -207,7 +207,7 @@ const ManualInput = () => {
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
-        color: '#13213C', 
+        color: '#001242', 
         mb: 2 
       }}>
         Manual Prediction
@@ -229,7 +229,7 @@ const ManualInput = () => {
           mb: 4 
         }}>
           <Box sx={{
-            bgcolor: '#13213C', 
+            bgcolor: '#001242', 
             borderTopLeftRadius: '14px',
             borderTopRightRadius: '14px',
             borderBottomLeftRadius: 0,
@@ -273,7 +273,7 @@ const ManualInput = () => {
                 }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
-                  <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem' }}>
                     Education {index + 1}
                   </Typography>
                   {education.length > 1 && index > 0 && (
@@ -373,14 +373,14 @@ const ManualInput = () => {
               </Box>
             ))}
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4.8 }}>
-              <Button onClick={handleAddEducation} fullWidth sx={{ bgcolor: '#fff', color: '#001B41', border: '2px solid #001B41', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', px: 3.2, py: 1.36, mt: 2.4, maxWidth: "100%", maxHeight: "40px", justifyContent: "center", alignItems: "center", display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s', '&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000' } }}>
+              <Button onClick={handleAddEducation} fullWidth sx={{ bgcolor: '#fff', color: '#001B41', border: '2px solid #001B41', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', px: 3.2, py: 1.36, mt: 2.4, maxWidth: "100%", maxHeight: "40px", justifyContent: "center", alignItems: "center", display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s', '&:hover': { bgcolor: '#fff', border: '2px solid #EB7836', color: '#EB7836' } }}>
                 ADD ANOTHER EDUCATION
               </Button>
             </Box>
           </Box>
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 4 }}>
-          <Box sx={{bgcolor: '#13213C', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.08)',mb: 0 }}>
+          <Box sx={{bgcolor: '#001242', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.08)',mb: 0 }}>
             <Typography variant="h2" sx={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', mb: 0.8 }}>Work Experience</Typography>
             <Typography sx={{ color: '#fff', mb: 2.4, fontSize: '0.88rem' }}>
               Add information about the candidate's work experience.
@@ -392,7 +392,7 @@ const ManualInput = () => {
                 key={index}
                 sx={{ mb: 3.2,  bgcolor: '#fff', borderRadius: '14px', p: { xs: 1.6, sm: 3.2 }, border: '1px solid #f0f0f0', position: 'relative'}} >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
-                  <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem' }}>
                     Position {index + 1}
                   </Typography>
                   {experiences.length > 1 && index > 0 && (
@@ -464,14 +464,14 @@ const ManualInput = () => {
               </Box>
             ))}
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4.8 }}>
-              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px solid #001B41',borderRadius: '8px',fontWeight: 600,fontSize: '0.8rem',px: 3.2,py: 1.36,mt: 2.4,maxWidth: "100%", maxHeight: "40px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #FF8000', color: '#FF8000'}}} >
+              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px solid #001B41',borderRadius: '8px',fontWeight: 600,fontSize: '0.8rem',px: 3.2,py: 1.36,mt: 2.4,maxWidth: "100%", maxHeight: "40px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #EB7836', color: '#EB7836'}}} >
                 ADD ANOTHER POSITION
               </Button>
             </Box>
           </Box>
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
             Select AI model
           </Typography>
           <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
@@ -479,7 +479,7 @@ const ManualInput = () => {
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
             {modelOptions.map(option => (
-              <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{cursor: 'pointer',bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #FF8000' : '1.5px solid #e3e6f0', borderRadius: '16px', p: 3, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #FF8000' : 'none'}} >
+              <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{cursor: 'pointer',bgcolor: '#fff', border: selectedModel === option.value ? '2px solid #EB7836' : '1.5px solid #e3e6f0', borderRadius: '16px', p: 3, boxShadow: selectedModel === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: selectedModel === option.value ? '2px solid #EB7836' : 'none'}} >
                 <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                   {option.title}
                 </Typography>
@@ -490,7 +490,7 @@ const ManualInput = () => {
             ))}
           </Box>
           {showModelChangeHint && (
-            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#EB7836', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
               Please click 'Start prediction' to run the new model.
             </Box>
           )}
@@ -507,7 +507,7 @@ const ManualInput = () => {
                 fontWeight: 700,
                 borderRadius: '11.2px',
                 color: '#fff',
-                background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+                background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
                 boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
                 textTransform: 'none',
                 letterSpacing: 0.16,
@@ -518,7 +518,7 @@ const ManualInput = () => {
                 mt: 1.6,
                 mb: 5,
                 '&:hover': {
-                  background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+                  background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
                 },
                 '&.Mui-disabled': {
                   background: '#e3e6f0',
@@ -530,7 +530,7 @@ const ManualInput = () => {
             </Button>
           </Box>
       </Box>
-      {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #FF8000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
+      {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><Box sx={{ border: '3px solid #f3f3f3', borderTop: '3px solid #EB7836', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography></Box>)}
       <div ref={predictionRef} />
       {prediction && predictionModelType === 'tft' && (<><PredictionResultTime prediction={prediction} /></>)}

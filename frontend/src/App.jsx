@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { CssBaseline, Box, useMediaQuery } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -8,16 +8,34 @@ import LinkedInInput from './components/candidates/forms/LinkedInInput';
 import BatchUpload from './components/candidates/forms/BatchUpload';
 import ManualInput from './components/candidates/forms/ManualInput';
 import CandidatesPage from './pages/CandidatesPage';
+import Login from './components/common/Login';
 
 const App = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Sidebar />
+        <Sidebar onLogout={handleLogout} />
         <Box 
           component="main"
           sx={{

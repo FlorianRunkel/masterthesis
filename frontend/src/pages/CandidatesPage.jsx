@@ -26,8 +26,16 @@ const CandidatesPage = () => {
           throw new Error('Error loading candidates');
         }
         const data = await response.json();
-        setCandidates(data);
-        setFilteredCandidates(data);
+
+        // UID des eingeloggten Users holen
+        const user = JSON.parse(localStorage.getItem('user'));
+        const uid = user?.uid;
+
+        // Nur Kandidaten mit passender UID anzeigen
+        const myCandidates = data.filter(candidate => candidate.uid === uid);
+
+        setCandidates(myCandidates);
+        setFilteredCandidates(myCandidates);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -70,7 +78,7 @@ const CandidatesPage = () => {
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
-        color: '#13213C', 
+        color: '#001242', 
         mb: 2 
       }}>
         Candidates
@@ -118,11 +126,11 @@ const CandidatesPage = () => {
                   transition: 'all 0.3s ease'
                 },
                 '&:hover fieldset': {
-                  borderColor: '#FF8000',
+                  borderColor: '#EB7836',
                   borderWidth: 1.6
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#FF8000',
+                  borderColor: '#EB7836',
                   borderWidth: 1.6
                 }
               }
@@ -130,7 +138,7 @@ const CandidatesPage = () => {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton sx={{ color: '#001B41', '&:hover': { color: '#FF8000' } }}>
+                  <IconButton sx={{ color: '#001B41', '&:hover': { color: '#EB7836' } }}>
                     <SearchIcon />
                   </IconButton>
                 </InputAdornment>
@@ -156,9 +164,9 @@ const CandidatesPage = () => {
                 fontSize: '0.8rem',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: selectedModel === 'all' ? '#FF8000' : '#fff',
-                  borderColor: '#FF8000',
-                  color: selectedModel === 'all' ? '#fff' : '#FF8000',
+                  bgcolor: selectedModel === 'all' ? '#EB7836' : '#fff',
+                  borderColor: '#EB7836',
+                  color: selectedModel === 'all' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
                   boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
                 }
@@ -179,9 +187,9 @@ const CandidatesPage = () => {
                 fontSize: '0.8rem',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: selectedModel === 'gru' ? '#FF8000' : '#fff',
-                  borderColor: '#FF8000',
-                  color: selectedModel === 'gru' ? '#fff' : '#FF8000',
+                  bgcolor: selectedModel === 'gru' ? '#EB7836' : '#fff',
+                  borderColor: '#EB7836',
+                  color: selectedModel === 'gru' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
                   boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
                 }
@@ -202,9 +210,9 @@ const CandidatesPage = () => {
                 fontSize: '0.8rem',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: selectedModel === 'tft' ? '#FF8000' : '#fff',
-                  borderColor: '#FF8000',
-                  color: selectedModel === 'tft' ? '#fff' : '#FF8000',
+                  bgcolor: selectedModel === 'tft' ? '#EB7836' : '#fff',
+                  borderColor: '#EB7836',
+                  color: selectedModel === 'tft' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
                   boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
                 }
@@ -225,9 +233,9 @@ const CandidatesPage = () => {
                 fontSize: '0.8rem',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: selectedModel === 'xgboost' ? '#FF8000' : '#fff',
-                  borderColor: '#FF8000',
-                  color: selectedModel === 'xgboost' ? '#fff' : '#FF8000',
+                  bgcolor: selectedModel === 'xgboost' ? '#EB7836' : '#fff',
+                  borderColor: '#EB7836',
+                  color: selectedModel === 'xgboost' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
                   boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
                 }

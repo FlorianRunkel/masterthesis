@@ -155,3 +155,46 @@ class MongoDb:
         except Exception as e:
             logger.error(f"Fehler beim Zählen: {e}")
             return {'statusCode': 500, 'error': str(e)}
+
+    def create_user(self, first_name, last_name, email, password):
+        '''Fügt einen neuen User in die Collection users ein. UID wird automatisch vergeben.'''
+        try:
+            collection = self.get_collection('users')
+            # UID generieren: höchster existierender Wert + 1
+            last_user = collection.find_one(sort=[('uid', -1)])
+            if last_user and 'uid' in last_user:
+                last_uid_num = int(last_user['uid'].replace('UID', '').replace('uid', ''))
+            else:
+                last_uid_num = 0
+            new_uid = f"UID{last_uid_num+1:03d}"
+            user_doc = {
+                'uid': new_uid,
+                'firstName': first_name,
+                'lastName': last_name,
+                'email': email,
+                'password': password  # Hinweis: In Produktion Passwort hashen!
+            }
+            result = collection.insert_one(user_doc)
+            if result.acknowledged:
+                user_doc['_id'] = str(result.inserted_id)
+                return {'statusCode': 200, 'data': user_doc}
+            else:
+                return {'statusCode': 400, 'error': 'User konnte nicht eingefügt werden'}
+        except Exception as e:
+            logger.error(f"Fehler beim User-Einfügen: {e}")
+            return {'statusCode': 500, 'error': str(e)}
+
+    def check_user_credentials(self, email, password):
+        '''Prüft, ob ein User mit E-Mail und Passwort existiert. Gibt Userdaten ohne Passwort zurück.'''
+        try:
+            collection = self.get_collection('users')
+            user = collection.find_one({'email': email, 'password': password})
+            if user:
+                user.pop('password', None)
+                user['_id'] = str(user['_id'])
+                return {'statusCode': 200, 'data': user}
+            else:
+                return {'statusCode': 401, 'error': 'Falsche Anmeldedaten'}
+        except Exception as e:
+            logger.error(f"Fehler beim User-Login: {e}")
+            return {'statusCode': 500, 'error': str(e)}

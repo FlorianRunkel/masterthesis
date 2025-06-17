@@ -152,6 +152,9 @@ const BatchUpload = () => {
     setSaveSuccess(false);
 
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const uid = user?.uid;
+
       // Hole für alle Kandidaten mit LinkedIn-Link die Profildaten
       const candidatesWithProfile = await Promise.all(
         candidates.map(async (candidate) => {
@@ -202,6 +205,7 @@ const BatchUpload = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-User-Uid': uid,
         },
         body: JSON.stringify(candidatesWithModel),
       });
@@ -230,7 +234,7 @@ const BatchUpload = () => {
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
-        color: '#13213C', 
+        color: '#001242', 
         mb: 2 
       }}>
         Batch Upload
@@ -246,16 +250,16 @@ const BatchUpload = () => {
       
       {/* Upload-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
-        <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CloudUploadOutlinedIcon sx={{ color: '#13213C', fontSize: 24, mr: 1 }} />
-          Kandidaten CSV-Datei hochladen
+        <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CloudUploadOutlinedIcon sx={{ color: '#001242', fontSize: 24, mr: 1 }} />
+          Candidates CSV-File Upload
         </Typography>
         <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 2 }}>
-          Laden Sie eine CSV-Datei hoch, um die Wechselwahrscheinlichkeit von Kandidaten zu analysieren.
+          Upload a CSV file to analyze the job change probability of multiple candidates at once.
         </Typography>
         <Box
           sx={{
-            border: dragActive ? '2px solid #FF8000' : '2px dashed #bdbdbd',
+            border: dragActive ? '2px solid #EB7836' : '2px dashed #bdbdbd',
             borderRadius: '12px',
             bgcolor: '#F8F9FB',
             p: 4,
@@ -271,8 +275,8 @@ const BatchUpload = () => {
           onDrop={handleDrop}
         >
           <InsertDriveFileOutlinedIcon sx={{ color: '#bdbdbd', fontSize: 48, mb: 1 }} />
-          <Typography sx={{ color: '#888', fontSize: '0.95rem'}}>CSV-Datei hier ablegen oder klicken</Typography>
-          <Typography sx={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', mb: '10px' }}>{file ? file.name : 'Unterstützte Formate: .csv'}</Typography>
+          <Typography sx={{ color: '#888', fontSize: '0.95rem'}}>Drop your CSV file here or click to upload</Typography>
+          <Typography sx={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', mb: '10px' }}>{file ? file.name : 'Supported formats: .csv'}</Typography>
           <Button
             component="label"
             htmlFor="csvFile"
@@ -290,24 +294,24 @@ const BatchUpload = () => {
               boxShadow: 'none',
               '&:hover': {
                 bgcolor: '#fff',
-                border: '1.6px solid #FF8000',
-                color: '#FF8000',
+                border: '1.6px solid #EB7836',
+                color: '#EB7836',
               },
             }}
           >
-            Datei auswählen
+            Select File
             <input type="file" id="csvFile" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} />
           </Button>
          </Box>
       </Box>
 
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
-        <Typography sx={{ fontWeight: 700, color: '#13213C', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <WarningAmberOutlinedIcon sx={{ color: '#FFB300', fontSize: 22, mr: 1 }} />
-          CSV-Format & Anforderungen
+          CSV Format & Requirements
         </Typography>
         <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 2 }}>
-          Die CSV-Datei muss folgende Spalten in der ersten Zeile enthalten:
+          The CSV file must contain the following columns in the first row:
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
           <Box sx={{
@@ -323,7 +327,7 @@ const BatchUpload = () => {
             alignItems: 'center',
             mb: { xs: 0.5, sm: 0 },
           }}>
-            Erforderlich
+            Required
           </Box>
           <Box sx={{
             bgcolor: '#F8F9FB',
@@ -350,7 +354,7 @@ const BatchUpload = () => {
             mb: { xs: 0.5, sm: 0 },
             wordBreak: 'break-word',
           }}>
-            Vorname des Kandidaten
+            First Name of Candidate
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
@@ -367,7 +371,7 @@ const BatchUpload = () => {
             alignItems: 'center',
             mb: { xs: 0.5, sm: 0 },
           }}>
-            Erforderlich
+            Required
           </Box>
           <Box sx={{
             bgcolor: '#F8F9FB',
@@ -394,7 +398,7 @@ const BatchUpload = () => {
             mb: { xs: 0.5, sm: 0 },
             wordBreak: 'break-word',
           }}>
-            Nachname des Kandidaten
+            Last Name of Candidate
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
@@ -411,7 +415,7 @@ const BatchUpload = () => {
             alignItems: 'center',
             mb: { xs: 0.5, sm: 0 },
           }}>
-            Erforderlich
+            Required
           </Box>
           <Box sx={{
             bgcolor: '#F8F9FB',
@@ -438,7 +442,7 @@ const BatchUpload = () => {
             mb: { xs: 0.5, sm: 0 },
             wordBreak: 'break-word',
           }}>
-            Nachname des Kandidaten
+            LinkedIn Profile URL
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
@@ -455,51 +459,7 @@ const BatchUpload = () => {
             alignItems: 'center',
             mb: { xs: 0.5, sm: 0 },
           }}>
-            Erforderlich
-          </Box>
-          <Box sx={{
-            bgcolor: '#F8F9FB',
-            border: '1px solid #bdbdbd',
-            borderRadius: '6px',
-            px: 1.2,
-            py: 0.1,
-            fontSize: { xs: '0.78rem', sm: '0.95rem' },
-            fontWeight: 600,
-            height: 24,
-            display: 'flex',
-            alignItems: 'center',
-            mb: { xs: 0.5, sm: 0 },
-          }}>
-            firstName
-          </Box>
-          <Typography sx={{
-            fontSize: { xs: '0.78rem', sm: '0.95rem' },
-            color: '#000',
-            alignSelf: 'center',
-            mx: 1,
-            flex: 1,
-            minWidth: 120,
-            mb: { xs: 0.5, sm: 0 },
-            wordBreak: 'break-word',
-          }}>
-            Link zum LinkedIn-Profil
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, border: '1px solid #bdbdbd', borderRadius: '10px', px: 1, py: 0.8, fontSize: { xs: '0.78rem', sm: '0.95rem' }, fontWeight: 600, background: '#eee', maxWidth: '100%', mb: 1 }}>
-          <Box sx={{
-            bgcolor: '#000',
-            color: '#fff',
-            borderRadius: '16px',
-            px: 1.2,
-            py: 0.1,
-            fontSize: { xs: '0.78rem', sm: '0.92rem' },
-            fontWeight: 600,
-            height: 24,
-            display: 'flex',
-            alignItems: 'center',
-            mb: { xs: 0.5, sm: 0 },
-          }}>
-            Erforderlich
+            Required
           </Box>
           <Box sx={{
             bgcolor: '#F8F9FB',
@@ -526,15 +486,15 @@ const BatchUpload = () => {
             mb: { xs: 0.5, sm: 0 },
             wordBreak: 'break-word',
           }}>
-            JSON-String mit LinkedIn-Informationen
+            JSON-String with LinkedIn Information
           </Typography>
-          <Box sx={{ bgcolor: '#FF2525', color: '#fff', borderRadius: '16px', fontSize: '0.7rem', fontWeight: 700, px: 1.2, py: 0.1, height: 28, display: 'flex', alignItems: 'center' }}>WICHTIG</Box>
+          <Box sx={{ bgcolor: '#FF2525', color: '#fff', borderRadius: '16px', fontSize: '0.7rem', fontWeight: 700, px: 1.2, py: 0.1, height: 24, display: 'flex', alignItems: 'center' }}>IMPORTANT</Box>
         </Box>
         <Typography sx={{ color: '#888', fontSize: '0.95rem', mb: 1 , mt: 3 }}>
           <InfoOutlinedIcon sx={{ color: '#888', fontSize: 18, mr: 0.5, mb: '2px' }} />
-          Die Struktur von <b>linkedinProfileInformation</b> muss exakt wie im folgenden Beispiel aussehen:
+          The structure of <b style={{ color: '#000000' }}>linkedinProfileInformation</b> must exactly match the following example:
         </Typography>
-        <Box sx={{ bgcolor: '#181C26', color: '#fff', borderRadius: '8px', p: 2, fontSize: '0.8rem', fontFamily: 'monospace', overflowX: 'auto', mb: 2, whiteSpace: 'pre', }}>
+        <Box sx={{ bgcolor: '#000000', color: '#fff', borderRadius: '8px', p: 2, fontSize: '0.7rem', fontFamily: 'monospace', overflowX: 'auto', mb: 2, whiteSpace: 'pre', height: '350px'}}>
           {`{
   "skills": ["Python", "SQL", "Data Analysis"],
   "firstName": "Florian",
@@ -570,17 +530,17 @@ const BatchUpload = () => {
         </Box>
         <Button
           variant="outlined"
-          sx={{ border: '1.6px solid #001B41', color: '#001B41', fontWeight: 600, fontSize: '0.8rem', borderRadius: '9.6px', textTransform: 'none', '&:hover': { border: '1.6px solid #FF8000', color: '#FF8000', background: '#fff' } }}
+          sx={{ border: '1.6px solid #001B41', color: '#001B41', fontWeight: 600, fontSize: '0.8rem', borderRadius: '9.6px', textTransform: 'none', '&:hover': { border: '1.6px solid #EB7836', color: '#EB7836', background: '#fff' } }}
           href="/testfile.csv"
           download
         >
-          Beispiel-CSV herunterladen
+          Download Example CSV
         </Button>
       </Box>
 
       {/* Modellauswahl-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#13213C', mb: 0.8 }}>
+        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
           Select AI model
         </Typography>
         <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
@@ -588,7 +548,7 @@ const BatchUpload = () => {
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6, mb: 1.6 }}>
           {modelOptions.map(option => (
-            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: modelType === option.value ? '1.6px solid #FF8000' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: modelType === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: modelType === option.value ? '1.6px solid #FF8000' : 'none', mb: 0.8 }}>
+            <Box key={option.value} onClick={() => handleModelChange(option.value)} sx={{ cursor: 'pointer', bgcolor: '#fff', border: modelType === option.value ? '1.6px solid #EB7836' : '1.2px solid #e3e6f0', borderRadius: '12.8px', p: 2.4, boxShadow: modelType === option.value ? '0 2px 8px rgba(59,71,250,0.08)' : 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', outline: modelType === option.value ? '1.6px solid #EB7836' : 'none', mb: 0.8 }}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', color: '#1a1a1a', mb: 0.4 }}>
                 {option.title}
               </Typography>
@@ -599,7 +559,7 @@ const BatchUpload = () => {
           ))}
         </Box>
         {showModelChangeHint && (
-            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#FF8000', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
+            <Box sx={{ bgcolor: '#FFF8E1', border: '1px solid #FFD54F', color: '#EB7836', p: 2, borderRadius: 2, mb: 1, fontSize: '0.8rem'}}>
               Please click 'Start prediction' to run the new model.
             </Box>
           )}
@@ -616,7 +576,7 @@ const BatchUpload = () => {
             fontWeight: 700,
             borderRadius: '11.2px',
             color: '#fff',
-            background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+            background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
             boxShadow: '0 4px 16px rgba(108,99,255,0.10)',
             textTransform: 'none',
             letterSpacing: 0.16,
@@ -627,7 +587,7 @@ const BatchUpload = () => {
             mt: 1.6,
             mb: 6,
             '&:hover': {
-              background: 'linear-gradient(90deg, #FF8000 0%, #FF8000 100%)',
+              background: 'linear-gradient(90deg, #EB7836 0%, #EB7836 100%)',
             },
             '&.Mui-disabled': {
               background: '#e3e6f0',

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Paper, useMediaQuery, useTheme, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Paper, useMediaQuery, useTheme, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -34,13 +34,6 @@ const Sidebar = () => {
       text: 'Candidates',
       alt: 'Kandidaten Navigation'
     }
-  ];
-
-  const bottomButtons = [
-    { icon: '/static/images/settings.svg', alt: 'Einstellungen' },
-    { icon: '/static/images/info.svg', alt: 'Info' },
-    { icon: '/static/images/plus.svg', alt: 'Hinzufügen' },
-    { icon: '/static/images/arrow.svg', alt: 'Weiter' },
   ];
 
   const handleDrawerToggle = () => {
@@ -108,11 +101,11 @@ const Sidebar = () => {
             edge="start"
             onClick={handleDrawerToggle}
             sx={{ 
-              color: '#13213C',
-              scale: 1.4,
+              color: '#001242',
+              scale: 1,
               height: 'auto',
               '&:hover': {
-                color: '#FF8000',
+                color: '#EB7836',
               }
             }}
           >
@@ -147,7 +140,7 @@ const Sidebar = () => {
             borderBottom: '1px solid #eee',
             bgcolor: '#fff',
           }}>
-            <span style={{ fontWeight: 700, fontSize: '1.2rem', color: '#13213C', letterSpacing: 1 }}>Navigation</span>
+            <span style={{ fontWeight: 700, fontSize: '1.2rem', color: '#001242', letterSpacing: 1 }}>Navigation</span>
           </Box>
           <List sx={{ pt: 2 }}>
             {menuItems.map((item) => (
@@ -161,7 +154,7 @@ const Sidebar = () => {
                   bgcolor: location.pathname === item.path ? 'rgba(255,128,0,0.08)' : 'transparent',
                   mt: 2,
                   '&:hover': {
-                    bgcolor: 'rgba(255,128,0,0.13)',
+                    bgcolor: 'rgba(138, 136, 136, 0.12)',
                   },
                 }}
               >
@@ -170,8 +163,8 @@ const Sidebar = () => {
                     src={item.icon}
                     alt={item.alt}
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       objectFit: 'contain',
                       filter: location.pathname === item.path ? 'none' : 'brightness(0.7) grayscale(0.2)',
                       opacity: location.pathname === item.path ? 1 : 0.8,
@@ -182,7 +175,7 @@ const Sidebar = () => {
                   primary={item.text}
                   sx={{
                     '& .MuiListItemText-primary': {
-                      color: location.pathname === item.path ? '#FF8000' : '#222',
+                      color: location.pathname === item.path ? '#EB7836' : '#222',
                       fontWeight: location.pathname === item.path ? 600 : 500,
                       fontSize: '0.9rem',
                     }
@@ -191,6 +184,20 @@ const Sidebar = () => {
               </ListItem>
             ))}
           </List>
+          {/* Logout Button unten (Mobile) */}
+          {onLogout && (
+            <Box sx={{ width: '100%', p: 4, mt: 'auto', textAlign: 'center' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                onClick={onLogout}
+                sx={{fontSize: 11, fontWeight: 800, borderRadius: 2, color: '#000000', borderColor: '#000000','&:hover': { color: '#000000', borderColor: '#8A8888', backgroundColor: 'rgba(138, 136, 136, 0.12)' } }}
+              >
+                Sign out
+              </Button>
+            </Box>
+          )}
         </Drawer>
       </>
     );
@@ -204,7 +211,7 @@ const Sidebar = () => {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '250px',
+        width: '260px',
         height: '100vh',
         bgcolor: '#fff',
         borderRadius: 0,
@@ -253,28 +260,29 @@ const Sidebar = () => {
             to={item.path}
             sx={{
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               textDecoration: 'none',
               bgcolor: location.pathname === item.path ? 'rgba(255,128,0,0.08)' : 'transparent',
               borderRadius: "12px",
               py: 2.5,
-              px: 0,
+              px: 2,
               width: '100%',
               transition: 'background 1.2s',
               '&:hover': {
-                bgcolor: 'rgba(255,128,0,0.13)',
+                bgcolor: 'rgba(138, 136, 136, 0.12)',
               },
               mt: 0.5,
+              gap: 2,
             }}
           >
             <img
               src={item.icon}
               alt={item.alt}
               style={{
-                width: 35,
-                height: 35,
+                width: 28,
+                height: 28,
                 objectFit: 'contain',
                 marginBottom: 0,
                 filter: location.pathname === item.path ? 'none' : 'brightness(0.7) grayscale(0.2)',
@@ -282,21 +290,35 @@ const Sidebar = () => {
               }}
             />   
             <Box
-            sx={{
-              color: location.pathname === item.path ? '#FF8000' : '#222',
-              fontWeight: location.pathname === item.path ? 600 : 600,
-              fontSize: '0.88rem',
-              textAlign: 'center',
-              whiteSpace: 'nowrap',
-              letterSpacing: 0.2,
-              mt: 0.5,
-            }}
-          >
-            {item.text}
-          </Box>
+              sx={{
+                color: location.pathname === item.path ? '#EB7836' : '#222',
+                fontWeight: location.pathname === item.path ? 600 : 600,
+                fontSize: '0.98rem',
+                textAlign: 'left',
+                whiteSpace: 'nowrap',
+                letterSpacing: 0.2,
+                ml: 2,
+              }}
+            >
+              {item.text}
+            </Box>
           </Box>
         ))}
       </Box>
+      {/* Logout Button unten (Desktop) */}
+      {onLogout && (
+        <Box sx={{ width: '100%', p: 4, mt: 'auto', textAlign: 'center'}}>
+          <Button
+            variant="outlined"
+            color="error"
+            fullWidth
+            onClick={onLogout}
+            sx={{fontSize: 12, fontWeight: 800, borderRadius: 2, color: '#000000', borderColor: '#000000','&:hover': { color: '#000000', borderColor: '#8A8888', backgroundColor: 'rgba(138, 136, 136, 0.12)' } }}
+          >
+            Sign out
+          </Button>
+        </Box>
+      )}
     </Paper>
   );
 };

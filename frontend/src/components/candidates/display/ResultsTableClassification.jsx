@@ -133,14 +133,14 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
               disabled={isSaving}
               startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />}
               sx={{
-                bgcolor: '#13213C',
+                bgcolor: '#001242',
                 color: 'white',
                 p: '8px 16px',
                 borderRadius: '6.4px',
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '0.8rem',
-                '&:hover': { bgcolor: '#FF8000' }
+                '&:hover': { bgcolor: '#EB7836' }
               }}
             >
               {isSaving ? 'Save...' : `${selectedCandidates.size} candidates to save`}
@@ -201,12 +201,12 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
                   <th
                     style={{
-                      background: '#13213C',
+                      background: '#001242',
                       color: 'white',
                       padding: '12px 24px',
                       textAlign: 'center',
@@ -216,7 +216,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                   >
                     Propensity to Change
                   </th>
-                  <th style={{ background: '#13213C', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
                 </tr>
               </thead>
               <tbody>
@@ -253,7 +253,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                           <Checkbox 
                             checked={selectedCandidates.has(index)} 
                             onChange={() => handleSelectCandidate(index)} 
-                            sx={{ color: '#666', '&.Mui-checked': { color: '#FF8000' } }} 
+                            sx={{ color: '#666', '&.Mui-checked': { color: '#EB7836' } }} 
                           />
                         </td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee', fontSize: '0.88rem' }}>{name}</td>
@@ -271,7 +271,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                           <Button 
                             onClick={() => toggleDetails(index)} 
                             sx={{ 
-                              bgcolor: '#13213C', 
+                              bgcolor: '#001242', 
                               color: 'white', 
                               textTransform: 'none', 
                               px: 2, 
@@ -279,7 +279,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                               borderRadius: '8px', 
                               fontSize: '0.7rem', 
                               fontWeight: 600, 
-                              '&:hover': { bgcolor: '#FF8000' } 
+                              '&:hover': { bgcolor: '#EB7836' } 
                             }}
                           >
                             {isExpanded ? 'Collapse' : 'Expand'} 
