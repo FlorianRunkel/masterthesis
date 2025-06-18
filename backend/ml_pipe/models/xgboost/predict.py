@@ -317,7 +317,7 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
         features = {
             "company_changes": len(set(entry['company'] for entry in career_history)) - 1,
             "total_experience_days": int(sum(entry['duration_months'] * 30.44 for entry in career_history)),
-            "location_changes": len(set(entry['location'] for entry in career_history if entry['location'])) - 1,
+            "location_changes": len(set(entry['location'] for entry in career_history if entry['location'])) - 1 if len(set(entry['location'] for entry in career_history if entry['location'])) > 1 else 0,
             "average_days_per_position": int(sum(entry['duration_months'] * 30.44 for entry in career_history) / len(career_history)),
             "highest_degree": extract_additional_features(career_history, education_data, fe, age_category)['highest_degree'],
             "position_level": last_position['level'],

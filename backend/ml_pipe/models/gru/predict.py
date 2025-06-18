@@ -3,7 +3,7 @@ import os
 import glob
 import json
 from datetime import datetime
-from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import process_profile, parse_date, estimate_age_category, categorize_company_size
+from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import parse_date
 from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
 from backend.ml_pipe.models.gru.model import GRUModel
 import numpy as np
@@ -27,9 +27,6 @@ def get_feature_names():
         "job average duration",
         "education highest degree",
         "age category",
-        #"location changes total",
-        #"study field",
-        #"company_size_category",
         "position level",
         "industry",
         "position average duration",
@@ -44,9 +41,6 @@ def get_feature_description(name):
         "job average duration": "Average duration of previous jobs in days",
         "education highest degree": "Highest education degree (1-5)",
         "age category": "Age category based on career start (1-5)",
-        #"location changes total": "Total number of different work locations",
-       # "study field": "Study field from education",
-        #"company_size_category": "Size category of current company",
         "position level": "Hierarchy level of current position",
         "industry": "Industry/Industry of current company",
         "position average duration": "Average duration in similar positions",
@@ -374,14 +368,30 @@ def calculate_shap_values(model, background_data, seq_tensor):
 
 def create_explanations(norm_shap):
     """Erstellt die Feature-Erklärungen."""
-    feature_names = get_feature_names()
+    base_len = len(get_feature_names())
+    base_shap = norm_shap[:base_len]
+    other_shap = norm_shap[base_len:].sum()
+
     explanations = []
-    for name, val in zip(feature_names, norm_shap):
+    for name, val in zip(get_feature_names(), base_shap):
         explanations.append({
             "feature": name,
             "impact_percentage": float(val),
             "description": get_feature_description(name)
         })
+    if other_shap > 0:
+        explanations.append({
+            "feature": "Other",
+            "impact_percentage": float(other_shap),
+            "description": "All other career path features"
+        })
+
+    # Optional: Auf 100% normalisieren
+    total = sum(e["impact_percentage"] for e in explanations)
+    if total > 0:
+        for e in explanations:
+            e["impact_percentage"] = e["impact_percentage"] * 100 / total
+
     return explanations
 
 def create_shap_summary(explanations):
@@ -468,7 +478,41 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
 
         # SHAP-Analyse
         background_data = create_background_data(features_tensor)
-        norm_shap = calculate_shap_values(model, background_data, features_tensor)
+        print(background_data.shape)
+        
+        # Wrapper für SHAP, damit nur der Output-Tensor zurückgegeben wird
+        class GRUModelForSHAP(torch.nn.Module):
+            def __init__(self, gru_model_lightning):
+                super().__init__()
+                # Nur relevante Submodule extrahieren
+                self.gru = gru_model_lightning.gru
+                self.attention = gru_model_lightning.attention
+                self.fc = gru_model_lightning.fc
+
+            def forward(self, x):
+                gru_out, _ = self.gru(x)
+                context = self.attention(gru_out)
+
+                # Falls attention ein Tuple zurückgibt → entpacken:
+                if isinstance(context, tuple):
+                    context, _ = context  # nur den Context-Vektor nehmen
+
+                output = self.fc(context)
+                return output
+
+        shap_model = GRUModelForSHAP(model)
+        explainer = shap.DeepExplainer(shap_model, background_data)
+        shap_values = explainer.shap_values(features_tensor, check_additivity=False)
+        # shap_values[0] hat die Form (samples, features)
+        print(shap_values[0].shape)
+
+        # Normalisiere die SHAP-Werte auf Prozentwerte
+        abs_sum = np.abs(shap_values[0]).sum()
+        if abs_sum > 0:
+            norm_shap = (np.abs(shap_values[0][0]) / abs_sum) * 100
+        else:
+            norm_shap = np.zeros_like(shap_values[0][0])
+
         explanations = create_explanations(norm_shap)
         shap_summary = create_shap_summary(explanations)
         print(shap_summary)

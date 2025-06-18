@@ -15,6 +15,7 @@ from linkedin_api import Linkedin
 from datetime import datetime
 from backend.ml_pipe.data.database.mongodb import MongoDb
 from backend.config import Config
+from backend.ml_pipe.admin.admin_api import create_user_api, delete_user_api, get_all_users_api, update_user_api
 
 '''
 Flask App - initialisation
@@ -25,7 +26,9 @@ app = Flask(__name__,
             static_folder=Config.STATIC_DIR)
 
 # CORS für alle Routen aktivieren
-CORS(app, resources=Config.CORS_RESOURCES)
+CORS(app)
+#CORS(app, resources=Config.CORS_RESOURCES)
+#CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 app.logger.setLevel(logging.INFO)
 
@@ -453,15 +456,60 @@ def login_user():
         email = data.get('email')
         password = data.get('password')
         if not all([email, password]):
-            return jsonify({'error': 'E-Mail und Passwort sind erforderlich.'}), 400
+            return jsonify({'error': 'E-Mail and Passwort are required.'}), 400
         result = mongo_db.check_user_credentials(email, password)
         if result['statusCode'] == 200:
             user = result['data']
-            return jsonify({'message': 'Login erfolgreich.', 'user': user}), 200
+            return jsonify({'message': 'Login successful.', 'user': user}), 200
         else:
-            return jsonify({'error': result.get('error', 'Falsche Anmeldedaten')}), 401
+            return jsonify({'error': result.get('error', 'Wrong credentials')}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/create-user', methods=['POST'])
+def api_create_user():
+    try:
+        data = request.get_json()
+        first_name = data.get('firstName')
+        last_name = data.get('lastName')
+        email = data.get('email')
+        password = data.get('password')
+        result = create_user_api(first_name, last_name, email, password)
+        if result['statusCode'] == 200:
+            return jsonify({'message': 'User successfully created!', 'data': result['data']}), 200
+        else:
+            return jsonify({'error': result.get('error', 'Unknown error')}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/users', methods=['GET'])
+def api_get_all_users():
+    result = get_all_users_api()
+    if result['statusCode'] == 200:
+        return jsonify(result), 200
+    else:
+        return jsonify({'error': result.get('error', 'Unknown error')}), 400
+
+@app.route('/api/users/<user_id>', methods=['DELETE'])
+def api_delete_user(user_id):
+    result = delete_user_api(user_id)
+    if result['statusCode'] == 200:
+        return jsonify({'message': 'User deleted successfully'}), 200
+    else:
+        return jsonify({'error': result.get('error', 'Unknown error')}), 400
+
+@app.route('/api/users/<user_id>', methods=['PUT'])
+def api_update_user(user_id):
+    data = request.get_json()
+    first_name = data.get('firstName')
+    last_name = data.get('lastName')
+    email = data.get('email')
+    password = data.get('password')
+    result = update_user_api(user_id, first_name, last_name, email, password)
+    if result['statusCode'] == 200:
+        return jsonify({'message': 'User updated successfully'}), 200
+    else:
+        return jsonify({'error': result.get('error', 'Unknown error')}), 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5100, debug=True)

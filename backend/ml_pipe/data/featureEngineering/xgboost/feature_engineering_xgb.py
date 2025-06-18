@@ -10,12 +10,6 @@ from rapidfuzz import process, fuzz
 class FeatureEngineering:
     
     def __init__(self, use_llm: bool = False):
-        """
-        Initialisiert die Feature-Engineering-Klasse.
-        
-        Args:
-            use_llm: Nicht mehr verwendet, nur für Kompatibilität
-        """
         json_path = os.path.join("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json")
         # Lade die Position-Level-Zuordnungen als Dict: {"position": (level, branche, durchschnittszeit_tage)}
         with open(json_path, "r", encoding="utf-8") as f:
@@ -68,7 +62,6 @@ class FeatureEngineering:
             return None
 
     def extract_features_from_single_user(self, user_doc: dict) -> np.ndarray:
-        """Extrahiert Features für die aktuelle Position"""
         # Versuche beide möglichen Keys
         experiences = user_doc.get("experiences", user_doc.get("career_history", []))
         
@@ -125,34 +118,12 @@ class FeatureEngineering:
             float(level),        # Level (1-8)
             float(branche)       # Branche (0-3)
         ], dtype=np.float32)
-        
-        print(f"""
-        Feature-Extraktion Details:
-        --------------------------
-        Aktuelle Position: {position_title}
-        Start: {start_date.strftime('%Y-%m-%d')}
-        Dauer: {duration_months:.1f} Monate
-        Normalisierte Dauer: {normalized_duration:.2f}
-        Level: {level} ({self.classifier.get_level_description(level)})
-        Branche: {self.classifier.get_branch_description(branche)} (Code: {branche})
-        Erwartete Dauer: {expected} Monate
-        """)
-        
+
         # Reshape für GRU Modell (1, 3)
         return features.reshape(1, -1)
 
     def extract_features_and_labels_for_training(self, documents):
-        """
-        Extrahiert Features und Labels für das Training aus einer Sammlung von Karriereverläufen.
-        Jede Position wird als potentieller Wechselpunkt betrachtet.
-        
-        Args:
-            documents: Liste von Dokumenten mit Karriereverläufen
-            
-        Returns:
-            features: Liste von Feature-Sequenzen [duration, level, branche]
-            labels: Liste von Labels (1 = Person hat gewechselt, 0 = Person ist geblieben)
-        """
+
         all_sequences = []
         all_labels = []
 
@@ -228,16 +199,6 @@ class FeatureEngineering:
                     if len(position_features) > 0:
                         all_sequences.append(position_features[:i+1])  # Alle Positionen bis zur aktuellen
                         all_labels.append([label])
-                        '''
-                        print(f"""
-                        Position {i+1}: {job.get('position')}
-                        Dauer: {duration_months:.1f} Monate (normalisiert: {normalized_duration:.2f})
-                        Level: {level}, Branche: {job.get('position')}
-                        Nächste Position: {next_job.get('position')}
-                        Branchenwechsel: {changed_branch}, Lange geblieben: {stayed_long}
-                        Label: {label}
-                        """)
-                        '''
 
         if not all_sequences:
             return torch.empty(0), torch.empty(0)

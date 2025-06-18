@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Typography, Box, Paper } from '@mui/material';
-import ManualInput from '../components/candidates/ManualInput';
+import ManualInput from '../components/ManualInput';
 
 const Index = () => {
   return (

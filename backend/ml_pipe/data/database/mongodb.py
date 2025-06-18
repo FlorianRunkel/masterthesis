@@ -172,7 +172,7 @@ class MongoDb:
                 'firstName': first_name,
                 'lastName': last_name,
                 'email': email,
-                'password': password  # Hinweis: In Produktion Passwort hashen!
+                'password': password
             }
             result = collection.insert_one(user_doc)
             if result.acknowledged:

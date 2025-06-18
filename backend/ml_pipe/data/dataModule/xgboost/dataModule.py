@@ -4,7 +4,7 @@ import numpy as np
 from pytorch_lightning import LightningDataModule
 import logging
 
-class CareerDataset(Dataset):
+class Dataset(Dataset):
     def __init__(self, data):
         self.data = data
         self.logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ class DataModule(LightningDataModule):
     
     def train_dataloader(self):
         return DataLoader(
-            CareerDataset(self.train_data),
+            Dataset(self.train_data),
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=4,
@@ -137,7 +137,7 @@ class DataModule(LightningDataModule):
     
     def val_dataloader(self):
         return DataLoader(
-            CareerDataset(self.val_data),
+            Dataset(self.val_data),
             batch_size=self.batch_size,
             num_workers=4,
             collate_fn=collate_fn
@@ -145,7 +145,7 @@ class DataModule(LightningDataModule):
     
     def test_dataloader(self):
         return DataLoader(
-            CareerDataset(self.test_data),
+            Dataset(self.test_data),
             batch_size=self.batch_size,
             num_workers=4,
             collate_fn=collate_fn

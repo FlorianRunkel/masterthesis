@@ -1,15 +1,13 @@
+from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+from rapidfuzz import process, fuzz
+from datetime import datetime
 import sys
 import json
 import pandas as pd
 import torch
-from datetime import datetime
+
 import sys
 sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
-
-from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
-from rapidfuzz import process, fuzz
-from datetime import datetime
-import shap
 
 with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json", "r") as f:
     position_entries = json.load(f)
@@ -23,9 +21,73 @@ position_map = {
 }
 all_positions = list(position_map.keys())
 
+
+'''
+Helper Functions
+'''
+
 def get_branche_num(branche):
     branche_map = {"sales": 1, "engineering": 2, "consulting": 3}
     return branche_map.get(branche, 0)
+
+def check_min_timesteps(df, encoder_length=4, prediction_length=2):
+
+    required = encoder_length + prediction_length
+    actual = len(df)
+
+    if actual >= required:
+        return True, 0
+    else:
+        return False, required - actual
+
+
+'''
+Explanation Functions
+'''
+
+def get_feature_names():
+    return [
+        "Work Experience",
+        "Number of Changes",
+        "Number of Jobs",
+        "Average Job Duration",
+        "Position Level",
+        "Industry",
+        "Average Position Duration"
+    ]
+
+def map_tft_feature_names(feature_name):
+    mapping = {
+        'label_scale': 'Average Job Duration',
+        'relative_time_idx': 'Career Progression Stage',
+        'berufserfahrung_bis_zeitpunkt': 'Work Experience',
+        'time_idx': 'Career Timeline Position',
+        'encoder_length': 'Historical Data Points',
+        'durchschnittsdauer_bisheriger_jobs': 'Average Job Duration',
+        'anzahl_wechsel_bisher': 'Number of Changes',
+        'label_center': 'Average Job Duration',
+        'anzahl_jobs_bisher': 'Number of Jobs'
+    }
+    return mapping.get(feature_name, feature_name)
+
+def get_feature_description(name):
+    descriptions = {
+        "Work Experience": "Total professional experience accumulated over time",
+        "Number of Changes": "Total number of job transitions in career history",
+        "Number of Jobs": "Total number of positions held throughout career",
+        "Average Job Duration": "Mean duration across all previous positions",
+        "Position Level": "Current role's seniority and responsibility level",
+        "Industry": "Professional sector and business domain",
+        "Average Position Duration": "Typical tenure in similar positions",
+        "Career Progression Stage": "Current phase in professional development",
+        "Career Timeline Position": "Position in overall career trajectory",
+        "Historical Data Points": "Number of career events analyzed"
+    }
+    return descriptions.get(name, "This feature influences the prediction.")
+
+'''
+Feature Engineering Functions
+'''
 
 def map_position_fuzzy(pos, threshold=30):
     pos_clean = pos.lower().strip()
@@ -55,16 +117,6 @@ def append_dummy_rows(df, missing_count):
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
     return df
-
-def check_min_timesteps(df, encoder_length=4, prediction_length=2):
-
-    required = encoder_length + prediction_length
-    actual = len(df)
-
-    if actual >= required:
-        return True, 0
-    else:
-        return False, required - actual
 
 def extract_features_from_linkedin(data):
     rows = []
@@ -117,46 +169,6 @@ def extract_features_from_linkedin(data):
     df = df.sort_values("zeitpunkt")
     df["time_idx"] = range(1, len(df) + 1)
     return df
-
-def get_feature_names():
-    return [
-        "Work Experience",
-        "Number of Changes",
-        "Number of Jobs",
-        "Average Job Duration",
-        "Position Level",
-        "Industry",
-        "Average Position Duration"
-    ]
-
-def map_tft_feature_names(feature_name):
-    mapping = {
-        'label_scale': 'Average Job Duration',
-        'relative_time_idx': 'Career Progression Stage',
-        'berufserfahrung_bis_zeitpunkt': 'Work Experience',
-        'time_idx': 'Career Timeline Position',
-        'encoder_length': 'Historical Data Points',
-        'durchschnittsdauer_bisheriger_jobs': 'Average Job Duration',
-        'anzahl_wechsel_bisher': 'Number of Changes',
-        'label_center': 'Average Job Duration',
-        'anzahl_jobs_bisher': 'Number of Jobs'
-    }
-    return mapping.get(feature_name, feature_name)
-
-def get_feature_description(name):
-    descriptions = {
-        "Work Experience": "Total professional experience accumulated over time",
-        "Number of Changes": "Total number of job transitions in career history",
-        "Number of Jobs": "Total number of positions held throughout career",
-        "Average Job Duration": "Mean duration across all previous positions",
-        "Position Level": "Current role's seniority and responsibility level",
-        "Industry": "Professional sector and business domain",
-        "Average Position Duration": "Typical tenure in similar positions",
-        "Career Progression Stage": "Current phase in professional development",
-        "Career Timeline Position": "Position in overall career trajectory",
-        "Historical Data Points": "Number of career events analyzed"
-    }
-    return descriptions.get(name, "This feature influences the prediction.")
 
 def predict(linkedin_data, with_llm_explanation=False):
     df_new = extract_features_from_linkedin(linkedin_data)

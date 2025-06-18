@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { CssBaseline, Box, useMediaQuery } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import theme from './theme';
-import Sidebar from './components/layout/Sidebar';
-import LinkedInInput from './components/candidates/forms/LinkedInInput';
-import BatchUpload from './components/candidates/forms/BatchUpload';
-import ManualInput from './components/candidates/forms/ManualInput';
-import CandidatesPage from './pages/CandidatesPage';
-import Login from './components/common/Login';
+import Sidebar from './components/sidebar/Sidebar';
+import LinkedInInput from './pages/linkedInInput';
+import BatchUpload from './pages/batchUpload';
+import ManualInput from './pages/manualInput';
+import CandidatesPage from './pages/candidates';
+import Login from './pages/login';
+import SettingsPage from './pages/settings';
 
 const App = () => {
   const theme = useTheme();
@@ -55,6 +55,7 @@ const App = () => {
             <Route path="/batch" element={<BatchUpload />} />
             <Route path="/linkedin" element={<LinkedInInput />} />
             <Route path="/candidates" element={<CandidatesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </Box>
       </Router>
