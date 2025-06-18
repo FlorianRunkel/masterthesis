@@ -43,6 +43,13 @@ const LinkedInInput = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('linkedinProfileData');
+    if (savedProfile) {
+      setProfileData(JSON.parse(savedProfile));
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPredictionData(null);
@@ -67,6 +74,7 @@ const LinkedInInput = () => {
 
       const profile = await profileResponse.json();
       setProfileData(profile);
+      localStorage.setItem('linkedinProfileData', JSON.stringify(profile));
 
       // Namen extrahieren
       const [firstName, ...rest] = profile.name.split(' ');
@@ -293,7 +301,7 @@ const LinkedInInput = () => {
             </Box>
           )}
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, mb: 4 }}>
         <Button
           onClick={handleSubmit}
           disabled={loading || !selectedModel || !linkedinUrl}
