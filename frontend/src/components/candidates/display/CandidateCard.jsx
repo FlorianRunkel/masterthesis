@@ -76,7 +76,7 @@ const CandidateCard = ({ candidate }) => {
               fontSize: isMobile ? '0.7rem' : '0.8rem', 
               color: '#001B41', 
               textDecoration: 'none', 
-              '&:hover': { color: '#FF8000' }, 
+              '&:hover': { color: '#EB7836' }, 
               wordBreak: 'break-all', 
               maxWidth: '100%', 
               display: 'block' 

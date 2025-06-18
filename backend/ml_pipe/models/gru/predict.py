@@ -21,38 +21,38 @@ def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Ma
 
 def get_feature_names():
     return [
-        "berufserfahrung_bis_zeitpunkt",
-        "anzahl_wechsel_bisher",
-        "anzahl_jobs_bisher",
-        "durchschnittsdauer_bisheriger_jobs",
-        "highest_degree",
-        "age_category",
-        #"anzahl_standortwechsel",
-        #"study_field",
+        "job experience total",
+        "job changes total",
+        "job positions total",
+        "job average duration",
+        "education highest degree",
+        "age category",
+        #"location changes total",
+        #"study field",
         #"company_size_category",
-        "position_level",
-        "branche",
-        "durchschnittszeit_position",
-        "position_idx"
+        "position level",
+        "industry",
+        "position average duration",
+        "position id"
     ]
 
 def get_feature_description(name):
     descriptions = {
-        "berufserfahrung_bis_zeitpunkt": "Gesamte Berufserfahrung bis zum aktuellen Zeitpunkt in Tagen",
-        "anzahl_wechsel_bisher": "Anzahl der bisherigen Jobwechsel",
-        "anzahl_jobs_bisher": "Anzahl der bisherigen Positionen",
-        "durchschnittsdauer_bisheriger_jobs": "Durchschnittliche Dauer bisheriger Positionen in Tagen",
-        "highest_degree": "Höchster Bildungsabschluss (1-5)",
-        "age_category": "Alterskategorie basierend auf Karrierestart (1-5)",
-        #"anzahl_standortwechsel": "Anzahl verschiedener Arbeitsstandorte",
-       # "study_field": "Studienfach aus der Ausbildung",
-        #"company_size_category": "Größenkategorie des aktuellen Unternehmens",
-        "position_level": "Hierarchielevel der aktuellen Position",
-        "branche": "Branche/Industrie des aktuellen Unternehmens",
-        "durchschnittszeit_position": "Durchschnittliche Verweildauer in ähnlichen Positionen",
-        "position_idx": "Eindeutige ID der aktuellen Position"
+        "job experience total": "Total job experience in days",
+        "job changes total": "Total job changes",
+        "job positions total": "Total job positions",
+        "job average duration": "Average duration of previous jobs in days",
+        "education highest degree": "Highest education degree (1-5)",
+        "age category": "Age category based on career start (1-5)",
+        #"location changes total": "Total number of different work locations",
+       # "study field": "Study field from education",
+        #"company_size_category": "Size category of current company",
+        "position level": "Hierarchy level of current position",
+        "industry": "Industry/Industry of current company",
+        "position average duration": "Average duration in similar positions",
+        "position id": "Unique ID of current position"
     }
-    return descriptions.get(name, "Dieses Feature beeinflusst die Vorhersage.")
+    return descriptions.get(name, "This feature influences the prediction.")
 
 def get_status_and_recommendation(tage):
     if tage < 30:
