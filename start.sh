@@ -1,4 +1,4 @@
-#!/bin/bash
+wäre #!/bin/bash
 
 # Farben für die Ausgabe
 GREEN='\033[0;32m'

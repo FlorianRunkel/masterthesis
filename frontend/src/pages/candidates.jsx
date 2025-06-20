@@ -21,7 +21,7 @@ const CandidatesPage = () => {
     const fetchCandidates = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5100/candidates');
+        const response = await fetch('/candidates');
         if (!response.ok) {
           throw new Error('Error loading candidates');
         }

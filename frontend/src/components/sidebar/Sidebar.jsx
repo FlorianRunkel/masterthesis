@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Box, Paper, useMediaQuery, useTheme, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 const Sidebar = ({ onLogout }) => {
   const location = useLocation();
@@ -44,7 +43,7 @@ const Sidebar = ({ onLogout }) => {
           </IconButton>
         </Paper>
 
-        <Drawer variant="temporary" anchor="right" open={mobileOpen} ModalProps={{keepMounted: true,}}
+        <Drawer variant="temporary" anchor="right" open={mobileOpen} onClose={handleDrawerToggle} ModalProps={{ keepMounted: true,}}
           sx={{ '& .MuiDrawer-paper': {  boxSizing: 'border-box',  width: 280, bgcolor: '#fff' }, }} >
           {/* Oberer Bereich mit Überschrift */}
           <Box sx={{ width: '100%',  display: 'flex', flexDirection: 'column',alignItems: 'center',justifyContent: 'center',py: 3,borderBottom: '1px solid #eee',bgcolor: '#fff'}}>

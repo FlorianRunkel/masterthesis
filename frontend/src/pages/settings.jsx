@@ -24,7 +24,7 @@ const SettingsPage = () => {
     setSuccess(null);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5100/api/create-user', {
+      const response = await fetch('/api/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -46,7 +46,7 @@ const SettingsPage = () => {
   // Fetch all users
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:5100/api/users');
+      const res = await fetch('/api/users');
       const data = await res.json();
       console.log('User-API Antwort:', data);
       if (res.ok) {
@@ -82,7 +82,7 @@ const SettingsPage = () => {
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
-      const res = await fetch(`http://localhost:5100/api/users/${userToDelete._id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/users/${userToDelete._id}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
         setDeleteSuccess('User erfolgreich gelöscht!');
@@ -110,7 +110,7 @@ const SettingsPage = () => {
 
   const handleUpdateUser = async (user) => {
     try {
-      const res = await fetch(`http://localhost:5100/api/users/${user._id}`, {
+      const res = await fetch(`/api/users/${user._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

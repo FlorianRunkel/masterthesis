@@ -360,6 +360,7 @@ def handler(file_path):
         logger.error(f"Kritischer Fehler beim Verarbeiten der Datei: {str(e)}")
         return
 
+'''
 csv_folder = "backend/ml_pipe/data/datafiles/"
 if not os.path.exists(csv_folder):
     logger.error(f"Ordner nicht gefunden: {csv_folder}")
@@ -368,3 +369,4 @@ else:
         if filename.endswith(".csv"):
             file_path = os.path.join(csv_folder, filename)
             handler(file_path)
+'''

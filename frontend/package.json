@@ -17,7 +17,7 @@
     "tailwindcss": "^3.3.3"
   },
   "scripts": {
-    "start": "BROWSER=none WDS_SOCKET_HOST=localhost react-scripts start",
+    "start": "DANGEROUSLY_DISABLE_HOST_CHECK=true BROWSER=none WDS_SOCKET_HOST=localhost react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

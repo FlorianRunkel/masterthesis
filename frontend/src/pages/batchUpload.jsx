@@ -112,7 +112,7 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      const response = await fetch('http://localhost:5100/predict-batch', {
+      const response = await fetch('/predict-batch', {
         method: 'POST',
         body: formData
       });
@@ -160,7 +160,7 @@ const BatchUpload = () => {
         candidates.map(async (candidate) => {
           if (candidate.linkedinProfile) {
             try {
-              const response = await fetch('http://localhost:5100/scrape-linkedin', {
+              const response = await fetch('/scrape-linkedin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: candidate.linkedinProfile }),
@@ -201,7 +201,7 @@ const BatchUpload = () => {
         modelType: modelType
       }));
 
-      const response = await fetch('http://localhost:5100/api/candidates', {
+      const response = await fetch('/api/candidates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -163,7 +163,7 @@ const ManualInput = () => {
 
       console.log("Sende Daten:", profile_data);
 
-      const response = await fetch('http://localhost:5100/predict', {
+      const response = await fetch('/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
