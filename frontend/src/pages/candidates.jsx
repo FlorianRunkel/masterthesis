@@ -58,6 +58,34 @@ const CandidatesPage = () => {
     setFilteredCandidates(filtered);
   }, [searchTerm, selectedModel, candidates]);
 
+  const handleDeleteCandidate = async (candidateId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const uid = user?.uid;
+
+      if (!uid) {
+        throw new Error("User not authenticated");
+      }
+      
+      const response = await fetch(`/api/candidates/${candidateId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-User-Uid': uid,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete candidate');
+      }
+
+      // Remove the candidate from the state
+      setCandidates(prevCandidates => prevCandidates.filter(c => c._id !== candidateId));
+
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -74,7 +102,7 @@ const CandidatesPage = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+    <Box>
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
@@ -271,6 +299,7 @@ const CandidatesPage = () => {
             <CandidateCard 
               key={candidate._id} 
               candidate={candidate} 
+              onDelete={handleDeleteCandidate}
             />
           ))}
         </Box>

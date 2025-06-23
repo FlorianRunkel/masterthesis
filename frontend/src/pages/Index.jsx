@@ -1,102 +1,258 @@
-import React from 'react';
-import { Container, Typography, Box, Paper } from '@mui/material';
-import ManualInput from '../components/ManualInput';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Box, Card, CardContent, Grid, Button, Paper, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DescriptionIcon from '@mui/icons-material/Description';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import StorageIcon from '@mui/icons-material/Storage';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const options = [
+    {
+      title: 'Manual Input',
+      description: 'Enter the candidate data manually for a detailed career prediction.',
+      icon: <DescriptionIcon sx={{ fontSize: 28, color: '#fff' }} />,
+      path: '/manual',
+      color: '#001242',
+      bgColor: '#001242',
+      features: ['Manual Data Entry', 'Instant Results', 'Personalized Recommendations']
+    },
+    {
+      title: 'LinkedIn Profile',
+      description: 'Analyze a LinkedIn profile by entering the profile URL.',
+      icon: <LinkedInIcon sx={{ fontSize: 28, color: '#fff' }} />,
+      path: '/linkedin',
+      color: '#0077B5',
+      bgColor: '#0077B5',
+      features: ['Automatic Data Extraction', 'Social Validation', 'Network Analysis']
+    },
+    {
+      title: 'Batch Upload',
+      description: 'Upload multiple profiles at once for a mass analysis.',
+      icon: <UploadFileIcon sx={{ fontSize: 28, color: '#fff' }} />,
+      path: '/batch',
+      color: '#EB7836',
+      bgColor: '#EB7836',
+      features: ['Mass Analysis', 'CSV Import', 'Comparison Analysis']
+    }
+  ];
+
+  const benefits = [
+    {
+        icon: <AutoAwesomeIcon fontSize="large" sx={{color: '#002442'}} />,
+        title: 'AI-supported Analysis',
+        description: 'Modern Machine-Learning-Algorithms.'
+    },
+    {
+        icon: <TrackChangesIcon fontSize="large" sx={{color: '#002442'}} />,
+        title: 'Precise Predictions',
+        description: '91% accuracy in job change predictions.'
+    },
+    {
+        icon: <StorageIcon fontSize="large" sx={{color: '#002442'}} />,
+        title: 'Comprehensive Database',
+        description: 'Over 120,000 analyzed profiles.'
+    },
+    {
+        icon: <AccountBoxIcon fontSize="large" sx={{color: '#001242'}} />,
+        title: 'Candidate Management',
+        description: 'Save promising candidates to contact them at the right time.'
+    }
+  ];
+
+  const stats = [
+      { value: '120K+', label: 'Analyzed Profiles' },
+      { value: '91%', label: 'Accuracy' },
+      { value: '24', label: 'Industries' },
+  ]
+
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)'
-    }}>
+    <Box>
       {/* Hero Section */}
-      <Box 
-        sx={{
-          pt: { xs: 4, sm: 6, md: 8 },
-          pb: { xs: 4, sm: 5, md: 6 },
-          textAlign: 'center',
-          background: 'linear-gradient(180deg, #0a1929 0%, #1a365d 100%)',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
-            pointerEvents: 'none'
-          }
-        }}
-      >
-        <Container maxWidth="md">
-          <Typography
-            component="h1"
-            variant="h2"
-            sx={{
-              fontWeight: 700,
-              mb: { xs: 1, sm: 2 },
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              background: 'linear-gradient(45deg, #fff 30%, #e0e7ff 90%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}
-          >
-            Career Prediction
-          </Typography>
-          <Typography
-            variant="h5"
-            color="grey.300"
-            sx={{
-              mb: { xs: 2, sm: 3, md: 4 },
-              maxWidth: '800px',
-              mx: 'auto',
-              lineHeight: 1.6,
-              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-              px: { xs: 2, sm: 0 }
-            }}
-          >
-            Analyze the probability of a single candidate's career change based on their work experience.
-          </Typography>
-        </Container>
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h1" sx={{
+          fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+          fontWeight: 800,
+          color: '#002442',
+          letterSpacing: '-1px'
+        }}>
+          Career Prediction AI
+        </Typography>
+        <Typography sx={{
+          fontSize: { xs: '1rem', md: '1.25rem' },
+          color: '#555',
+          mt: 2,
+          mb: 4,
+          lineHeight: 1.6
+        }}>
+        Enhance your recruiting decisions with data-driven insights: This interactive dashboard visualizes the probability of a candidate's career change based on their individual career history. The predictions are generated using advanced machine learning models and made interpretable through Explainable AI techniques. Select one of the options below to begin the analysis.
+        </Typography>
+
+        <Grid container spacing={2} sx={{ maxWidth: '800px', mt:4, mx: 'auto' }}>
+            {stats.map(stat => (
+                <Grid item xs={4} sm={4} key={stat.label} sx={{ textAlign: 'center' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#F59E42', fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}>{stat.value}</Typography>
+                    <Typography variant="body2" color="textSecondary">{stat.label}</Typography>
+                </Grid>
+            ))}
+        </Grid>
       </Box>
 
-      {/* Content Section */}
-      <Container 
-        maxWidth="lg" 
-        sx={{ 
-          py: { xs: 3, sm: 4, md: 6 },
-          px: { xs: 2, sm: 3, md: 4 },
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '100vw',
-            height: '100%',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(10px)',
-            zIndex: -1
-          }
-        }}
-      >
-        <Paper 
-          elevation={0}
-          sx={{
-            p: { xs: 2, sm: 3, md: 4 },
-            borderRadius: { xs: 2, sm: 3, md: 4 },
-            background: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
-          }}
-        >
-          <ManualInput />
-        </Paper>
-      </Container>
+      {/* Options Section */}
+      <Box>
+        <Grid container spacing={4}>
+          {options.map((option) => (
+            <Grid item xs={12} lg={4} key={option.title}>
+              <Card 
+                sx={{
+                  height: '100%',
+                  borderRadius: 4,
+                  boxShadow: '0 16px 32px rgba(0, 0, 0, 0.05)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: `0 24px 48px rgba(0,0,0,0.1)`
+                  },
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', mb: 2, bgcolor: option.bgColor, justifyContent: 'center' }}>
+                    {option.icon}
+                  </Box>
+                  <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mb: 1.5, color: '#002442' }}>
+                    {option.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3, minHeight: 60 }}>
+                    {option.description}
+                  </Typography>
+                  <List dense sx={{ mb: 3 }}>
+                      {option.features.map(feature => (
+                          <ListItem key={feature} sx={{ p: 0 }}>
+                              <ListItemIcon sx={{ minWidth: 32 }}>
+                                  <CheckCircleOutlineIcon sx={{ color: option.color, fontSize: 20 }} />
+                              </ListItemIcon>
+                              <ListItemText primary={feature} />
+                          </ListItem>
+                      ))}
+                  </List>
+                  <Box sx={{ mt: 'auto', pt: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={() => navigate(option.path)}
+                      endIcon={<ArrowForwardIcon />}
+                      sx={{
+                        backgroundColor: option.color,
+                        color: 'white',
+                        fontWeight: 700,
+                        borderRadius: '8px',
+                        py: 1.5,
+                        textTransform: 'none',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          backgroundColor: option.color,
+                          opacity: 0.9,
+                          boxShadow: `0 4px 24px ${option.color}40`
+                        }
+                      }}
+                    >
+                      Select
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+      
+      {/* Benefits Section */}
+      <Box sx={{ py: { xs: 6, md: 10 } }}>
+        <Typography variant="h2" sx={{ fontWeight: 700, color: '#002442', mb: 2, textAlign: 'center' }}>
+            Why Career Prediction AI?
+        </Typography>
+        <Typography variant="h6" sx={{ fontWeight: 400, color: '#555', maxWidth: '700px', mb: 6, textAlign: 'center', mx: 'auto' }}>
+            Use the power of artificial intelligence for job change predictions.
+        </Typography>
+        <Grid container spacing={{ xs: 3, md: 4 }}>
+            {benefits.map((benefit, index) => (
+                <Grid item xs={6} sm={6} md={3} key={index}>
+                    <Paper elevation={0} sx={{ textAlign: 'center', p: { xs: 2, sm: 3 }, bgcolor: 'transparent' }}>
+                        <Box sx={{color: '#F59E42', mb: 2}}>{benefit.icon}</Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#222', mb: 1 }}>{benefit.title}</Typography>
+                        <Typography variant="body2" color="text.secondary">{benefit.description}</Typography>
+                    </Paper>
+                </Grid>
+            ))}
+        </Grid>
+      </Box>
+
+      {/* Collaboration Section */}
+      <Box sx={{ bgcolor: '#fff' }}>
+        <Typography variant="h2" sx={{ textAlign: 'center', fontWeight: 700, color: '#002442', mb: 6 }}>
+            Academic-Industry Collaboration
+        </Typography>
+        <Typography variant="h6" sx={{ fontWeight: 400,textAlign: 'center', color: '#555', mb: 6, mx: 'auto' }}>
+            This application was developed as part of a Master's Thesis in Information Systems, combining academic research with practical AI application in partnership with aurio Technology GmbH and the University of Regensburg.
+        </Typography>
+        <Grid container spacing={4} justifyContent="center">
+          {[
+            { name: 'aurio Technology GmbH', logo: '/static/images/logo.png', url: 'https://www.aurio.ai/de/' },
+            { name: 'University of Regensburg', logo: '/static/images/ur-logo.png', url: 'https://www.ur.de/' }
+          ].map((partner) => (
+            <Grid item xs={12} sm={8} md={5} key={partner.name}>
+              <a href={partner.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                <Paper 
+                  elevation={2} 
+                  sx={{ 
+                    p: 4, 
+                    textAlign: 'center', 
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 4,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 24px 48px rgba(0,0,0,0.1)'
+                    }
+                  }}
+                >
+                  <img src={partner.logo} alt={`${partner.name} Logo`} style={{ maxHeight: '60px', width: 'auto', marginBottom: '16px' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {partner.name}
+                  </Typography>
+                </Paper>
+              </a>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     </Box>
   );
 };

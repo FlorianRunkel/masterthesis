@@ -28,7 +28,7 @@ wait_for_port() {
     local port=$1
     local name=$2
     local attempts=0
-    local max_attempts=20 # Erhöhte Versuche für das Frontend
+    local max_attempts=20
 
     echo -e "${BLUE}Warte auf ${name} auf Port ${port}...${NC}"
     while ! nc -z localhost $port >/dev/null 2>&1; do
@@ -68,11 +68,6 @@ wait_for_port 3000 "Frontend"
 echo -e "\n${GREEN}=== LOKALE SERVER SIND BEREIT ===${NC}"
 echo -e "${GREEN}Backend läuft auf: ${NC}http://localhost:5100"
 echo -e "${GREEN}Frontend läuft auf: ${NC}http://localhost:3000"
+echo -e "${YELLOW}Wenn deine Domain (z.B. http://masterthesis-app.de) korrekt auf diesen Rechner zeigt, ist die App jetzt auch dort erreichbar!${NC}"
 
-# Starte Ngrok für das Frontend im Vordergrund
-echo -e "\n${BLUE}Starte jetzt Ngrok für das Frontend...${NC}"
-echo -e "${YELLOW}Die öffentliche URL wird unten angezeigt. Drücke STRG+C, um alles zu beenden.${NC}\n"
-ngrok http http://localhost:3000
-
-# Wenn ngrok mit STRG+C beendet wird, ruft der Trap oben die cleanup-Funktion auf.
 wait 

@@ -1,23 +1,34 @@
 from flask import Blueprint, request, jsonify
 from backend.ml_pipe.data.database.mongodb import MongoDb
 import logging
+from bson import ObjectId
 
 # Blueprint für Kandidaten-Routen
 candidates_bp = Blueprint('candidates_bp', __name__)
 
 # Hilfsfunktion, die hier benötigt wird
 def candidate_exists(candidate, mongo_db, collection_name):
-    """Prüft, ob ein Kandidat bereits in der Datenbank existiert."""
-    # Prüfe auf LinkedIn-Profil
+    """Prüft, ob ein Kandidat bereits für einen bestimmten Benutzer (uid) in der Datenbank existiert."""
+    uid = candidate.get('uid')
+    if not uid:
+        # Ohne UID kann keine benutzerspezifische Prüfung erfolgen.
+        # Dies sollte von der aufrufenden Funktion sichergestellt werden.
+        return False
+
+    # Prüfe auf LinkedIn-Profil für diesen Benutzer
     if candidate.get('linkedinProfile'):
-        res = mongo_db.get({'linkedinProfile': candidate['linkedinProfile']}, collection_name)
+        query = {'linkedinProfile': candidate['linkedinProfile'], 'uid': uid}
+        res = mongo_db.get(query, collection_name)
         if res['statusCode'] == 200 and res['data']:
             return True
-    # Prüfe auf Vor- und Nachname (nur wenn LinkedIn nicht vorhanden oder leer)
+            
+    # Prüfe auf Vor- und Nachname für diesen Benutzer
     if candidate.get('firstName') and candidate.get('lastName'):
-        res = mongo_db.get({'firstName': candidate['firstName'], 'lastName': candidate['lastName']}, collection_name)
+        query = {'firstName': candidate['firstName'], 'lastName': candidate['lastName'], 'uid': uid}
+        res = mongo_db.get(query, collection_name)
         if res['statusCode'] == 200 and res['data']:
             return True
+            
     return False
 
 @candidates_bp.route('/candidates', methods=['GET'])
@@ -35,6 +46,28 @@ def get_all_candidates():
     except Exception as e:
         logging.error(f"Fehler beim Abrufen der Kandidaten: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@candidates_bp.route('/api/candidates/<candidate_id>', methods=['DELETE'])
+def delete_candidate(candidate_id):
+    """Löscht einen Kandidaten anhand seiner ID für einen bestimmten Benutzer."""
+    try:
+        uid = request.headers.get('X-User-Uid')
+        if not uid:
+            return jsonify({'error': 'Keine User-UID übergeben!'}), 400
+
+        mongo_db = MongoDb()
+        # Stelle sicher, dass der Benutzer nur seine eigenen Kandidaten löschen kann
+        result = mongo_db.delete({'_id': ObjectId(candidate_id), 'uid': uid}, 'candidates')
+
+        if result['statusCode'] == 200:
+            return jsonify({'message': 'Kandidat erfolgreich gelöscht'}), 200
+        else:
+            # Behandelt Fälle, in denen der Kandidat nicht gefunden wurde (oder nicht dem Benutzer gehört)
+            return jsonify({'error': result.get('error', 'Fehler beim Löschen')}), result['statusCode']
+
+    except Exception as e:
+        logging.error(f"Fehler beim Löschen des Kandidaten: {str(e)}")
+        return jsonify({'error': 'Interner Serverfehler: ' + str(e)}), 500
 
 @candidates_bp.route('/api/candidates', methods=['POST'])
 def save_candidates():

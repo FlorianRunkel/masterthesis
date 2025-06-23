@@ -28,6 +28,10 @@ const Timeline = ({ prediction, profile }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // ========== User Permission Check ==========
+  const user = JSON.parse(localStorage.getItem('user'));
+  const canViewExplanations = user?.canViewExplanations === true;
+
   // ========== Early Exit if No Prediction ==========
   if (!prediction) return null;
 
@@ -268,7 +272,7 @@ const Timeline = ({ prediction, profile }) => {
       </Box>
 
       {/* ===== SHAP Explanations Bar Chart ===== */}
-      {normalizedBarData.length > 0 && (
+      {canViewExplanations && normalizedBarData.length > 0 && (
         <Box sx={{ width: '100%', mb: isMobile ? 1 : 2 }}>
           <Typography
             variant="h6"

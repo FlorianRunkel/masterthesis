@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, Typography, Link, useTheme, useMediaQuery } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const CandidateCard = ({ candidate }) => {
+const CandidateCard = ({ candidate, onDelete }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const name = `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim();
@@ -17,14 +19,50 @@ const CandidateCard = ({ candidate }) => {
       return '#FF2525';
     } else {
       const percentage = value * 100;
-      if (percentage <= 40) return '#FF2525';
-      if (percentage <= 70) return '#FFC03D';
+      if (percentage < 40) return '#FF2525';
+      if (percentage < 70) return '#FFC03D';
       return '#8AD265';
     }
   };
 
   return (
-    <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: isMobile ? '20px' : '30px', boxShadow: { xs: 1, md: 2 }, height: '95%', display: 'flex', flexDirection: 'column', gap: isMobile ? 1 : 2, overflow: 'hidden' }}>
+    <Box sx={{ 
+        bgcolor: '#fff', 
+        borderRadius: '16px', 
+        p: isMobile ? '20px' : '30px', 
+        boxShadow: { xs: 1, md: 2 }, 
+        height: '95%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: isMobile ? 1 : 2, 
+        overflow: 'hidden',
+        position: 'relative',
+        '&:hover .delete-icon': {
+            opacity: 1
+        }
+    }}>
+        <IconButton
+            className="delete-icon"
+            onClick={(e) => {
+                e.stopPropagation();
+                onDelete(candidate._id);
+            }}
+            sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                color: 'red',
+                bgcolor: 'rgba(255, 255, 255, 0.7)',
+                opacity: 0,
+                transition: 'opacity 0.2s ease-in-out',
+                '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.9)',
+                }
+            }}
+        >
+            <DeleteIcon />
+        </IconButton>
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, minWidth: 0 }}>
         {candidate.imageUrl && candidate.imageUrl !== '' && (
           <img src={candidate.imageUrl} alt={name} style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee', flexShrink: 0 }} />

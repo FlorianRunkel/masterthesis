@@ -7,7 +7,7 @@ user_management_bp = Blueprint('user_management_bp', __name__)
 
 # --- Interne API-Logik (ehemals admin_api.py) ---
 
-def create_user_api(first_name, last_name, email, password):
+def create_user_api(first_name, last_name, email, password, canViewExplanations=False):
     """Erstellt einen neuen Benutzer in der Datenbank."""
     mongo_db = MongoDb()
     if not all([first_name, last_name, email, password]):
@@ -17,32 +17,35 @@ def create_user_api(first_name, last_name, email, password):
     if mongo_db.get({'email': email}, 'users')['data']:
         return {'statusCode': 409, 'error': 'Ein Benutzer mit dieser E-Mail existiert bereits'}
         
-    # Verwende die create_user-Methode, die automatisch eine UID vergibt
-    return mongo_db.create_user(first_name, last_name, email, password)
+    # Verwende die create_user-Methode mit dem übergebenen Wert
+    return mongo_db.create_user(first_name, last_name, email, password, canViewExplanations)
 
 def get_all_users_api():
     """Ruft alle Benutzer aus der Datenbank ab."""
     mongo_db = MongoDb()
     return mongo_db.get_all('users')
 
-def update_user_api(user_id, first_name, last_name, email, password):
-    """Aktualisiert einen Benutzer in der Datenbank."""
+def update_user_api(user_id, update_data):
+    """
+    Aktualisiert einen Benutzer mit den übergebenen Daten.
+    Nimmt ein Dictionary `update_data` entgegen und aktualisiert nur die darin enthaltenen Felder.
+    """
     mongo_db = MongoDb()
-    
-    update_data = {}
-    if first_name is not None:
-        update_data['firstName'] = first_name
-    if last_name is not None:
-        update_data['lastName'] = last_name
-    if email is not None:
-        update_data['email'] = email
-    if password:  # Passwort nur aktualisieren, wenn ein neues angegeben wird
-        update_data['password'] = password
-        
     if not update_data:
-        return {'statusCode': 400, 'error': 'Keine Daten zum Aktualisieren angegeben'}
+        return {'statusCode': 400, 'error': 'No update data provided.'}
         
-    return mongo_db.update_by_id(user_id, update_data, 'users')
+    # Erlaubte Felder definieren
+    allowed_fields = ['firstName', 'lastName', 'email', 'password', 'canViewExplanations']
+    update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
+
+    # Leeres Passwort nicht speichern
+    if 'password' in update_dict and not update_dict['password']:
+        del update_dict['password']
+
+    if not update_dict:
+        return {'statusCode': 400, 'error': 'No valid fields to update.'}
+        
+    return mongo_db.update_by_id(user_id, update_dict, 'users')
 
 def delete_user_api(user_id):
     """Löscht einen Benutzer aus der Datenbank."""
@@ -82,7 +85,8 @@ def api_create_user():
             first_name=data.get('firstName'),
             last_name=data.get('lastName'),
             email=data.get('email'),
-            password=data.get('password')
+            password=data.get('password'),
+            canViewExplanations=data.get('canViewExplanations', False)
         )
         if result['statusCode'] == 200:
             return jsonify({'message': 'User erfolgreich erstellt!', 'data': result['data']}), 200
@@ -114,14 +118,10 @@ def api_delete_user(user_id):
 def api_update_user(user_id):
     """API-Endpunkt zum Aktualisieren eines Benutzers."""
     data = request.get_json()
-    result = update_user_api(
-        user_id,
-        first_name=data.get('firstName'),
-        last_name=data.get('lastName'),
-        email=data.get('email'),
-        password=data.get('password')
-    )
-    if result['statusCode'] == 200:
+    # Ruft die neue, flexible update_user_api auf
+    result = update_user_api(user_id, data)
+    
+    if result.get('statusCode') == 200:
         return jsonify({'message': 'User erfolgreich aktualisiert'}), 200
     else:
-        return jsonify({'error': result.get('error', 'Unbekannter Fehler')}), result.get('statusCode', 400) 
+        return jsonify({'error': result.get('error', 'Update fehlgeschlagen')}), result.get('statusCode', 400) 

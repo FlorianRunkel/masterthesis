@@ -200,7 +200,7 @@ const LinkedInInput = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+    <Box sx={{ p: 0, m: 0 }}>
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 

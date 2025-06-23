@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, Alert, Card, List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, Typography, TextField, Button, Alert, Card, List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormControlLabel } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,7 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 const SettingsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
@@ -17,12 +17,25 @@ const SettingsPage = () => {
   const [deleteError, setDeleteError] = useState(null);
   const [deleteSuccess, setDeleteSuccess] = useState(null);
   const [editUsers, setEditUsers] = useState([]);
+  const [updateSuccess, setUpdateSuccess] = useState(null);
+  const [updateError, setUpdateError] = useState(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user?.firstName !== 'admin') {
+      // Da wir useNavigate hier nicht verwenden können, muss diese Logik
+      // in eine höhere Komponente oder durch einen anderen Mechanismus
+      // sichergestellt werden. Die primäre Sicherung ist die Anzeige
+      // des Links in der Sidebar.
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setSuccess(null);
     setError(null);
+    setDeleteSuccess(null);
     try {
       const response = await fetch('/api/create-user', {
         method: 'POST',
@@ -32,7 +45,7 @@ const SettingsPage = () => {
       const data = await response.json();
       if (response.ok) {
         setSuccess('User erfolgreich angelegt!');
-        setForm({ firstName: '', lastName: '', email: '', password: '' });
+        setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
       } else {
         setError(data.error || 'Fehler beim Anlegen des Users.');
       }
@@ -109,6 +122,8 @@ const SettingsPage = () => {
   };
 
   const handleUpdateUser = async (user) => {
+    setUpdateSuccess(null);
+    setUpdateError(null);
     try {
       const res = await fetch(`/api/users/${user._id}`, {
         method: 'PUT',
@@ -117,22 +132,25 @@ const SettingsPage = () => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          password: user.password || undefined // Nur setzen, wenn geändert
+          password: user.password || undefined, // Nur setzen, wenn geändert
+          canViewExplanations: user.canViewExplanations || false // Schalter-Status mitsenden
         })
       });
+      const data = await res.json();
       if (res.ok) {
         fetchUsers();
+        setUpdateSuccess('User erfolgreich aktualisiert!');
         // Optional: Erfolgsmeldung anzeigen
       } else {
-        // Optional: Fehlermeldung anzeigen
+        setUpdateError(data.error || 'Fehler beim Aktualisieren des Users.');
       }
     } catch (e) {
-      // Optional: Fehlermeldung anzeigen
+      setUpdateError('Serverfehler: ' + e.message);
     }
   };
 
   return (
-    <Box sx={{ maxWidth: isMobile ? '100%' : '1200px', marginLeft: isMobile ? 0 : '240px', fontSize: '0.88rem', fontFamily: 'inherit', px: isMobile ? 1 : 0 }}>
+    <Box sx={{ fontSize: '0.88rem', fontFamily: 'inherit', px: isMobile ? 1 : 0 }}>
       <Typography variant="h1" sx={{
         fontSize: isMobile ? '1.2rem' : '2rem',
         fontWeight: 700,
@@ -150,7 +168,7 @@ const SettingsPage = () => {
         Here you can create a new user account for the application.
       </Typography>
       {/* Create User Box */}
-      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mx: 'auto', mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>Create User</Typography>
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', gap: isMobile ? 1.2 : 2.4, flexDirection: isMobile ? 'column' : 'row', mb: 2 }}>
@@ -199,6 +217,17 @@ const SettingsPage = () => {
               }}
             />
           </Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.canViewExplanations}
+                onChange={e => setForm(f => ({...f, canViewExplanations: e.target.checked}))}
+              />
+            }
+            label="Allow user to view explanations"
+            labelPlacement="end"
+            sx={{ mb: 2, color: '#222', '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
+          />
           <Box sx={{ display: 'flex', justifyContent: isMobile ? 'center' : 'left', mt: 2 }}>
             <Button type="submit" variant="contained" disabled={loading} sx={{ fontWeight: 800, py: 1, px: 4, borderRadius: '6px', fontSize: isMobile ? '0.95rem' : '1rem', letterSpacing: 0.5, background: '#EB7836', color: '#fff', boxShadow: 'none', textTransform: 'none', minWidth: 140, maxWidth: 260, height: isMobile ? '38px' : '42px', '&:hover': { background: '#EB7836', color: '#fff' } }}>CREATE USER</Button>
           </Box>
@@ -207,10 +236,12 @@ const SettingsPage = () => {
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       </Box>
       {/* Edit Users Tabelle */}
-      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mx: 'auto', mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>
           Edit Users
         </Typography>
+        {updateSuccess && <Alert severity="success" sx={{ mb: 2 }}>{updateSuccess}</Alert>}
+        {updateError && <Alert severity="error" sx={{ mb: 2 }}>{updateError}</Alert>}
         {isMobile ? (
           <Box>
             {editUsers.map((user, idx) => (
@@ -258,6 +289,18 @@ const SettingsPage = () => {
                       fullWidth
                     />
                   </Box>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={user.canViewExplanations || false}
+                        onChange={(e) => handleEditChange(idx, 'canViewExplanations', e.target.checked)}
+                        disabled={user.uid === 'UID001'}
+                      />
+                    }
+                    label="Show Explanations"
+                    labelPlacement="start"
+                    sx={{ mt: 1, justifyContent: 'space-between', ml: 0 }}
+                  />
                   <Button
                     variant="contained"
                     color="primary"
@@ -281,6 +324,7 @@ const SettingsPage = () => {
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Last Name</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>E-Mail</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Password</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc', textAlign: 'center' }}>Explanations</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Action</TableCell>
                 </TableRow>
               </TableHead>
@@ -321,6 +365,13 @@ const SettingsPage = () => {
                         sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 } }}
                       />
                     </TableCell>
+                    <TableCell align="center">
+                      <Switch
+                        checked={user.canViewExplanations || false}
+                        onChange={(e) => handleEditChange(idx, 'canViewExplanations', e.target.checked)}
+                        disabled={user.uid === 'UID001'}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -348,7 +399,6 @@ const SettingsPage = () => {
             boxShadow: 1,
             p: isMobile ? 2 : 4,
             maxWidth: isMobile ? '100%' : 1200,
-            mx: 'auto',
             maxHeight: 400,
             overflowY: 'auto',
             mb: 2,

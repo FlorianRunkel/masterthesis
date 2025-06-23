@@ -58,8 +58,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
 
   // --- Helper: Get Probability Class for Styling ---
   const getProbabilityClass = (confidence) => {
-    if (confidence < 50) return 'probability-low';
-    if (confidence < 80) return 'probability-medium';
+    if (confidence < 40) return 'probability-low';
+    if (confidence < 70) return 'probability-medium';
     return 'probability-high';
   };
 

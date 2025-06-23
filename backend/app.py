@@ -24,7 +24,7 @@ def create_app():
                 template_folder=Config.TEMPLATE_DIR,
                 static_folder=Config.STATIC_DIR)
 
-    # Logging konfigurieren
+            # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
 
     # CORS für alle Routen aktivieren

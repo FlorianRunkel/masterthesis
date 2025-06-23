@@ -16,6 +16,11 @@ const PredictionResult = ({ prediction }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Benutzerberechtigung aus dem localStorage abrufen
+  const user = JSON.parse(localStorage.getItem('user'));
+  // ROBUSTE PRÜFUNG: Explizit auf den Wert `true` prüfen, um String vs. Boolean Fehler zu vermeiden.
+  const canViewExplanations = user?.canViewExplanations === true;
+
   // --- Early return if no prediction ---
   if (!prediction) return null;
 
@@ -81,7 +86,7 @@ const PredictionResult = ({ prediction }) => {
           </Box>
         </Box>
         {/* --- Feature Importance Bar --- */}
-        {barData.length > 0 && (
+        {canViewExplanations && barData.length > 0 && (
         <>
           <Typography variant="h6" color="primary" gutterBottom sx={{ mt: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 700, color: '#001B41' }}>Prediction Explanation</Typography>
           <Box sx={{ pt: 0, pb: 0 }}>

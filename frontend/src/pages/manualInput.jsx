@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, TextField, Switch, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Button, TextField, Select, MenuItem, Checkbox, FormControlLabel } from '@mui/material';
 import PredictionResultTime from '../components/prediction/prediction_time';
 import PredictionResultClassification from '../components/prediction/prediction_classification';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
+import SchoolIcon from '@mui/icons-material/School';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import AddIcon from '@mui/icons-material/Add';
+import Paper from '@mui/material/Paper';
 
 const modelOptions = [
   {
@@ -131,27 +135,52 @@ const ManualInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
+      const filteredExperiences = experiences.filter(exp => 
+        exp.company || exp.position || exp.startDate || exp.endDate
+      );
+      
+      const filteredEducation = education.filter(edu =>
+        edu.school || edu.degree || edu.fieldOfStudy || edu.startDate || edu.endDate
+      );
+
+      const formatDate = (dateStr, model) => {
+        if (!dateStr || dateStr === 'Present') return dateStr;
+    
+        // dateStr is in YYYY-MM-DD format from the date picker
+        if (dateStr.includes('-')) {
+            const [year, month, day] = dateStr.split('-');
+            
+            if (model === 'tft') {
+                return `${day}/${month}/${year}`; // Format for TFT: DD/MM/YYYY
+            } else {
+                return `${month}/${year}`; // Format for others: MM/YYYY
+            }
+        }
+        
+        return dateStr; // Fallback
+      };
+
       const profile_data = {
         firstName: "Unbekannt",
         lastName: "Unbekannt",
         linkedinProfileInformation: JSON.stringify({
           firstName: "Unbekannt",
           lastName: "Unbekannt",
-          workExperience: experiences.map(exp => ({
+          workExperience: filteredExperiences.map(exp => ({
             company: exp.company || "",
             position: exp.position || "",
-            startDate: exp.startDate ? formatDate(exp.startDate) : "",
-            endDate: exp.endDate === 'Present' ? 'Present' : (exp.endDate ? formatDate(exp.endDate) : ""),
+            startDate: exp.startDate ? formatDate(exp.startDate, selectedModel) : "",
+            endDate: exp.endDate === 'Present' ? 'Present' : (exp.endDate ? formatDate(exp.endDate, selectedModel) : ""),
             type: "fullTime",
             location: "",
             description: ""
           })),
-          education: education.map(edu => ({
+          education: filteredEducation.map(edu => ({
             school: edu.school || "",
             degree: edu.degree || "",
             fieldOfStudy: edu.fieldOfStudy || "",
-            startDate: edu.startDate ? formatDate(edu.startDate) : "",
-            endDate: edu.endDate === 'Present' ? 'Present' : (edu.endDate ? formatDate(edu.endDate) : "")
+            startDate: edu.startDate ? formatDate(edu.startDate, selectedModel) : "",
+            endDate: edu.endDate === 'Present' ? 'Present' : (edu.endDate ? formatDate(edu.endDate, selectedModel) : "")
           })),
           skills: [],
           location: "",
@@ -191,19 +220,9 @@ const ManualInput = () => {
     setShowModelChangeHint(true);
   };
 
-  // Hilfsfunktion zum Formatieren der Daten
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    // Konvertiere YYYY-MM-DD zu MM/YYYY
-    if (dateStr.includes('-')) {
-      const [year, month, day]  = dateStr.split('-');
-      return `${day}/${month}/${year}`;
-    }
-    return dateStr;
-  };
 
   return (
-    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+    <Box sx={{ p: 0, m: 0 }}>
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
@@ -221,54 +240,33 @@ const ManualInput = () => {
         Analyze the job change probability of a single candidate based on their work experience.
       </Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-        <Box sx={{ 
-          bgcolor: '#fff', 
-          borderRadius: '14px', 
-          p: isMobile ? '0 0px 20px 0' : '0 0px 32px 0', 
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)', 
-          mb: 4 
-        }}>
-          <Box sx={{
-            bgcolor: '#001242', 
-            borderTopLeftRadius: '14px',
-            borderTopRightRadius: '14px',
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: 0, 
-            p: isMobile ? '20px 0 20px 20px' : '32px 0 32px 32px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            mb: 0 
-          }}>
-            <Typography variant="h2" sx={{ 
-              fontSize: isMobile ? '1.2rem' : '1.4rem', 
-              fontWeight: 800, 
-              color: '#fff', 
-              mb: 0.8 
-            }}>
-              Education
-            </Typography>
-            <Typography sx={{ 
-              color: '#fff', 
-              mb: 2.4, 
-              fontSize: isMobile ? '0.8rem' : '0.88rem' 
-            }}>
-              Add information about the candidate's education.
-            </Typography>
-          </Box>
-          <Box sx={{ 
-            bgcolor: '#fff', 
-            borderRadius: '9.6px', 
-            p: isMobile ? 1.6 : 2.4, 
-            mb: 1.6 
-          }}>
+
+        {/* Education Section */}
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 8px 16px rgba(0,0,0,0.05)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: education.length > 0 ? 3 : 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <SchoolIcon sx={{ color: '#001242' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#001242' }}>Education</Typography>
+                </Box>
+                <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddEducation}
+                    sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600 , color: '#001242', borderColor: '#001242' }}
+                >
+                    Add
+                </Button>
+            </Box>
+
             {education.map((edu, index) => (
               <Box
                 key={index}
                 sx={{ 
-                  mb: 3.2, 
-                  bgcolor: '#fff', 
-                  borderRadius: '14px', 
-                  p: isMobile ? 1.6 : 3.2, 
-                  border: '1px solid #f0f0f0', 
+                  mt: 2,
+                  mb: 2, 
+                  borderRadius: '12px', 
+                  p: { xs: 1.5, sm: 2 }, 
+                  border: '1px solid #e0e0e0', 
                   position: 'relative' 
                 }}
               >
@@ -276,7 +274,7 @@ const ManualInput = () => {
                   <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem' }}>
                     Education {index + 1}
                   </Typography>
-                  {education.length > 1 && index > 0 && (
+                  {index > 0 && (
                     <Button
                       onClick={() => {
                         const newEducation = education.filter((_, i) => i !== index);
@@ -297,7 +295,7 @@ const ManualInput = () => {
                       size="small"
                       onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                   </Box>
                   <Box>
@@ -308,28 +306,8 @@ const ManualInput = () => {
                       size="small"
                       onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
                       fullWidth
-                      sx={{
-                        '& .MuiInputBase-root': {
-                          fontSize: '0.88rem',
-                          minHeight: '46px',
-                          height: '46px',
-                          bgcolor: '#fff',
-                          borderRadius: '8px',
-                          alignItems: 'center',
-                        },
-                        '& .MuiSelect-select': {
-                          color: '#888',
-                          ml: 0,
-                          border: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          height: '46px',
-                          paddingTop: 0,
-                          paddingBottom: 0,
-                        },
-                        width: '100%'
-                      }}
-                      renderValue={selected => selected ? degreeOptions.find(opt => opt.value === selected)?.label : ''}
+                      sx={{ height: '46px', fontSize: '0.88rem' }}
+                      renderValue={selected => selected ? degreeOptions.find(opt => opt.value === selected)?.label : <Typography sx={{color: 'text.secondary'}}>Select Degree</Typography>}
                     >
                       <MenuItem value="" disabled>
                         Degree
@@ -350,11 +328,11 @@ const ManualInput = () => {
                       size="small"
                       onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                   </Box>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, alignItems: 'center' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, alignItems: 'flex-end' }}>
                   <Box>
                     <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, mb: 0.5 }}>Start Date</Typography>
                     <TextField
@@ -364,58 +342,73 @@ const ManualInput = () => {
                       onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
                       InputLabelProps={{ shrink: true }}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' }, FormHelperTextProps: { sx: { textAlign: 'left', width: '100%', m: 0, p: 0 } } }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
                     <Box sx={{ flex: 1 }}>
                       <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, mb: 0.5 }}>End Date</Typography>
                       <TextField
-                        type={edu.endDate === 'Present' ? 'text' : 'date'}
-                        value={edu.endDate}
+                        type="date"
+                        disabled={edu.endDate === 'Present'}
+                        value={edu.endDate === 'Present' ? '' : edu.endDate}
                         size="small"
                         onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
                         InputLabelProps={{ shrink: true }}
                         fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' }, FormHelperTextProps: { sx: { textAlign: 'left', width: '100%', m: 0, p: 0 } } }}
+                        sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                       />
                     </Box>
-                    <Switch
-                      checked={edu.endDate === 'Present'}
-                      onChange={e => handleEducationChange(index, 'endDate', e.target.checked ? 'Present' : '')}
-                      color="primary"
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={edu.endDate === 'Present'}
+                                onChange={e => handleEducationChange(index, 'endDate', e.target.checked ? 'Present' : '')}
+                            />
+                        }
+                        label="Present"
+                        sx={{ mb: '2px', '& .MuiTypography-root': { fontSize: '0.88rem', fontWeight: 500 } }}
                     />
-                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: '#888', ml: 0 }}>
-                      Present
-                    </Typography>
                   </Box>
                 </Box>
               </Box>
             ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4.8 }}>
-              <Button onClick={handleAddEducation} fullWidth sx={{ bgcolor: '#fff', color: '#001B41', border: '2px solid #001B41', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', px: 3.2, py: 1.36, mt: 2.4, maxWidth: "100%", maxHeight: "40px", justifyContent: "center", alignItems: "center", display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s', '&:hover': { bgcolor: '#fff', border: '2px solid #EB7836', color: '#EB7836' } }}>
-                ADD ANOTHER EDUCATION
-              </Button>
+        </Paper>
+
+        {/* Work Experience Section */}
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 8px 16px rgba(0,0,0,0.05)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: experiences.length > 0 ? 3 : 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <BusinessCenterIcon sx={{ color: '#001242' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#001242' }}>Work Experience</Typography>
+                </Box>
+                <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddExperience}
+                    sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600 , color: '#001242', borderColor: '#001242'}}
+                >
+                    Add
+                </Button>
             </Box>
-          </Box>
-        </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '0 0px 32px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 4 }}>
-          <Box sx={{bgcolor: '#001242', borderTopLeftRadius: '14px',borderTopRightRadius: '14px',borderBottomLeftRadius: 0,borderBottomRightRadius: 0, p: '32px 0 32px 32px',boxShadow: '0 2px 8px rgba(0,0,0,0.08)',mb: 0 }}>
-            <Typography variant="h2" sx={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', mb: 0.8 }}>Work Experience</Typography>
-            <Typography sx={{ color: '#fff', mb: 2.4, fontSize: '0.88rem' }}>
-              Add information about the candidate's work experience.
-            </Typography>
-          </Box>
-          <Box sx={{ bgcolor: '#fff', borderRadius: '9.6px', p: 2.4, mb: 1.6 }}>
+
             {experiences.map((exp, index) => (
               <Box
                 key={index}
-                sx={{ mb: 3.2,  bgcolor: '#fff', borderRadius: '14px', p: { xs: 1.6, sm: 3.2 }, border: '1px solid #f0f0f0', position: 'relative'}} >
+                sx={{ 
+                  mt: 2,
+                  mb: 2,  
+                  borderRadius: '12px', 
+                  p: { xs: 1.5, sm: 2 }, 
+                  border: '1px solid #e0e0e0', 
+                  position: 'relative'
+                }}
+              >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.6 }}>
                   <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem' }}>
                     Position {index + 1}
                   </Typography>
-                  {experiences.length > 1 && index > 0 && (
+                  {index > 0 && (
                     <Button
                       onClick={() => handleRemoveExperience(index)}
                       sx={{ color: '#FF2525', fontWeight: 600, fontSize: '0.8rem', textTransform: 'none', display: 'flex',alignItems: 'center',  gap: 0.4,  p: 0, minWidth: 0 }} startIcon={<DeleteOutlineIcon />} >
@@ -431,7 +424,7 @@ const ManualInput = () => {
                       size="small"
                       onChange={e => handleExperienceChange(index, 'company', e.target.value)}
                       fullWidth
-                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px'}, input: { fontSize: '0.88rem'} }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px'}, input: { fontSize: '0.88rem'} }}
                     />
                   </Box>
                   <Box>
@@ -441,11 +434,11 @@ const ManualInput = () => {
                       size="small"
                       onChange={e => handleExperienceChange(index, 'position', e.target.value)}
                       fullWidth
-                      sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' , justifyContent: "center", alignItems: "center", display: "flex"} }}
+                      sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                   </Box>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, alignItems: 'center' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.4, alignItems: 'flex-end' }}>
                   <Box>
                     <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, mb: 0.5 }}>Start Date</Typography>
                     <TextField
@@ -455,41 +448,39 @@ const ManualInput = () => {
                       onChange={e => handleExperienceChange(index, 'startDate', e.target.value)}
                       InputLabelProps={{ shrink: true }}
                       fullWidth
-                      sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' }, FormHelperTextProps: { sx: { textAlign: 'left', width: '100%', m: 0, p: 0 } } }}
+                      sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
                     <Box sx={{ flex: 1 }}>
                       <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, mb: 0.5 }}>End Date</Typography>
                       <TextField
                         size="small"
-                        type={exp.endDate === 'Present' ? 'text' : 'date'}
-                        value={exp.endDate}
+                        type="date"
+                        disabled={exp.endDate === 'Present'}
+                        value={exp.endDate === 'Present' ? '' : exp.endDate}
                         onChange={e => handleExperienceChange(index, 'endDate', e.target.value)}
                         InputLabelProps={{ shrink: true }}
                         fullWidth
-                        sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', minHeight: '46px' }, input: { fontSize: '0.88rem' }, FormHelperTextProps: { sx: { textAlign: 'left', width: '100%', m: 0, p: 0 } } }}
+                        sx={{  '& .MuiOutlinedInput-root': { fontSize: '0.88rem', height: '46px' }, input: { fontSize: '0.88rem' } }}
                       />
                     </Box>
-                    <Switch
-                      checked={exp.endDate === 'Present'}
-                      onChange={e => handleExperienceChange(index, 'endDate', e.target.checked ? 'Present' : '')}
-                      color="primary"
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={exp.endDate === 'Present'}
+                                onChange={e => handleExperienceChange(index, 'endDate', e.target.checked ? 'Present' : '')}
+                            />
+                        }
+                        label="Present"
+                        sx={{ mb: '2px', '& .MuiTypography-root': { fontSize: '0.88rem', fontWeight: 500 } }}
                     />
-                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: '#888', ml: 0 }}>
-                      Present
-                    </Typography>
                   </Box>
                 </Box>
               </Box>
             ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4.8 }}>
-              <Button onClick={handleAddExperience} fullWidth sx={{ bgcolor: '#fff',color: '#001B41',border: '2px solid #001B41',borderRadius: '8px',fontWeight: 600,fontSize: '0.8rem',px: 3.2,py: 1.36,mt: 2.4,maxWidth: "100%", maxHeight: "40px",justifyContent: "center",alignItems: "center",display: "flex", margin: "0 auto", boxShadow: 'none', textTransform: 'none', transition: 'all 0.2s','&:hover': { bgcolor: '#fff', border: '2px solid #EB7836', color: '#EB7836'}}} >
-                ADD ANOTHER POSITION
-              </Button>
-            </Box>
-          </Box>
-        </Box>
+        </Paper>
+        
         <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
           <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
             Select AI model

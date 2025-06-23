@@ -229,7 +229,7 @@ const BatchUpload = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1200px',  marginLeft: isMobile ? 0 : '240px' }}>
+    <Box>
 
       <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
