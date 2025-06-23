@@ -11,9 +11,9 @@ sys.path.insert(0, parent_dir)
 
 # Lokale Konfiguration und Handler importieren
 from backend.config import Config
-from backend.api_handlers.pages.handler import pages_bp
+# from backend.api_handlers.pages.handler import pages_bp # Entfernt
 from backend.api_handlers.candidates.handler import candidates_bp
-from backend.api_handlers.linkedin.handler import linkedin_bp, initialize_linkedin_api
+from backend.api_handlers.linkedin.handler import linkedin_bp #, initialize_linkedin_api # Geändert
 from backend.api_handlers.prediction.handler import prediction_bp
 from backend.api_handlers.user_management.handler import user_management_bp
 
@@ -31,16 +31,16 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Blueprints registrieren, um die Routen zu aktivieren
-    app.register_blueprint(pages_bp)
+    # app.register_blueprint(pages_bp) # Entfernt
     app.register_blueprint(candidates_bp)
     app.register_blueprint(linkedin_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(user_management_bp)
 
     # App-Kontext für Initialisierungen verwenden
-    with app.app_context():
+    # with app.app_context(): # Entfernt
         # LinkedIn API initialisieren, falls benötigt
-        initialize_linkedin_api()
+        # initialize_linkedin_api() # Entfernt
         # Hier könnten weitere Initialisierungen stattfinden (z.B. DB-Check)
     
     app.logger.info("Flask-Anwendung erfolgreich erstellt und konfiguriert.")

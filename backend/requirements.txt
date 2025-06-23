@@ -21,3 +21,7 @@ shap
 rapidfuzz
 certifi
 linkedin-api
+selenium
+beautifulsoup4
+webdriver-manager
+requests

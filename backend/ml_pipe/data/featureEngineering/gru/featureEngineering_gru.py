@@ -8,10 +8,12 @@ class FeatureEngineering:
     def __init__(self):
         # Lade Konfigurationsdateien relativ zum Skriptpfad
         script_dir = os.path.dirname(__file__)
-        json_path = os.path.join(
-            script_dir, '..', '..', 'data', 'featureEngineering', 'position_level.json'
+        
+        # Korrigierte Pfade
+        position_level_path = os.path.join(
+            script_dir, '..', 'position_level.json'
         )
-        with open(json_path, "r", encoding="utf-8") as f:
+        with open(position_level_path, "r", encoding="utf-8") as f:
             self.position_levels = json.load(f)
         self.position_map = {
             entry["position"].lower(): (entry["level"], entry["branche"], entry["durchschnittszeit_tage"]) 
@@ -28,14 +30,14 @@ class FeatureEngineering:
         self.branche_set = set(entry["branche"].lower() for entry in self.position_levels)
 
         study_field_path = os.path.join(
-            script_dir, '..', '..', 'data', 'featureEngineering', 'study_field_map.json'
+            script_dir, '..', 'study_field_map.json'
         )
         with open(study_field_path, "r", encoding="utf-8") as f:
             self.study_field_map = json.load(f)
 
         # Position-zu-Index Mapping laden
         position_idx_path = os.path.join(
-            script_dir, '..', '..', 'data', 'dataModule', 'tft', 'position_to_idx.json'
+            script_dir, '..', '..', 'dataModule', 'tft', 'position_to_idx.json'
         )
         with open(position_idx_path, "r", encoding="utf-8") as f:
             self.position_to_idx = json.load(f)

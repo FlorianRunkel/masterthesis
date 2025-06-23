@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/')
-
 from ml_pipe.data.database.mongodb import MongoDb
 from bson import ObjectId
 

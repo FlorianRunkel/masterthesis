@@ -10,7 +10,9 @@ from rapidfuzz import process, fuzz
 class FeatureEngineering:
     
     def __init__(self, use_llm: bool = False):
-        json_path = os.path.join("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json")
+        # Lade die Position-Level-Zuordnungen relativ zum Skriptpfad
+        script_dir = os.path.dirname(__file__)
+        json_path = os.path.join(script_dir, '..', 'position_level.json')
         # Lade die Position-Level-Zuordnungen als Dict: {"position": (level, branche, durchschnittszeit_tage)}
         with open(json_path, "r", encoding="utf-8") as f:
             position_list = json.load(f)

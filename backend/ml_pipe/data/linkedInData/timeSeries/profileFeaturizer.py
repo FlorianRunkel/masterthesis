@@ -2,9 +2,7 @@ import pandas as pd
 import json
 from datetime import datetime, timedelta
 import random
-import sys
 import os
-sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
 from backend.ml_pipe.data.database.mongodb import MongoDb
 
 def classify_change(diff_months):
