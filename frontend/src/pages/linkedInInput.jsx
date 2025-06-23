@@ -5,6 +5,7 @@ import PredictionResultClassification from '../components/prediction/prediction_
 import PredictionResultTime from '../components/prediction/prediction_time';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
+import { API_BASE_URL } from '../api';
 
 const LinkedInInput = () => {
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -61,7 +62,7 @@ const LinkedInInput = () => {
 
     try {
       // LinkedIn-Profil abrufen
-      const profileResponse = await fetch('/scrape-linkedin', {
+      const profileResponse = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: linkedinUrl })
@@ -120,7 +121,7 @@ const LinkedInInput = () => {
       };
 
       // Karriere-Vorhersage
-      const predictionResponse = await fetch('/predict', {
+      const predictionResponse = await fetch(`${API_BASE_URL}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile_data)
@@ -166,7 +167,7 @@ const LinkedInInput = () => {
         modelType: selectedModel
       };
 
-      const response = await fetch('/api/candidates', {
+      const response = await fetch(`${API_BASE_URL}/api/candidates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

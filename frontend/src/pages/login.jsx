@@ -4,6 +4,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import EmailIcon from '@mui/icons-material/Email';
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ const Login = ({ onLogin }) => {
       return;
     }
     try {
-      const response = await axios.post('/api/login', { email, password });
+      const response = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
       if (response.status === 200 && response.data.user) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('user', JSON.stringify(response.data.user));

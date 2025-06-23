@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, Alert, Card, List, ListItem, ListIt
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { API_BASE_URL } from '../api';
 
 const SettingsPage = () => {
   const theme = useTheme();
@@ -37,7 +38,7 @@ const SettingsPage = () => {
     setError(null);
     setDeleteSuccess(null);
     try {
-      const response = await fetch('/api/create-user', {
+      const response = await fetch(`${API_BASE_URL}/api/create-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -59,7 +60,7 @@ const SettingsPage = () => {
   // Fetch all users
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(`${API_BASE_URL}/api/users`);
       const data = await res.json();
       console.log('User-API Antwort:', data);
       if (res.ok) {
@@ -95,7 +96,7 @@ const SettingsPage = () => {
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
-      const res = await fetch(`/api/users/${userToDelete._id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/users/${userToDelete._id}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
         setDeleteSuccess('User erfolgreich gelöscht!');
@@ -125,7 +126,7 @@ const SettingsPage = () => {
     setUpdateSuccess(null);
     setUpdateError(null);
     try {
-      const res = await fetch(`/api/users/${user._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/users/${user._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

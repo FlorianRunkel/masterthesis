@@ -9,6 +9,7 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import { API_BASE_URL } from '../api';
 
 const modelOptions = [
   {
@@ -112,7 +113,7 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      const response = await fetch('/predict-batch', {
+      const response = await fetch(`${API_BASE_URL}/predict-batch`, {
         method: 'POST',
         body: formData
       });
@@ -160,7 +161,7 @@ const BatchUpload = () => {
         candidates.map(async (candidate) => {
           if (candidate.linkedinProfile) {
             try {
-              const response = await fetch('/scrape-linkedin', {
+              const response = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: candidate.linkedinProfile }),
@@ -201,7 +202,7 @@ const BatchUpload = () => {
         modelType: modelType
       }));
 
-      const response = await fetch('/api/candidates', {
+      const response = await fetch(`${API_BASE_URL}/api/candidates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

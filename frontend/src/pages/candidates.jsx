@@ -6,6 +6,7 @@ import CandidateCard from '../components/display/candidate_card';
 import LoadingSpinner from '../components/shared/loading_spinner';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
+import { API_BASE_URL } from '../api';
 
 const CandidatesPage = () => {
   const [candidates, setCandidates] = useState([]);
@@ -21,7 +22,7 @@ const CandidatesPage = () => {
     const fetchCandidates = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/candidates');
+        const response = await fetch(`${API_BASE_URL}/candidates`);
         if (!response.ok) {
           throw new Error('Error loading candidates');
         }
@@ -67,7 +68,7 @@ const CandidatesPage = () => {
         throw new Error("User not authenticated");
       }
       
-      const response = await fetch(`/api/candidates/${candidateId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/candidates/${candidateId}`, {
         method: 'DELETE',
         headers: {
           'X-User-Uid': uid,

@@ -9,6 +9,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import AddIcon from '@mui/icons-material/Add';
 import Paper from '@mui/material/Paper';
+import { API_BASE_URL } from '../api';
 
 const modelOptions = [
   {
@@ -192,7 +193,7 @@ const ManualInput = () => {
 
       console.log("Sende Daten:", profile_data);
 
-      const response = await fetch('/predict', {
+      const response = await fetch(`${API_BASE_URL}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
