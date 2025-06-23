@@ -27,8 +27,8 @@ def create_app():
             # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
 
-    # CORS für alle Routen aktivieren
-    CORS(app)
+    # CORS für alle Routen aktivieren und die Frontend-URL erlauben
+    CORS(app, resources={r"/*": {"origins": "https://masterthesis-1.onrender.com"}})
 
     # Blueprints registrieren, um die Routen zu aktivieren
     app.register_blueprint(pages_bp)
