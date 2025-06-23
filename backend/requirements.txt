@@ -7,4 +7,18 @@ scikit-learn
 numpy
 PyJWT
 passlib[bcrypt]
-# Fügen Sie hier weitere Abhängigkeiten hinzu, falls erforderlich 
+pymongo
+torch
+pytorch-lightning
+lightning
+pytorch-forecasting
+torchmetrics
+joblib
+matplotlib
+seaborn
+xgboost
+shap
+rapidfuzz
+certifi
+bson
+linkedin-api
