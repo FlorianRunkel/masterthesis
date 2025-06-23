@@ -12,7 +12,12 @@ import shap
 '''
 Helper Functions
 '''
-def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/saved_models"):
+def get_latest_model_path(model_dir=None):
+    if model_dir is None:
+        # Dynamischen Pfad zum Modell-Ordner erstellen
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        model_dir = os.path.join(script_dir, "saved_models")
+
     model_files = glob.glob(os.path.join(model_dir, "gru_model_*.pt"))
     if not model_files:
         raise FileNotFoundError(f"Kein Modell gefunden im Verzeichnis {model_dir}")

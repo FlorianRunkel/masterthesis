@@ -5,11 +5,13 @@ import sys
 import json
 import pandas as pd
 import torch
+import os
 
-import sys
-sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
+# Lade Konfigurationsdateien relativ zum Skriptpfad
+script_dir = os.path.dirname(__file__)
+config_path = os.path.join(script_dir, '..', '..', 'data', 'featureEngineering', 'position_level.json')
 
-with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json", "r") as f:
+with open(config_path, "r") as f:
     position_entries = json.load(f)
 
 position_map = {

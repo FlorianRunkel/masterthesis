@@ -6,8 +6,10 @@ from collections import defaultdict
 
 class FeatureEngineering:
     def __init__(self):
+        # Lade Konfigurationsdateien relativ zum Skriptpfad
+        script_dir = os.path.dirname(__file__)
         json_path = os.path.join(
-            "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/position_level.json"
+            script_dir, '..', '..', 'data', 'featureEngineering', 'position_level.json'
         )
         with open(json_path, "r", encoding="utf-8") as f:
             self.position_levels = json.load(f)
@@ -26,14 +28,14 @@ class FeatureEngineering:
         self.branche_set = set(entry["branche"].lower() for entry in self.position_levels)
 
         study_field_path = os.path.join(
-            "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/featureEngineering/study_field_map.json"
+            script_dir, '..', '..', 'data', 'featureEngineering', 'study_field_map.json'
         )
         with open(study_field_path, "r", encoding="utf-8") as f:
             self.study_field_map = json.load(f)
 
         # Position-zu-Index Mapping laden
         position_idx_path = os.path.join(
-            "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/dataModule/tft/position_to_idx.json"
+            script_dir, '..', '..', 'data', 'dataModule', 'tft', 'position_to_idx.json'
         )
         with open(position_idx_path, "r", encoding="utf-8") as f:
             self.position_to_idx = json.load(f)
@@ -335,3 +337,21 @@ class FeatureEngineering:
             torch.tensor(all_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32)
         )
+
+    def map_position_fuzzy(self, pos, threshold=80):
+        if not pos:
+            return 0, 0, 0
+        
+        pos_clean = pos.lower().strip()
+        
+        # Fuzzy Matching mit Schwellenwert von 80
+        match, score, _ = process.extractOne(pos_clean, self.position_list, scorer=fuzz.ratio)
+        
+        if score >= threshold:
+            level, branche, durchschnittszeit = self.position_map[match]
+            
+            #print(f"Fuzzy Match gefunden: '{pos}' -> '{match}' (Score: {score})")
+            return float(level), float(self.get_branche_num(branche)), float(durchschnittszeit)
+        
+        #print(f"Kein Match gefunden für Position: '{pos}'")
+        return 0, 0, 0
