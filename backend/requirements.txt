@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+gunicorn
+python-dotenv
+pandas
+scikit-learn
+numpy
+PyJWT
+passlib[bcrypt]
+# Fügen Sie hier weitere Abhängigkeiten hinzu, falls erforderlich 
