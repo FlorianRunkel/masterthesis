@@ -20,5 +20,4 @@ xgboost
 shap
 rapidfuzz
 certifi
-bson
 linkedin-api
