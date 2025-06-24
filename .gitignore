@@ -1,0 +1,57 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Python virtualenv
+venv/
+.env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# MacOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Flask/Lightning logs
+lightning_logs/
+*.log
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React build output
+frontend/build/
+frontend/.DS_Store
+
+# Ignore backend build artifacts
+backend/ml_pipe/models/*/saved_models/*.joblib
+backend/ml_pipe/models/*/saved_models/*.pt
+
+# Ignore MongoDB/DB files
+*.db
+*.sqlite3
+
+# Ignore test output
+*.out
+*.test
+
+# Ignore coverage reports
+htmlcov/
+.coverage
+coverage.xml
+
+# Ignore other system files
+Thumbs.db
+
+# Ignore cache files
+cache/
+
+# Ignore node_modules
+node_modules/

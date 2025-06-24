@@ -97,7 +97,7 @@ const Index = () => {
           color: '#002442',
           letterSpacing: '-1px'
         }}>
-          Career Prediction AI
+          Job Change Prediction AI
         </Typography>
         <Typography sx={{
           fontSize: { xs: '1rem', md: '1.25rem' },

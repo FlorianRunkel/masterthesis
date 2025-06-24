@@ -1,16 +1,13 @@
 #!/bin/bash
 
-# Farben für die Ausgabe
+# Farben
 GREEN='\033[0;32m'
-BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Speichere den Hauptverzeichnispfad
 MAIN_DIR=$(pwd)
 
-# Funktion zum Beenden aller Prozesse
 cleanup() {
     echo -e "\n${BLUE}Beende alle Server...${NC}"
     if [ ! -z "$BACKEND_PID" ]; then
@@ -19,55 +16,69 @@ cleanup() {
     if [ ! -z "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null
     fi
+    if [ ! -z "$NGROK_PID" ]; then
+        kill $NGROK_PID 2>/dev/null
+    fi
     echo -e "${GREEN}Alle Prozesse beendet.${NC}"
     exit 0
 }
 
-# Funktion zum Überprüfen, ob der Port verfügbar ist
-wait_for_port() {
-    local port=$1
-    local name=$2
-    local attempts=0
-    local max_attempts=20
-
-    echo -e "${BLUE}Warte auf ${name} auf Port ${port}...${NC}"
-    while ! nc -z localhost $port >/dev/null 2>&1; do
-        attempts=$((attempts + 1))
-        if [ $attempts -ge $max_attempts ]; then
-            echo -e "${RED}${name} konnte nicht gestartet werden (Port ${port} nicht verfügbar)${NC}"
-            cleanup
-            exit 1
-        fi
-        sleep 2
-    done
-    echo -e "${GREEN}${name} ist auf Port ${port} verfügbar.${NC}"
-}
-
-# Registriere cleanup für STRG+C
 trap cleanup INT
 
-echo -e "${BLUE}Starte Career Prediction Anwendung...${NC}"
-
-# Starte Backend
-echo -e "\n${GREEN}Starte Backend Server im Hintergrund...${NC}"
+echo -e "${GREEN}Starte Backend...${NC}"
 cd "$MAIN_DIR/backend"
-/usr/local/bin/python3 app.py &
+
+# Virtuelle Umgebung
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Backend starten
+python app.py &
 BACKEND_PID=$!
 
-# Starte Frontend
-echo -e "\n${GREEN}Starte Frontend Development Server im Hintergrund...${NC}"
+sleep 3
+
+# ngrok starten
+if ! command -v ngrok &> /dev/null; then
+    echo -e "${RED}ngrok ist nicht installiert!${NC}"
+    echo -e "${YELLOW}Installiere es von https://ngrok.com/download${NC}"
+    cleanup
+    exit 1
+fi
+
+echo -e "${GREEN}Starte ngrok für Backend (Port 5100)...${NC}"
+ngrok http 5100 > /tmp/ngrok.log 2>&1 &
+NGROK_PID=$!
+sleep 5
+
+NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"[^"]*"' | head -1 | cut -d'"' -f4)
+
 cd "$MAIN_DIR/frontend"
+
+# Node Modules installieren falls nötig
+if [ ! -d "node_modules" ]; then
+    npm install
+fi
+
+echo -e "${GREEN}Starte Frontend...${NC}"
 npm start &
 FRONTEND_PID=$!
 
-# Warte bis beide Server verfügbar sind
-wait_for_port 5100 "Backend"
-wait_for_port 3000 "Frontend"
+sleep 3
 
-# Zusammenfassung der lokalen URLs
-echo -e "\n${GREEN}=== LOKALE SERVER SIND BEREIT ===${NC}"
-echo -e "${GREEN}Backend läuft auf: ${NC}http://localhost:5100"
-echo -e "${GREEN}Frontend läuft auf: ${NC}http://localhost:3000"
-echo -e "${YELLOW}Wenn deine Domain (z.B. http://masterthesis-app.de) korrekt auf diesen Rechner zeigt, ist die App jetzt auch dort erreichbar!${NC}"
+# Zusammenfassung
+clear
+
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}Backend läuft lokal auf:   ${NC}http://localhost:5100"
+echo -e "${GREEN}Frontend läuft lokal auf:  ${NC}http://localhost:3000"
+echo -e "${YELLOW}Backend öffentlich (ngrok):${NC} $NGROK_URL"
+echo -e "${YELLOW}Trage diese URL in dein Frontend (api.js) ein, wenn du von außen zugreifen willst!${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo -e "${YELLOW}Drücke STRG+C zum Beenden aller Server${NC}"
+echo ""
 
 wait 

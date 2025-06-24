@@ -24,11 +24,11 @@ def create_app():
                 template_folder=Config.TEMPLATE_DIR,
                 static_folder=Config.STATIC_DIR)
 
-            # Logging konfigurieren
+    # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
 
     # CORS für alle Routen und alle Ursprünge aktivieren
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources=Config.CORS_RESOURCES)
 
     # Blueprints registrieren, um die Routen zu aktivieren
     # app.register_blueprint(pages_bp) # Entfernt
@@ -42,9 +42,9 @@ def create_app():
         # LinkedIn API initialisieren, falls benötigt
         # initialize_linkedin_api() # Entfernt
         # Hier könnten weitere Initialisierungen stattfinden (z.B. DB-Check)
-    
+
     app.logger.info("Flask-Anwendung erfolgreich erstellt und konfiguriert.")
-    
+
     return app
 
 # App erstellen

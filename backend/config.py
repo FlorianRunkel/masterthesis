@@ -9,15 +9,13 @@ class Config:
     CORS_RESOURCES = {
         r"/*": {
             "origins": [
-                "http://localhost:3000",  # Lokales Frontend
-                "http://127.0.0.1:3000",  # Alternative localhost
-                "https://*.ngrok.io",     # ngrok URLs
-                "https://*.ngrok-free.app", # Neue ngrok URLs
-                "*"  # Fallback für alle anderen
+                "https://masterthesis-igbq.onrender.com",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000"
             ],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "X-User-Uid"],
-            "supports_credentials": False
+            "supports_credentials": True
         }
     }
 

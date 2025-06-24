@@ -100,9 +100,13 @@ class MongoDb:
         try:
             collection = self.get_collection(collection_name)
             result = collection.update_one({"_id": ObjectId(id)}, {"$set": update_dict})
-            if result.modified_count > 0:
+            
+            # Korrekte Prüfung: Wurde das Dokument gefunden?
+            if result.matched_count > 0:
                 return {'statusCode': 200, 'message': 'Erfolgreich aktualisiert'}
-            return {'statusCode': 404, 'error': 'Nicht gefunden'}
+            
+            # Nur wenn kein Dokument gefunden wurde, geben wir 404 zurück.
+            return {'statusCode': 404, 'error': 'Benutzer mit dieser ID nicht gefunden'}
         except Exception as e:
             logger.error(f"Fehler beim Aktualisieren: {e}")
             return {'statusCode': 500, 'error': str(e)}
@@ -156,7 +160,7 @@ class MongoDb:
             logger.error(f"Fehler beim Zählen: {e}")
             return {'statusCode': 500, 'error': str(e)}
 
-    def create_user(self, first_name, last_name, email, password):
+    def create_user(self, first_name, last_name, email, password, canViewExplanations):
         '''Fügt einen neuen User in die Collection users ein. UID wird automatisch vergeben.'''
         try:
             collection = self.get_collection('users')
@@ -172,7 +176,8 @@ class MongoDb:
                 'firstName': first_name,
                 'lastName': last_name,
                 'email': email,
-                'password': password
+                'password': password,
+                'canViewExplanations': canViewExplanations
             }
             result = collection.insert_one(user_doc)
             if result.acknowledged:
@@ -192,6 +197,9 @@ class MongoDb:
             if user:
                 user.pop('password', None)
                 user['_id'] = str(user['_id'])
+                # Sicherstellen, dass der Key existiert, um Fehler im Frontend zu vermeiden
+                if 'canViewExplanations' not in user:
+                    user['canViewExplanations'] = False
                 return {'statusCode': 200, 'data': user}
             else:
                 return {'statusCode': 401, 'error': 'Falsche Anmeldedaten'}
