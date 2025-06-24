@@ -22,7 +22,7 @@ const CandidatesPage = () => {
     const fetchCandidates = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/candidates`);
+        const response = await fetch(`${API_BASE_URL}/api/candidates`);
         if (!response.ok) {
           throw new Error('Error loading candidates');
         }

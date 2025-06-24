@@ -31,7 +31,7 @@ def candidate_exists(candidate, mongo_db, collection_name):
             
     return False
 
-@candidates_bp.route('/candidates', methods=['GET'])
+@candidates_bp.route('/api/candidates', methods=['GET'])
 def get_all_candidates():
     """Gibt alle Kandidaten aus der Datenbank zurück."""
     try:
