@@ -1,3 +1,3 @@
 // Zentrale Konfiguration für die Backend-URL
 // export const API_BASE_URL = "http://localhost:5100";
-export const API_BASE_URL = "https://masterthesis-backend.onrender.com";
+export const API_BASE_URL = "https://e13a-93-104-240-206.ngrok-free.app";

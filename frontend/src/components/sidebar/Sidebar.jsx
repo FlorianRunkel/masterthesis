@@ -44,7 +44,7 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
               {user ? `${user.firstName} ${user.lastName}` : 'User'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {isAdmin ? 'Administrator' : ''}
+              {isAdmin ? 'Administrator' : 'User'}
             </Typography>
           </Box>
         )}
