@@ -1,33 +1,40 @@
 from flask import Blueprint, request, jsonify, current_app
-from linkedin_api import Linkedin
 from backend.config import Config
-
 import logging
 import json
+import requests
+import re
 
 # Blueprint für LinkedIn-Routen
 linkedin_bp = Blueprint('linkedin_bp', __name__)
 
-# Globale Variable für die API-Instanz
-linkedin_api = None
+API_KEY = "/6Lo4oDo.z/355AyQe6OLY+W9WxnZYe+RGE4YdOHm+WNUHCbt2Zw="
+ACCOUNT_ID = "l648QWf-Sw2qMGt499otjA"
+DSN = "api16.unipile.com:14659"
 
-def get_linkedin_api_instance():
-    """Erstellt oder gibt die bestehende LinkedIn API-Instanz zurück."""
-    global linkedin_api
-    if linkedin_api is None:
-        try:
-            email = Config.LINKEDIN_EMAIL
-            password = Config.LINKEDIN_PASSWORD
-            if not email or not password:
-                logging.error("LinkedIn-Anmeldeinformationen sind nicht in der Konfiguration gesetzt.")
-                return None
-            linkedin_api = Linkedin(email, password, refresh_cookies=True)
-            logging.info("LinkedIn API erfolgreich initialisiert")
-        except Exception as e:
-            logging.error(f"Fehler bei der LinkedIn API Initialisierung: {str(e)}")
-            linkedin_api = None # Bei Fehler zurücksetzen
-            return None
-    return linkedin_api
+def extract_public_identifier(linkedin_url):
+    match = re.search(r"linkedin\.com/in/([^/?]+)", linkedin_url)
+    if match:
+        return match.group(1)
+    return None
+
+def fetch_profile_direct(linkedin_url):
+    url = f"https://{DSN}/api/v1/linkedin"
+    headers = {
+        "X-API-KEY": API_KEY,
+        "accept": "application/json",
+        "content-type": "application/json"
+    }
+    data = {
+        "request_url": linkedin_url,
+        "account_id": ACCOUNT_ID
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.ok:
+        return response.json()
+    else:
+        print("Fehler:", response.status_code, response.text)
+        return None
 
 @linkedin_bp.route('/scrape-linkedin', methods=['POST'])
 def scrape_linkedin():
@@ -38,47 +45,44 @@ def scrape_linkedin():
         if not linkedin_url:
             return jsonify({'error': 'Keine LinkedIn-URL angegeben'}), 400
 
-        # Extrahiere public identifier aus der URL
-        import re
-        match = re.search(r"linkedin.com/in/([^/?]+)", linkedin_url)
-        if not match:
+        # 1. Profilnamen extrahieren
+        public_identifier = extract_public_identifier(linkedin_url)
+        if not public_identifier:
             return jsonify({'error': 'Ungültige LinkedIn-URL'}), 400
-        public_identifier = match.group(1)
 
-        api = get_linkedin_api_instance()
-        if not api:
-            return jsonify({'error': 'LinkedIn API konnte nicht initialisiert werden.'}), 500
-
+        # 2. Suche mit Unipile
         try:
-            profile = api.get_profile(public_identifier)
+            profile = fetch_profile_direct(linkedin_url)
         except Exception as api_error:
-            logging.error(f"LinkedIn API Fehler: {str(api_error)}")
-            return jsonify({'error': 'Fehler beim Abrufen der Profildaten von LinkedIn.'}), 500
+            logging.error(f"Unipile Search Fehler: {str(api_error)}")
+            return jsonify({'error': 'Fehler beim Abrufen der Profildetails von Unipile.'}), 500
+        
 
-        # Mapping ins gewünschte Format
+        logging.error(f"Unipile Search: {str(profile)}")
+        # 5. Mapping ins gewünschte Format
         profile_data = {
-            'name': profile.get('firstName', '') + ' ' + profile.get('lastName', ''),
+            'name': profile.get('full_name', ''),
             'currentTitle': profile.get('headline', ''),
-            'location': profile.get('locationName', ''),
-            'imageUrl': profile.get('profilePictureDisplayImage', ''),
+            'location': profile.get('location', ''),
+            'imageUrl': profile.get('profile_picture_url', ''),
             'experience': [],
             'education': [],
-            'industry': profile.get('industryName', ''),
+            'industry': profile.get('industry', ''),
             'summary': profile.get('summary', '')
         }
         for exp in profile.get('experience', []):
             profile_data['experience'].append({
                 'title': exp.get('title', ''),
-                'company': exp.get('companyName', ''),
-                'startDate': exp.get('timePeriod', {}).get('startDate', ''),
-                'endDate': exp.get('timePeriod', {}).get('endDate', '')
+                'company': exp.get('company', ''),
+                'startDate': exp.get('start_date', ''),
+                'endDate': exp.get('end_date', '')
             })
         for edu in profile.get('education', []):
             profile_data['education'].append({
-                'degree': edu.get('degreeName', ''),
-                'school': edu.get('schoolName', ''),
-                'startDate': edu.get('timePeriod', {}).get('startDate', ''),
-                'endDate': edu.get('timePeriod', {}).get('endDate', '')
+                'degree': edu.get('degree', ''),
+                'school': edu.get('school', ''),
+                'startDate': edu.get('start_date', ''),
+                'endDate': edu.get('end_date', '')
             })
         return jsonify(profile_data)
 
