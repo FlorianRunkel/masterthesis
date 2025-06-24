@@ -27,8 +27,18 @@ def create_app():
     # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
 
-    # CORS für alle Routen und alle Ursprünge aktivieren
-    CORS(app, resources=Config.CORS_RESOURCES)
+    # CORS explizit konfigurieren für Render-Deployment
+    origins = [
+        "https://masterthesis-igbq.onrender.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+    
+    CORS(app, 
+         origins=origins,
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization", "X-User-Uid"],
+         supports_credentials=True)
 
     # Blueprints registrieren, um die Routen zu aktivieren
     # app.register_blueprint(pages_bp) # Entfernt
