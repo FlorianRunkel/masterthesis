@@ -25,7 +25,7 @@ class Config:
     
     # Öffentliche URL (wird später gesetzt)
     PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5100')
-
     # LinkedIn API (in Produktion über Umgebungsvariablen!)
     LINKEDIN_EMAIL = os.environ.get('LINKEDIN_EMAIL', 'f.runkel@yahoo.com')
     LINKEDIN_PASSWORD = os.environ.get('LINKEDIN_PASSWORD', 'Cool0089!%')
+

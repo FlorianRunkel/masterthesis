@@ -21,8 +21,8 @@ def create_app():
     """Erstellt und konfiguriert die Flask-Anwendung."""
     
     app = Flask(__name__,
-                template_folder=Config.TEMPLATE_DIR,
-                static_folder=Config.STATIC_DIR)
+            template_folder=Config.TEMPLATE_DIR,
+            static_folder=Config.STATIC_DIR)
 
         # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
@@ -33,7 +33,7 @@ def create_app():
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ]
-    
+
     CORS(app, 
          origins=origins,
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
