@@ -4,16 +4,18 @@ import { useTheme } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { API_BASE_URL } from '../api';
 
-const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment / Feedback'];
+const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment'];
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
 const ratingCriteria = [
-  'Clarity',
-  'Relevance of predictions',
-  'Interpretability (SHAP)',
-  'Usefulness for Active Sourcing',
-  'Explainability (LIME)',
-  'Overall impression'
-];
+    'Clarity of the interface and layout',
+    'Relevance and realism of predictions',
+    'Transparency of model decisions',
+    'Usefulness for daily work in Active Sourcing',
+    'Trustworthiness of the AI recommendations',
+    'Ease of understanding feature importance',
+    'Likelihood of future usage in real scenarios',
+    'Overall impression and satisfaction'
+  ];
 
 const FeedbackPage = () => {
   const theme = useTheme();
@@ -206,7 +208,8 @@ const FeedbackPage = () => {
         </Box>
         {/* Rating scale */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Rating scale (1 = poor, 5 = excellent)</Typography>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Rating scale</Typography>
+          <Typography sx={{ fontSize: '0.9rem', color: '#666', mb: 1.5 }}>1 = poor, 5 = excellent</Typography>
           <TableContainer component={Paper} sx={{ mb: 1, boxShadow: 0 }}>
             <Table size="small">
               <TableHead>
