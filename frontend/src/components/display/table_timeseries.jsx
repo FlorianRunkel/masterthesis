@@ -86,7 +86,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
 
   // --- Main Render: Table of Results ---
   return (
-    <Box sx={{ maxWidth: '1200px', ml: 0 }}>
+    <Box sx={{ml: 0 }}>
       {/* --- Table Header: Summary and Save Button --- */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '13px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2, width: '100%' }}>
         <Box sx={{ p: '24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
