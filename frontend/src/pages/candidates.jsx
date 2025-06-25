@@ -93,7 +93,7 @@ const CandidatesPage = () => {
 
   if (error) {
     return (
-      <Box sx={{ maxWidth: '1200px', margin: '0 auto', p: 4 }}>
+      <Box sx={{margin: '0 auto', p: 4 }}>
         <Typography variant="h2" sx={{ mb: 3, color: '#1a1a1a', fontSize: '1.5rem', fontWeight: 600 }}>
           Error
         </Typography>
@@ -292,7 +292,7 @@ const CandidatesPage = () => {
       ) : (
         <Box sx={{ 
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: 2.4,
           width: '100%'
         }}>
