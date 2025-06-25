@@ -41,7 +41,7 @@ def scrape_linkedin():
             'lastName': model_input['lastName'],
             'currentTitle': profile_info.get('headline', ''),
             'location': profile_info.get('location', ''),
-            'imageUrl': profile_raw.get('profile_picture', ''),
+            'imageUrl': profile_raw.get('profile_picture_url', ''),
             'industry': profile_raw.get('industry', ''),
             'summary': profile_raw.get('summary', ''),
             'experience': [
