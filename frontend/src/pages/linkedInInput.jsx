@@ -163,9 +163,9 @@ const LinkedInInput = () => {
         location: profileData.location,
         confidence: [predictionData.confidence],
         recommendations: predictionData.recommendations,
-        imageUrl: profileData.imageUrl,
         industry: profileData.industry,
         experience: profileData.experience,
+        imageUrl: profileData.imageUrl || "",
         modelType: selectedModel
       };
 

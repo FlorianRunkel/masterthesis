@@ -10,6 +10,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import Collapse from '@mui/material/Collapse';
 
 const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const location = useLocation();
@@ -34,8 +35,11 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const DrawerContent = ({ isMobileDrawer = false }) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* User Info */}
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, justifyContent: isCollapsed && !isMobileDrawer ? 'center' : 'flex-start' }}>
-        {(!isCollapsed || isMobileDrawer) && (
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Avatar sx={{ bgcolor: '#001242', width: 40, height: 40 }}>
+          {user ? user.firstName.charAt(0) : 'U'}
+        </Avatar>
+        <Collapse in={!isCollapsed || isMobileDrawer} orientation="horizontal">
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#222' }}>
               {user ? `${user.firstName} ${user.lastName}` : 'User'}
@@ -44,7 +48,7 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
               {isAdmin ? 'Administrator' : 'User'}
             </Typography>
           </Box>
-        )}
+        </Collapse>
       </Box>
 
       {/* Navigation */}
