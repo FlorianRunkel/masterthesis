@@ -34,7 +34,14 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const DrawerContent = ({ isMobileDrawer = false }) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* User Info */}
-      <Box sx={{transition: 'all 0.2s ease', overflow: 'hidden', p: 2, display: 'flex', alignItems: 'center', gap: 2, justifyContent: isCollapsed && !isMobileDrawer ? 'center' : 'flex-start' }}>
+      <Box sx={{
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        justifyContent: 'flex-start',
+        minHeight: 64
+      }}>
         <Avatar sx={{ bgcolor: '#001242', width: 40, height: 40 }}>
           {user ? user.firstName.charAt(0) : 'U'}
         </Avatar>
@@ -63,8 +70,8 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
               mb: 1,
               borderRadius: 2,
               py: 1.2,
-              px: isCollapsed && !isMobileDrawer ? 1.5 : 2,
-              justifyContent: isCollapsed && !isMobileDrawer ? 'center' : 'flex-start',
+              px: 2,
+              justifyContent: 'flex-start',
               bgcolor: location.pathname === item.path ? '#EB7836' : 'transparent',
               color: location.pathname === item.path ? 'white' : '#555',
               '&:hover': {
