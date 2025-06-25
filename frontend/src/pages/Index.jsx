@@ -14,6 +14,9 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import StorageIcon from '@mui/icons-material/Storage';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -82,9 +85,21 @@ const Index = () => {
   ];
 
   const stats = [
-      { value: '120K+', label: 'Analyzed Profiles' },
-      { value: '91%', label: 'Accuracy' },
-      { value: '24', label: 'Industries' },
+    { 
+      value: '120K+', 
+      label: 'Analyzed Profiles', 
+      icon: <PeopleAltIcon sx={{ fontSize: 38, color: '#002442' }} /> 
+    },
+    { 
+      value: '91%', 
+      label: 'Accuracy', 
+      icon: <VerifiedIcon sx={{ fontSize: 38, color: '#002442' }} /> 
+    },
+    { 
+      value: '24', 
+      label: 'Industries', 
+      icon: <BusinessCenterIcon sx={{ fontSize: 38, color: '#002442' }} /> 
+    },
   ]
 
   return (
@@ -109,13 +124,66 @@ const Index = () => {
         Enhance your recruiting decisions with data-driven insights: This interactive dashboard visualizes the probability of a candidate's career change based on their individual career history. The predictions are generated using advanced machine learning models and made interpretable through Explainable AI techniques. Select one of the options below to begin the analysis.
         </Typography>
 
-        <Grid container spacing={2} sx={{ maxWidth: '800px', mt:4, mx: 'auto' }}>
-            {stats.map(stat => (
-                <Grid item xs={4} sm={4} key={stat.label} sx={{ textAlign: 'center' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#F59E42', fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}>{stat.value}</Typography>
-                    <Typography variant="body2" color="textSecondary">{stat.label}</Typography>
-                </Grid>
-            ))}
+        <Grid
+          container
+          spacing={0}
+          sx={{
+            maxWidth: '900px',
+            mt: 4,
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'stretch',
+          }}
+        >
+          {stats.map((stat, idx) => (
+            <Grid
+              item
+              xs={4}
+              key={stat.label}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                py: { xs: 2, sm: 3 },
+                px: { xs: 0.5, sm: 2 },
+                borderRight: idx < stats.length - 1 ? '2px solid #e0e0e0' : 'none',
+              }}
+            >
+              <Box sx={{ mb: 1 }}>
+                {React.cloneElement(stat.icon, {
+                  sx: {
+                    fontSize: { xs: 32, sm: 38, md: 44 },
+                    color: '#002442',
+                  },
+                })}
+              </Box>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: 900,
+                  color: '#002442',
+                  fontSize: { xs: '1.7rem', sm: '2.2rem', md: '2.8rem' },
+                  mb: 0.5,
+                  letterSpacing: '-1px',
+                }}
+              >
+                {stat.value}
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: '#002442',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.95rem', sm: '1.1rem' },
+                  opacity: 0.85,
+                }}
+              >
+                {stat.label}
+              </Typography>
+            </Grid>
+          ))}
         </Grid>
       </Box>
 
@@ -145,20 +213,20 @@ const Index = () => {
                   <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mb: 1.5, color: '#002442' }}>
                     {option.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3, minHeight: 60 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, minHeight: 40 }}>
                     {option.description}
                   </Typography>
-                  <List dense sx={{ mb: 3 }}>
-                      {option.features.map(feature => (
-                          <ListItem key={feature} sx={{ p: 0 }}>
-                              <ListItemIcon sx={{ minWidth: 32 }}>
-                                  <CheckCircleOutlineIcon sx={{ color: option.color, fontSize: 20 }} />
-                              </ListItemIcon>
-                              <ListItemText primary={feature} />
-                          </ListItem>
-                      ))}
+                  <List dense sx={{ mb: 2, mt: 0, pt: 0 }}>
+                    {option.features.map(feature => (
+                      <ListItem key={feature} sx={{ p: 0, mb: 0.5 }}>
+                        <ListItemIcon sx={{ minWidth: 32 }}>
+                          <CheckCircleOutlineIcon sx={{ color: option.color, fontSize: 20 }} />
+                        </ListItemIcon>
+                        <ListItemText primary={feature} />
+                      </ListItem>
+                    ))}
                   </List>
-                  <Box sx={{ mt: 'auto', pt: 2 }}>
+                  <Box sx={{ mt: 'auto', pt: 1 }}>
                     <Button
                       fullWidth
                       variant="contained"
@@ -172,6 +240,7 @@ const Index = () => {
                         py: 1.5,
                         textTransform: 'none',
                         boxShadow: 'none',
+                        fontSize: '1.05rem',
                         '&:hover': {
                           backgroundColor: option.color,
                           opacity: 0.9,
@@ -179,7 +248,9 @@ const Index = () => {
                         }
                       }}
                     >
-                      Select
+                      {option.title === 'Manual Input' && 'Manual Prediction'}
+                      {option.title === 'LinkedIn Profile' && 'LinkedIn Prediction'}
+                      {option.title === 'Batch Upload' && 'Batch Prediction'}
                     </Button>
                   </Box>
                 </CardContent>

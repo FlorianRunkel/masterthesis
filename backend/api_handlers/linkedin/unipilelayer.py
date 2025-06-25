@@ -26,7 +26,7 @@ class UnipileLayer:
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_sections=%2A&account_id={account_id}'
         elif api_type == 'recruiter':
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_api=recruiter&linkedin_sections=%2A&account_id={account_id}'
-        else:
+        else:    
             raise ValueError('Unbekannter API-Typ')
         sleep(randint(1, 3))
         response = requests.get(url, headers=self.headers)
@@ -53,7 +53,7 @@ class UnipileLayer:
         if start_fmt:
             return f"{start_fmt} - {end_fmt}"
         return ""
-
+    
     def transform_profile(self, input_data):
         # LinkedIn Basisdaten
         first_name = input_data.get("first_name", "")
@@ -66,7 +66,7 @@ class UnipileLayer:
         for edu in input_data.get("education", []):
             education_list.append({
                 "degree": edu.get("degree", ""),
-                "institution": edu.get("school", ""),
+                    "institution": edu.get("school", ""),
                 "startDate": edu.get("start", ""),
                 "endDate": edu.get("end", ""),
                 "duration": self.format_duration(edu.get("start", ""), edu.get("end", ""))
@@ -96,9 +96,9 @@ class UnipileLayer:
 
         # Komplettes Profil-Objekt
         profile_info = {
-            "skills": skills,
-            "firstName": first_name,
-            "lastName": last_name,
+                "skills": skills,
+                "firstName": first_name,
+                "lastName": last_name,
             "linkedinProfile": profile_url,
             "education": education_list,
             "workExperience": work_list,
@@ -109,8 +109,8 @@ class UnipileLayer:
 
         # Endgültiges Mapping für CSV oder Datenbank
         final_profile = {
-            "firstName": first_name,
-            "lastName": last_name,
+                "firstName": first_name,
+                "lastName": last_name,
             "name": f"{first_name} {last_name}".strip(),
             "profileLink": profile_url,
             "linkedinProfileInformation": json.dumps(profile_info, ensure_ascii=False),

@@ -333,7 +333,7 @@ const BatchUpload = () => {
           <Box sx={{
             bgcolor: '#F8F9FB',
             border: '1px solid #bdbdbd',
-            borderRadius: '6px',
+            borderRadius: '16px',
             px: 1.2,
             py: 0.1,
             fontSize: { xs: '0.78rem', sm: '0.95rem' },
@@ -377,7 +377,7 @@ const BatchUpload = () => {
           <Box sx={{
             bgcolor: '#F8F9FB',
             border: '1px solid #bdbdbd',
-            borderRadius: '6px',
+            borderRadius: '16px',
             px: 1.2,
             py: 0.1,
             fontSize: { xs: '0.78rem', sm: '0.95rem' },
@@ -421,7 +421,7 @@ const BatchUpload = () => {
           <Box sx={{
             bgcolor: '#F8F9FB',
             border: '1px solid #bdbdbd',
-            borderRadius: '6px',
+            borderRadius: '16px',
             px: 1.2,
             py: 0.1,
             fontSize: { xs: '0.78rem', sm: '0.95rem' },
@@ -465,7 +465,7 @@ const BatchUpload = () => {
           <Box sx={{
             bgcolor: '#F8F9FB',
             border: '1px solid #bdbdbd',
-            borderRadius: '6px',
+            borderRadius: '16px',
             px: 1.2,
             py: 0.1,
             fontSize: { xs: '0.78rem', sm: '0.95rem' },
