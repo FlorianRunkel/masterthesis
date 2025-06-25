@@ -106,18 +106,21 @@ const FeedbackPage = () => {
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>General feedback</Typography>
           <TextField
-            label="Your feedback, suggestions, experience..."
+            placeholder="Your feedback, suggestions, experience..."
             multiline
             minRows={4}
             fullWidth
             value={freeText}
             onChange={e => setFreeText(e.target.value)}
-            sx={{ mb: 1.5, bgcolor: '#fff', borderRadius: 2 }}
+            sx={{ mb: 1.5, bgcolor: '#fff', borderRadius: 2, fontSize: '0.8rem' }}
           />
         </Box>
         {/* Prediction evaluation table */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Candidate input & prediction evaluation</Typography>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Candidate input & prediction evaluation</Typography>
+          <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
+            Please use this section to document individual prediction cases. Select the model you used, enter the prediction it produced, and compare it with your own assessment or ground truth. Feel free to add any comments regarding the accuracy, surprising results, or potential reasons for discrepancies.
+          </Typography>
           {isMobile ? (
             <Box>
               {prognoseBewertung.map((row, idx) => (
@@ -254,22 +257,22 @@ const FeedbackPage = () => {
         </Box>
         {/* Rating scale */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Evaluation Criteria</Typography>
-          <Typography sx={{ fontSize: '0.9rem', color: '#666', mb: 1.5 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Evaluation Criteria</Typography>
+          <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
             Please evaluate each criterion on a scale from 1 to 5, where 1 means very poor or not helpful, and 5 means excellent and extremely useful.
           </Typography>
           <TableContainer component={Paper} sx={{ mb: 1, boxShadow: 0 }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', bgcolor: '#fff' }}>Criterion</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#001242', fontSize: '0.88rem', bgcolor: '#fff' }}>Criterion</TableCell>
                   {[1,2,3,4,5].map(val => <TableCell key={val} align="center" sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', bgcolor: '#fff' }}>{val}</TableCell>)}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {ratingCriteria.map((criterion, idx) => (
-                  <TableRow key={criterion}>
-                    <TableCell>{criterion}</TableCell>
+                  <TableRow key={criterion} sx={{ fontSize: '0.88rem', mb: 1, color: '#111'}}>
+                    <TableCell sx={{ fontSize: '0.88rem', mb: 1, color: '#111'}}>{criterion}</TableCell>
                     {[1,2,3,4,5].map(val => (
                       <TableCell key={val} align="center">
                         <Radio
@@ -299,7 +302,7 @@ const FeedbackPage = () => {
           </Typography>
           {(canViewExplanations ? explanationQuestionsYes : explanationQuestionsNo).map((q, idx, arr) => (
             <Box key={q.key} sx={{ mb: idx < arr.length - 1 ? 2 : 0 }}>
-              <Typography sx={{ fontWeight: 600, fontSize: '1rem', mb: 1 }}>{q.label}</Typography>
+              <Typography sx={{fontSize: '0.88rem', mb: 1, color: '#111',}}>{q.label}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <input
@@ -308,9 +311,9 @@ const FeedbackPage = () => {
                     name={q.key}
                     checked={explanationFeedback[q.key] === 'yes'}
                     onChange={() => handleExplanationFeedback(q.key, 'yes')}
-                    style={{ accentColor: '#001242', width: 15, height: 15 }}
+                    style={{ accentColor: '#001242', width: 14, height: 14 }}
                   />
-                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '0.9rem' }}>YES</label>
+                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '0.8rem', color: '#111', }}>YES</label>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <input
@@ -319,9 +322,9 @@ const FeedbackPage = () => {
                     name={q.key}
                     checked={explanationFeedback[q.key] === 'no'}
                     onChange={() => handleExplanationFeedback(q.key, 'no')}
-                    style={{ accentColor: '#001242', width: 15, height: 15 }}
+                    style={{ accentColor: '#001242', width: 14, height: 14 }}
                   />
-                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '0.9rem' }}>NO</label>
+                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '0.88rem', color: '#111', }}>NO</label>
                 </Box>
               </Box>
               {idx < arr.length - 1 && <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />}
