@@ -15,7 +15,9 @@ const LinkedInInput = () => {
   const [predictionData, setPredictionData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(''); // Standardwert z.B. GRU
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem('linkedinPredictionModelType') || 'gru';
+  });
   const [showModelChangeHint, setShowModelChangeHint] = useState(false);
   const [predictionModelType, setPredictionModelType] = useState('');
   const theme = useTheme();
@@ -338,7 +340,7 @@ const LinkedInInput = () => {
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><CircularProgress size={40} thickness={4} sx={{ color: '#001B41' }} /></Box>)}
       {error && (<Box sx={{ bgcolor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#FF2525', p: 3, borderRadius: 2, mb: 3 }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography><Box component="ul" sx={{ mt: 2, pl: 2 }}><li>Make sure the URL is correct</li><li>The profile must be publicly accessible</li><li>Try again later</li></Box></Box>)}
-      {profileData && (
+      {profileData && predictionData && (
         <div ref={profileRef}>
           <ProfileDisplay
             profile={profileData}
