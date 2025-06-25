@@ -164,14 +164,31 @@ const FeedbackPage = () => {
               ))}
             </Box>
           ) : (
-            <TableContainer component={Paper} sx={{ mb: 2 }}>
+            <TableContainer component={Paper} sx={{
+              mb: 2,
+              bgcolor: '#fff',
+              borderRadius: 3,
+              boxShadow: 2,
+              border: '1px solid #e0e0e0',
+            }}>
               <Table size="small" sx={{
-                borderCollapse: 'collapse',
+                borderCollapse: 'separate',
+                borderSpacing: 0,
+                '& th, & td': {
+                  borderRight: '1px solid #e0e0e0',
+                  borderBottom: '1px solid #e0e0e0',
+                },
+                '& th:last-child, & td:last-child': {
+                  borderRight: 0,
+                },
+                '& tr:last-child td': {
+                  borderBottom: 0,
+                },
               }}>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: '#f5f6fa' }}>
                     {prognoseHeaders.map(h => (
-                      <TableCell key={h} sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem' }}>
+                      <TableCell key={h} sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', borderTop: 'none', borderLeft: 'none', bgcolor: '#f5f6fa' }}>
                         {h}
                       </TableCell>
                     ))}
@@ -180,7 +197,7 @@ const FeedbackPage = () => {
                 <TableBody>
                   {prognoseBewertung.map((row, idx) => (
                     <TableRow key={idx}>
-                      <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>
+                      <TableCell sx={{ minWidth: 60, maxWidth: 80, borderLeft: 'none' }}>
                         <Select
                           value={row.modell}
                           onChange={e => handlePrognoseChange(idx, 'modell', e.target.value)}
