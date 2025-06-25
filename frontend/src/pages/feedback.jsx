@@ -49,10 +49,6 @@ const FeedbackPage = () => {
     setLoading(true);
     setSuccess(false);
     setError('');
-    if (!freeText && prognoseBewertung.every(row => !row.modell && !row.prognose && !row.echt && !row.bemerkung)) {
-      setError('Please fill in at least one field.');
-      return;
-    }
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const uid = user?.uid;
@@ -208,8 +204,10 @@ const FeedbackPage = () => {
         </Box>
         {/* Rating scale */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Rating scale</Typography>
-          <Typography sx={{ fontSize: '0.9rem', color: '#666', mb: 1.5 }}>1 = poor, 5 = excellent</Typography>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>Evaluation Criteria</Typography>
+          <Typography sx={{ fontSize: '0.9rem', color: '#666', mb: 1.5 }}>
+            Please evaluate each criterion on a scale from 1 to 5, where 1 means very poor or not helpful, and 5 means excellent and extremely useful.
+          </Typography>
           <TableContainer component={Paper} sx={{ mb: 1, boxShadow: 0 }}>
             <Table size="small">
               <TableHead>
