@@ -10,6 +10,7 @@ import CandidatesPage from './pages/candidates';
 import Login from './pages/login';
 import SettingsPage from './pages/settings';
 import Index from './pages/Index';
+import FeedbackPage from './pages/feedback';
 
 const AppContent = ({ onLogout, onLogin }) => {
   const theme = useTheme();
@@ -67,6 +68,7 @@ const AppContent = ({ onLogout, onLogin }) => {
           <Route path="/linkedin" element={<LinkedInInput />} />
           <Route path="/candidates" element={<CandidatesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
         </Routes>
       </Box>
     </Box>

@@ -10,6 +10,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 
 const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const location = useLocation();
@@ -26,6 +27,7 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
     { path: '/linkedin', icon: <LinkedInIcon />, text: 'LinkedIn Profile' },
     { path: '/batch', icon: <UploadFileIcon />, text: 'Batch Upload' },
     { path: '/candidates', icon: <PersonIcon />, text: 'Candidates' },
+    { path: '/feedback', icon: <RateReviewIcon/>, text: 'Feedback' },
     ...(isAdmin ? [{ path: '/settings', icon: <SettingsIcon />, text: 'Settings' }] : [])
   ];
 

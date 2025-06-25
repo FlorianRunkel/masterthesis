@@ -16,6 +16,7 @@ from backend.api_handlers.candidates.handler import candidates_bp
 from backend.api_handlers.linkedin.handler import linkedin_bp #, initialize_linkedin_api # Geändert
 from backend.api_handlers.prediction.handler import prediction_bp
 from backend.api_handlers.user_management.handler import user_management_bp
+from backend.api_handlers.feedback.handler import feedback_bp
 
 def create_app():
     """Erstellt und konfiguriert die Flask-Anwendung."""
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(linkedin_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(user_management_bp)
+    app.register_blueprint(feedback_bp)
 
     # App-Kontext für Initialisierungen verwenden
     # with app.app_context(): # Entfernt
