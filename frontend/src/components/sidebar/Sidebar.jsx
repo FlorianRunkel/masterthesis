@@ -32,25 +32,28 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   const DrawerContent = ({ isMobileDrawer = false }) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* User Info */}
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, justifyContent: isCollapsed && !isMobileDrawer ? 'center' : 'flex-start' }}>
-        <Avatar sx={{ bgcolor: '#001242', width: 40, height: 40 }}>
-          {user ? user.firstName.charAt(0) : 'U'}
-        </Avatar>
-        {(!isCollapsed || isMobileDrawer) && (
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#222' }}>
-              {user ? `${user.firstName} ${user.lastName}` : 'User'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {isAdmin ? 'Administrator' : 'User'}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+    <Box sx={{
+      width: isCollapsed ? 64 : 240,
+      transition: 'width 0.2s',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      pt: 3,
+    }}>
+      <Avatar sx={{ bgcolor: '#001242', width: 40, height: 40 }}>
+        {user ? user.firstName.charAt(0) : 'U'}
+      </Avatar>
+      {(!isCollapsed || isMobileDrawer) && (
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#222' }}>
+            {user ? `${user.firstName} ${user.lastName}` : 'User'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {isAdmin ? 'Administrator' : 'User'}
+          </Typography>
+        </Box>
+      )}
 
-      {/* Navigation */}
       <List sx={{ flexGrow: 1, px: 2, mt: 2, overflowY: 'auto' }}>
         {menuItems.map((item) => (
           <ListItem
@@ -84,7 +87,6 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
         ))}
       </List>
 
-      {/* Logout */}
       <Box sx={{ p: 2, mt: 'auto' }}>
         <Button
           fullWidth

@@ -37,7 +37,7 @@ const CandidateCard = ({ candidate, onDelete }) => {
         gap: isMobile ? 1 : 2, 
         overflow: 'hidden',
         position: 'relative',
-        maxWidth: 480,
+        maxWidth: '100%',
         minWidth: 320,
         width: '100%',
         '&:hover .delete-icon': {
