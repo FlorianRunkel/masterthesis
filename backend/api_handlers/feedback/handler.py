@@ -17,6 +17,7 @@ def save_feedback():
             'freeText': data.get('freeText', ''),
             'prognoseBewertung': data.get('prognoseBewertung', []),
             'bewertungsskala': data.get('bewertungsskala', []),
+            'explanationFeedback': data.get('explanationFeedback', {}),
             'timestamp': datetime.utcnow().isoformat() + 'Z'
         }
         mongo_db = MongoDb()

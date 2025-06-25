@@ -215,7 +215,29 @@ const FeedbackPage = () => {
               </Table>
             </TableContainer>
           )}
-          <Button onClick={addPrognoseRow} sx={{ mb: 1, color: '#EB7836', fontWeight: 700, fontSize: '1rem', textTransform: 'none' }}>+ Add row</Button>
+          <Button
+            onClick={addPrognoseRow}
+            variant="outlined"
+            sx={{
+              mb: 1,
+              color: '#EB7836',
+              borderColor: '#EB7836',
+              borderRadius: 3,
+              fontWeight: 700,
+              fontSize: '1rem',
+              textTransform: 'none',
+              px: 2.5,
+              py: 1,
+              background: 'transparent',
+              '&:hover': {
+                background: '#FFF3E6',
+                borderColor: '#EB7836',
+              },
+              minWidth: 120
+            }}
+          >
+            + Add row
+          </Button>
         </Box>
         {/* Rating scale */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
@@ -254,48 +276,39 @@ const FeedbackPage = () => {
           </TableContainer>
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 2, color: '#001242' }}>
             Explainability Feedback
           </Typography>
-          {canViewExplanations ? (
-            explanationQuestionsYes.map(q => (
-              <Box key={q.key} sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ flex: 1 }}>{q.label}</Typography>
-                <Box>
-                  <Button
-                    variant={explanationFeedback[q.key] === 'yes' ? 'contained' : 'outlined'}
-                    color={explanationFeedback[q.key] === 'yes' ? 'primary' : 'inherit'}
-                    onClick={() => handleExplanationFeedback(q.key, 'yes')}
-                    sx={{ mr: 1 }}
-                  >Yes</Button>
-                  <Button
-                    variant={explanationFeedback[q.key] === 'no' ? 'contained' : 'outlined'}
-                    color={explanationFeedback[q.key] === 'no' ? 'primary' : 'inherit'}
-                    onClick={() => handleExplanationFeedback(q.key, 'no')}
-                  >No</Button>
+          {(canViewExplanations ? explanationQuestionsYes : explanationQuestionsNo).map((q, idx, arr) => (
+            <Box key={q.key} sx={{ mb: idx < arr.length - 1 ? 2 : 0 }}>
+              <Typography sx={{ fontWeight: 600, fontSize: '1rem', mb: 1 }}>{q.label}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <input
+                    type="radio"
+                    id={`${q.key}-yes`}
+                    name={q.key}
+                    checked={explanationFeedback[q.key] === 'yes'}
+                    onChange={() => handleExplanationFeedback(q.key, 'yes')}
+                    style={{ accentColor: '#EB7836', width: 18, height: 18 }}
+                  />
+                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '1rem' }}>YES</label>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <input
+                    type="radio"
+                    id={`${q.key}-no`}
+                    name={q.key}
+                    checked={explanationFeedback[q.key] === 'no'}
+                    onChange={() => handleExplanationFeedback(q.key, 'no')}
+                    style={{ accentColor: '#001242', width: 18, height: 18 }}
+                  />
+                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '1rem' }}>NO</label>
                 </Box>
               </Box>
-            ))
-          ) : (
-            explanationQuestionsNo.map(q => (
-              <Box key={q.key} sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ flex: 1 }}>{q.label}</Typography>
-                <Box>
-                  <Button
-                    variant={explanationFeedback[q.key] === 'yes' ? 'contained' : 'outlined'}
-                    color={explanationFeedback[q.key] === 'yes' ? 'primary' : 'inherit'}
-                    onClick={() => handleExplanationFeedback(q.key, 'yes')}
-                    sx={{ mr: 1 }}
-                  >Yes</Button>
-                  <Button
-                    variant={explanationFeedback[q.key] === 'no' ? 'contained' : 'outlined'}
-                    color={explanationFeedback[q.key] === 'no' ? 'primary' : 'inherit'}
-                    onClick={() => handleExplanationFeedback(q.key, 'no')}
-                  >No</Button>
-                </Box>
-              </Box>
-            ))
-          )}
+              {idx < arr.length - 1 && <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />}
+            </Box>
+          ))}
         </Box>
         <Button type="submit" disabled={loading} variant="contained" sx={{ bgcolor: '#EB7836', color: '#fff', fontWeight: 700, px: 4, py: 1.2, borderRadius: 2, fontSize: '1.08rem', mb: 2, boxShadow: 2, textTransform: 'none', letterSpacing: 0.2 }}>Submit feedback</Button>
         {success && <Typography sx={{ color: 'green', mt: 2, fontWeight: 600 }}>Feedback submitted successfully!</Typography>}
