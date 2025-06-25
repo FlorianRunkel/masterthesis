@@ -7,12 +7,10 @@ import { API_BASE_URL } from '../api';
 const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment'];
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
 const ratingCriteria = [
-    'Clarity of the interface and layout',
     'Relevance and realism of predictions',
     'Transparency of model decisions',
     'Usefulness for daily work in Active Sourcing',
     'Trustworthiness of the AI recommendations',
-    'Ease of understanding feature importance',
     'Likelihood of future usage in real scenarios',
     'Overall impression and satisfaction'
   ];
@@ -28,6 +26,19 @@ const FeedbackPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [explanationFeedback, setExplanationFeedback] = useState({});
+
+  const user = JSON.parse(localStorage.getItem('user'));
+  const canViewExplanations = user?.canViewExplanations;
+  const explanationQuestionsNo = [
+    { key: 'wantFeatureImportance', label: 'Would it help you to see feature importance (e.g., top features)?' },
+    { key: 'wantMoreExplainability', label: 'Would more explainability help you trust the prediction?' }
+  ];
+  const explanationQuestionsYes = [
+    { key: 'explanationHelpful', label: 'Did the explanation help you understand the prediction?' },
+    { key: 'featureImportanceUseful', label: 'Was the feature importance useful for your assessment?' },
+    { key: 'lessTrustWithoutExplanation', label: 'Would you trust the prediction less without explanation?' }
+  ];
 
   const handlePrognoseChange = (idx, field, value) => {
     const updated = prognoseBewertung.map((row, i) => i === idx ? { ...row, [field]: value } : row);
@@ -44,24 +55,28 @@ const FeedbackPage = () => {
     setBewertungsskala(updated);
   };
 
+  const handleExplanationFeedback = (key, value) => {
+    setExplanationFeedback(prev => ({ ...prev, [key]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setSuccess(false);
     setError('');
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
       const uid = user?.uid;
       const res = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-Uid': uid },
-        body: JSON.stringify({ freeText, prognoseBewertung, bewertungsskala })
+        body: JSON.stringify({ freeText, prognoseBewertung, bewertungsskala, explanationFeedback })
       });
       if (!res.ok) throw new Error('Failed to save feedback');
       setSuccess(true);
       setFreeText('');
       setPrognoseBewertung([{ modell: '', prognose: '', echt: '', bemerkung: '' }]);
       setBewertungsskala(Array(ratingCriteria.length).fill(3));
+      setExplanationFeedback({});
     } catch (err) {
       setError(err.message);
     } finally {
@@ -237,6 +252,50 @@ const FeedbackPage = () => {
               </TableBody>
             </Table>
           </TableContainer>
+        </Box>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>
+            Explainability Feedback
+          </Typography>
+          {canViewExplanations ? (
+            explanationQuestionsYes.map(q => (
+              <Box key={q.key} sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ flex: 1 }}>{q.label}</Typography>
+                <Box>
+                  <Button
+                    variant={explanationFeedback[q.key] === 'yes' ? 'contained' : 'outlined'}
+                    color={explanationFeedback[q.key] === 'yes' ? 'primary' : 'inherit'}
+                    onClick={() => handleExplanationFeedback(q.key, 'yes')}
+                    sx={{ mr: 1 }}
+                  >Yes</Button>
+                  <Button
+                    variant={explanationFeedback[q.key] === 'no' ? 'contained' : 'outlined'}
+                    color={explanationFeedback[q.key] === 'no' ? 'primary' : 'inherit'}
+                    onClick={() => handleExplanationFeedback(q.key, 'no')}
+                  >No</Button>
+                </Box>
+              </Box>
+            ))
+          ) : (
+            explanationQuestionsNo.map(q => (
+              <Box key={q.key} sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ flex: 1 }}>{q.label}</Typography>
+                <Box>
+                  <Button
+                    variant={explanationFeedback[q.key] === 'yes' ? 'contained' : 'outlined'}
+                    color={explanationFeedback[q.key] === 'yes' ? 'primary' : 'inherit'}
+                    onClick={() => handleExplanationFeedback(q.key, 'yes')}
+                    sx={{ mr: 1 }}
+                  >Yes</Button>
+                  <Button
+                    variant={explanationFeedback[q.key] === 'no' ? 'contained' : 'outlined'}
+                    color={explanationFeedback[q.key] === 'no' ? 'primary' : 'inherit'}
+                    onClick={() => handleExplanationFeedback(q.key, 'no')}
+                  >No</Button>
+                </Box>
+              </Box>
+            ))
+          )}
         </Box>
         <Button type="submit" disabled={loading} variant="contained" sx={{ bgcolor: '#EB7836', color: '#fff', fontWeight: 700, px: 4, py: 1.2, borderRadius: 2, fontSize: '1.08rem', mb: 2, boxShadow: 2, textTransform: 'none', letterSpacing: 0.2 }}>Submit feedback</Button>
         {success && <Typography sx={{ color: 'green', mt: 2, fontWeight: 600 }}>Feedback submitted successfully!</Typography>}
