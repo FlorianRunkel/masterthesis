@@ -167,28 +167,19 @@ const FeedbackPage = () => {
             <TableContainer component={Paper} sx={{
               mb: 2,
               bgcolor: '#fff',
-              borderRadius: 3,
-              boxShadow: 2,
-              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              boxShadow: 'none',
             }}>
               <Table size="small" sx={{
-                borderCollapse: 'separate',
+                borderCollapse: 'collapse',
                 borderSpacing: 0,
-                '& th, & td': {
-                  borderRight: '1px solid #e0e0e0',
-                  borderBottom: '1px solid #e0e0e0',
-                },
-                '& th:last-child, & td:last-child': {
-                  borderRight: 0,
-                },
-                '& tr:last-child td': {
-                  borderBottom: 0,
-                },
+                border: '0.5px solid #e0e0e0',
+                boxShadow: 'none',
               }}>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f6fa' }}>
+                  <TableRow sx={{ bgcolor: '#fafbfc' }}>
                     {prognoseHeaders.map(h => (
-                      <TableCell key={h} sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', borderTop: 'none', borderLeft: 'none', bgcolor: '#f5f6fa' }}>
+                      <TableCell key={h} sx={{ fontWeight: 700, color: '#111111', fontSize: '1rem', borderTop: 'none', borderLeft: 'none', bgcolor: '#fafbfc' }}>
                         {h}
                       </TableCell>
                     ))}
@@ -197,7 +188,7 @@ const FeedbackPage = () => {
                 <TableBody>
                   {prognoseBewertung.map((row, idx) => (
                     <TableRow key={idx}>
-                      <TableCell sx={{ minWidth: 60, maxWidth: 80, borderLeft: 'none' }}>
+                      <TableCell sx={{ minWidth: 50, maxWidth: 70, borderLeft: 'none' }}>
                         <Select
                           value={row.modell}
                           onChange={e => handlePrognoseChange(idx, 'modell', e.target.value)}
