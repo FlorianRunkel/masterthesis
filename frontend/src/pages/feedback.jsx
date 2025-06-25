@@ -72,7 +72,7 @@ const FeedbackPage = () => {
   };
 
   return (
-    <Box sx={{mx: 'auto', mt: 4, mb: 6, p: { xs: 2, sm: 4 }}}> 
+    <Box sx={{ p: 0, m: 0 }}>
         <Typography variant="h1" sx={{ 
         fontSize: isMobile ? '1.8rem' : '2.5rem', 
         fontWeight: 700, 
