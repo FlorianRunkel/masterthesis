@@ -98,9 +98,8 @@ const FeedbackPage = () => {
         color: '#666', 
         mb: 4, 
         fontSize: isMobile ? '0.9rem' : '1rem', 
-        maxWidth: '800px' 
       }}>
-        Please share your experience with the dashboard and rate the predictions and user experience. Your feedback helps us to improve the system!
+        Please share your experience with the dashboard and rate the predictions and user experience. Your feedback helps me to improve the system!
       </Typography>
       <form onSubmit={handleSubmit}>
         {/* Free text feedback */}
@@ -122,7 +121,7 @@ const FeedbackPage = () => {
           {isMobile ? (
             <Box>
               {prognoseBewertung.map((row, idx) => (
-                <Box key={idx} sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, position: 'relative', bgcolor: '#fafbfc' }}>
+                <Box key={idx} sx={{ mb: 3, p: 2, border: '1px solid #fff', borderRadius: 2, position: 'relative', bgcolor: '#fff' }}>
                   <Box sx={{ mb: 1 }}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.98rem', mb: 0.5 }}>Model type</Typography>
                     <Select
@@ -165,11 +164,17 @@ const FeedbackPage = () => {
               ))}
             </Box>
           ) : (
-            <TableContainer component={Paper} sx={{ mb: 2, boxShadow: 0 }}>
-              <Table size="small">
+            <TableContainer component={Paper} sx={{ mb: 2 }}>
+              <Table size="small" sx={{
+                borderCollapse: 'collapse',
+              }}>
                 <TableHead>
                   <TableRow>
-                    {prognoseHeaders.map(h => <TableCell key={h} sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', bgcolor: '#fff' }}>{h}</TableCell>)}
+                    {prognoseHeaders.map(h => (
+                      <TableCell key={h} sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem' }}>
+                        {h}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -220,20 +225,20 @@ const FeedbackPage = () => {
             variant="outlined"
             sx={{
               mb: 1,
-              color: '#EB7836',
-              borderColor: '#EB7836',
+              color: '#666',
+              borderColor: '#666',
               borderRadius: 3,
               fontWeight: 700,
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               textTransform: 'none',
-              px: 2.5,
-              py: 1,
+              px: 1.5,
+              py: 0.5,
               background: 'transparent',
               '&:hover': {
                 background: '#FFF3E6',
-                borderColor: '#EB7836',
+                borderColor: '#666',
               },
-              minWidth: 120
+              minWidth: '100px'
             }}
           >
             + Add row
@@ -265,6 +270,11 @@ const FeedbackPage = () => {
                           value={val}
                           name={`rating-${idx}`}
                           color="primary"
+                          sx={{
+                            '&.Mui-checked': {
+                              color: '#001242',
+                            },
+                          }}
                           size="small"
                         />
                       </TableCell>
@@ -290,9 +300,9 @@ const FeedbackPage = () => {
                     name={q.key}
                     checked={explanationFeedback[q.key] === 'yes'}
                     onChange={() => handleExplanationFeedback(q.key, 'yes')}
-                    style={{ accentColor: '#EB7836', width: 18, height: 18 }}
+                    style={{ accentColor: '#001242', width: 15, height: 15 }}
                   />
-                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '1rem' }}>YES</label>
+                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '0.9rem' }}>YES</label>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <input
@@ -301,9 +311,9 @@ const FeedbackPage = () => {
                     name={q.key}
                     checked={explanationFeedback[q.key] === 'no'}
                     onChange={() => handleExplanationFeedback(q.key, 'no')}
-                    style={{ accentColor: '#001242', width: 18, height: 18 }}
+                    style={{ accentColor: '#001242', width: 15, height: 15 }}
                   />
-                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '1rem' }}>NO</label>
+                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '0.9rem' }}>NO</label>
                 </Box>
               </Box>
               {idx < arr.length - 1 && <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />}
