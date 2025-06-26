@@ -25,9 +25,13 @@ def get_latest_model_path(model_dir=None):
     return latest_model
 
 def get_feature_names():
-    return [
+    """
+    Returns feature names in the exact order they appear in the feature vector.
+    Must match the order in the prepare_features function.
+    """
+    names = [
         "job experience total",
-        "job changes total",
+        "job changes total", 
         "job positions total",
         "job average duration",
         "education highest degree",
@@ -35,23 +39,37 @@ def get_feature_names():
         "position level",
         "industry",
         "position average duration",
-        "position id"
+        "position id",
+        # Career path features (2 positions × 3 features each)
+        "previous position 1 level",
+        "previous position 1 industry", 
+        "previous position 1 duration",
+        "previous position 2 level",
+        "previous position 2 industry",
+        "previous position 2 duration"
     ]
+    return names
 
 def get_feature_description(name):
     descriptions = {
-        "job experience total": "Total job experience in days",
-        "job changes total": "Total job changes",
-        "job positions total": "Total job positions",
-        "job average duration": "Average duration of previous jobs in days",
-        "education highest degree": "Highest education degree (1-5)",
-        "age category": "Age category based on career start (1-5)",
-        "position level": "Hierarchy level of current position",
-        "industry": "Industry/Industry of current company",
-        "position average duration": "Average duration in similar positions",
-        "position id": "Unique ID of current position"
+        "job experience total": "Total work experience",
+        "job changes total": "Number of job changes so far",
+        "job positions total": "Number of different positions held",
+        "job average duration": "Average duration of each job",
+        "education highest degree": "Highest education level achieved",
+        "age category": "Estimated age group",
+        "position level": "Responsibility level of the current position",
+        "industry": "Industry of the current employer",
+        "position average duration": "Average duration of similar positions",
+        "position id": "Type of current position",  
+        "previous position 1 level": "Responsibility level of the previous position",
+        "previous position 1 industry": "Industry of the previous employer",
+        "previous position 1 duration": "Duration of the previous position",
+        "previous position 2 level": "Responsibility level of the position before last",
+        "previous position 2 industry": "Industry of the employer before last",
+        "previous position 2 duration": "Duration of the position before last"
     }
-    return descriptions.get(name, "This feature influences the prediction.")
+    return descriptions.get(name, "This factor influences the prediction.")
 
 def get_status_and_recommendation(tage):
     if tage < 30:
@@ -373,29 +391,19 @@ def calculate_shap_values(model, background_data, seq_tensor):
 
 def create_explanations(norm_shap):
     """Erstellt die Feature-Erklärungen."""
-    base_len = len(get_feature_names())
-    base_shap = norm_shap[:base_len]
-    other_shap = norm_shap[base_len:].sum()
-
+    feature_names = get_feature_names()
+    
     explanations = []
-    for name, val in zip(get_feature_names(), base_shap):
-        explanations.append({
-            "feature": name,
-            "impact_percentage": float(val),
-            "description": get_feature_description(name)
-        })
-    if other_shap > 0:
-        explanations.append({
-            "feature": "Other",
-            "impact_percentage": float(other_shap),
-            "description": "All other career path features"
-        })
+    for name, val in zip(feature_names, norm_shap):
+        if val > 0:  # Nur Features mit positivem Einfluss anzeigen
+            explanations.append({
+                "feature": name,
+                "impact_percentage": float(val),
+                "description": get_feature_description(name)
+            })
 
-    # Optional: Auf 100% normalisieren
-    total = sum(e["impact_percentage"] for e in explanations)
-    if total > 0:
-        for e in explanations:
-            e["impact_percentage"] = e["impact_percentage"] * 100 / total
+    # Sortiere nach Impact
+    explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
 
     return explanations
 
@@ -517,6 +525,16 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
             norm_shap = (np.abs(shap_values[0][0]) / abs_sum) * 100
         else:
             norm_shap = np.zeros_like(shap_values[0][0])
+
+        # Stelle sicher, dass wir die richtige Anzahl von Features haben
+        expected_features = len(get_feature_names())
+        if len(norm_shap) != expected_features:
+            print(f"Warnung: SHAP-Werte haben {len(norm_shap)} Features, erwartet {expected_features}")
+            # Padden oder trimmen auf die erwartete Anzahl
+            if len(norm_shap) < expected_features:
+                norm_shap = np.pad(norm_shap, (0, expected_features - len(norm_shap)), 'constant')
+            else:
+                norm_shap = norm_shap[:expected_features]
 
         explanations = create_explanations(norm_shap)
         shap_summary = create_shap_summary(explanations)

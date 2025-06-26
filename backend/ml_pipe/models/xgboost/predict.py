@@ -153,17 +153,6 @@ def extract_career_history_features(career_history, branche_levels, position_map
 
     max_level = max([pos.get("level", 0) for pos in career_history.values()] or [0])
 
-    # Optional: weitere Features, z.B. durchschnittlicher Level, etc.
-
-    # Optional: Die letzten N Positionen als numerische Features (hier N=3)
-    last_positions = list(career_history.values())
-    last_positions_features = []
-    for pos in last_positions:
-        last_positions_features.append(pos.get("duration", 0))
-        last_positions_features.append(branche_levels.get(pos.get("branche", ""), 0))
-        last_positions_features.append(pos.get("level", 0))
-        last_positions_features.append(position_mapping.get(pos.get("position", ""), 0))
-
     return [
         avg_duration,
         branche_changes,
@@ -193,9 +182,13 @@ def load_xgb_model(model_path):
 Explanation Functions
 '''
 def get_feature_names():
+    """
+    Returns feature names in the exact order they appear in the feature vector.
+    Must match the order in the predict function.
+    """
     names = [
         "Company Changes",
-        "Total Experience (Days)",
+        "Total Experience (Days)", 
         "Location Changes",
         "Highest Degree",
         "Position Level",
@@ -203,24 +196,16 @@ def get_feature_names():
         "Current Position (encoded)",
         "Current Position Branche (encoded)",
         "Current Position Duration (Days)",
-        "Current Position Avg Duration (Days)",
+        # Features from extract_career_history_features (9 features)
         "Avg Duration All Positions",
-        "Branche Changes",
+        "Branche Changes", 
         "Position Changes",
         "Unique Branches",
         "Unique Positions",
         "Top Branche 1 Days",
-        "Top Branche 2 Days",
+        "Top Branche 2 Days", 
         "Top Branche 3 Days",
         "Max Level"
-    ]
-    # Für alle Positionen in der Karrierehistorie (z.B. 10)
-    for i in range(1, 11):
-        names += [
-            f"CareerHistory Position {i} Duration",
-            f"CareerHistory Position {i} Branche (encoded)",
-            f"CareerHistory Position {i} Level",
-            f"CareerHistory Position {i} (encoded)"
     ]
     return names
 
@@ -235,7 +220,6 @@ def get_feature_description(name):
         "Current Position (encoded)": "Numerical encoding of the current position.",
         "Current Position Branche (encoded)": "Numerical encoding of the current position's industry.",
         "Current Position Duration (Days)": "Duration in the current position (days).",
-        "Current Position Avg Duration (Days)": "Average duration in the current position (days).",
         "Avg Duration All Positions": "Average duration across all positions.",
         "Branche Changes": "Number of industry changes in the career.",
         "Position Changes": "Number of position title changes in the career.",
@@ -246,12 +230,6 @@ def get_feature_description(name):
         "Top Branche 3 Days": "Days spent in the third most frequent industry.",
         "Max Level": "Highest position level achieved in the career."
     }
-    # Für die Karrierehistorie-Features
-    for i in range(1, 11):
-        descriptions[f"CareerHistory Position {i} Duration"] = f"Duration (days) in career history position {i}."
-        descriptions[f"CareerHistory Position {i} Branche (encoded)"] = f"Industry (encoded) in career history position {i}."
-        descriptions[f"CareerHistory Position {i} Level"] = f"Level in career history position {i}."
-        descriptions[f"CareerHistory Position {i} (encoded)"] = f"Position (encoded) in career history position {i}."
     return descriptions.get(name, "This feature influences the prediction.")
 
 def get_status(prob):
@@ -264,7 +242,51 @@ def get_status(prob):
     else:
         return "likely to stay"
 
+def get_explanations_from_shap(shap_values, feature_names, threshold=1.0):
+    """
+    Generate explanations from SHAP values for local interpretability.
+    """
+    # SHAP values for positive class (class 1 - likely to change)
+    shap_values_positive = shap_values[1] if len(shap_values) > 1 else shap_values[0]
+    
+    # Calculate absolute SHAP values and total
+    abs_shap_values = np.abs(shap_values_positive)
+    total_impact = np.sum(abs_shap_values)
+    
+    explanations = []
+    for name, shap_val in zip(feature_names, shap_values_positive):
+        impact_percentage = abs(shap_val) / total_impact * 100 if total_impact > 0 else 0
+        if impact_percentage > threshold:
+            # Determine direction of influence
+            direction = "increased" if shap_val > 0 else "decreased"
+            base_description = get_feature_description(name)
+            enhanced_description = get_feature_description(name)
+            
+            explanations.append({
+                "feature": name,
+                "impact_percentage": round(float(impact_percentage), 1),
+                "description": enhanced_description,
+                "shap_value": float(shap_val),  # Positive/negative impact
+                "direction": direction
+            })
+    
+    # Sort by impact percentage
+    explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
+    
+    if not explanations:
+        explanations.append({
+            "feature": "Gesamtanalyse",
+            "impact_percentage": 0.0,
+            "description": "Die Vorhersage basiert auf einer Kombination verschiedener Karrierefaktoren."
+        })
+    
+    return explanations
+
 def get_explanations(model, feature_names):
+    """
+    Legacy function using feature importance (global interpretability).
+    Use get_explanations_from_shap for local interpretability.
+    """
     import numpy as np
     importances = model.feature_importances_
     total = np.sum(importances)
@@ -372,13 +394,15 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
             f"Change probability: {prob[1]:.1%}"
         ]
 
-        # Generate explanations
+        # Generate explanations using SHAP values for local interpretability
         feature_names = get_feature_names()
-        explanations = get_explanations(model, feature_names)
-
+        
         # SHAP-Explainer und Werte berechnen
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X)
+        
+        # Generate explanations from SHAP values
+        explanations = get_explanations_from_shap(shap_values, feature_names)
 
         # Optional: SHAP-Werte ausgeben
         print("[DEBUG] SHAP values:", shap_values)

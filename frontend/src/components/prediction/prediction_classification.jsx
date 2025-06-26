@@ -36,17 +36,20 @@ const PredictionResult = ({ prediction }) => {
 
   // --- Calculate confidence and probability class ---
   const confidenceValue = Array.isArray(prediction.confidence) ? prediction.confidence[0] : prediction.confidence;
-  const confidence = Math.round(confidenceValue * 100);
+  const confidence = Math.round(confidenceValue * 1000) / 10;
   const probabilityClass = getProbabilityClass(confidence);
 
   // --- Prepare feature importances for stacked bar ---
   let explanations = prediction.explanations || [];
-  explanations = explanations.slice().sort((a, b) => b.impact_percentage - a.impact_percentage);
-  const top5 = explanations.slice(0, 5);
-  const otherSum = explanations.slice(5).reduce((sum, f) => sum + f.impact_percentage, 0);
+  // Split into main features and others (wie bei time prediction)
+  const mainFeatures = explanations
+    .filter(f => f.impact_percentage >= 10)
+    .sort((a, b) => b.impact_percentage - a.impact_percentage);
+  const otherFeatures = explanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 10);
+  const otherImpact = otherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
   const barData = [
-    ...top5.map((f, i) => ({ ...f, color: getBarColors[i] || '#666' })),
-    ...(otherSum > 0 ? [{ feature: 'Other', impact_percentage: otherSum, color: getBarColors[5] || '#666' }] : [])
+    ...mainFeatures.map((f, i) => ({ ...f, color: getBarColors[i % getBarColors.length] })),
+    ...(otherImpact > 0 ? [{ feature: 'Other', impact_percentage: otherImpact, description: 'All features with < 10% impact', color: getBarColors[5] }] : [])
   ];
   const total = barData.reduce((sum, item) => sum + item.impact_percentage, 0);
   if (total > 0 && total !== 100) {
@@ -108,7 +111,7 @@ const PredictionResult = ({ prediction }) => {
               {barData.map(item => (
                 <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: isMobile ? 12 : 16, height: isMobile ? 12 : 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem'}}>{item.feature}</Typography>
+                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem'}}>{item.description}</Typography>
                 </Box>
               ))}
             </Box>

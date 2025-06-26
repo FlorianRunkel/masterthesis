@@ -1,9 +1,10 @@
-import React from 'react';
-import { Box, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Tooltip, useTheme, useMediaQuery, Collapse, IconButton } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SearchIcon from '@mui/icons-material/Search';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // Color palette for SHAP bar chart (top 5 + other)
 const SHAP_BAR_COLORS = [
@@ -32,6 +33,9 @@ const Timeline = ({ prediction, profile }) => {
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations === true;
 
+  // ========== State für das Ausklappen der exakten Tage ==========
+  const [showDays, setShowDays] = useState(false);
+
   // ========== Early Exit if No Prediction ==========
   if (!prediction) return null;
 
@@ -48,19 +52,11 @@ const Timeline = ({ prediction, profile }) => {
   const firstSearchDate = new Date(today.getTime() + daysUntilFirstSearch * 24 * 60 * 60 * 1000);
   const intensiveSearchDate = new Date(today.getTime() + daysUntilIntensiveSearch * 24 * 60 * 60 * 1000);
 
-  // ========== Timeline Phases Definition ==========
-  /**
-   * Each phase represents a milestone in the predicted job change process.
-   * - Today: Job change detected
-   * - First search: First job search activities expected
-   * - Intensive search: Intensive job search phase
-   * - Change: Expected job change
-   */
   const phases = [
     {
       icon: <CalendarTodayIcon sx={{ fontSize: 32, color: '#3B82F6' }} />,
       label: 'Today',
-      desc: 'Job change detected',
+      desc: '',
       date: today.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
       color: '#3B82F6'
     },
@@ -90,26 +86,37 @@ const Timeline = ({ prediction, profile }) => {
   // ===================== SHAP Explanations =====================
   /**
    * SHAP explanations show which features had the greatest impact on the prediction.
-   * - Top 5 features are shown with distinct colors.
-   * - 'Other' groups remaining features (if present).
-   * - Bar chart is normalized to 100%.
+   * Zeige alle Features mit impact_percentage >= 10% einzeln, alle darunter als 'Other'.
    */
   let explanations = prediction.explanations || [];
-  const otherFeature = explanations.find(f => f.feature === 'Other');
-  const mainFeatures = explanations.filter(f => f.feature !== 'Other');
-  // Sort by impact descending
-  const sortedFeatures = mainFeatures.slice().sort((a, b) => b.impact_percentage - a.impact_percentage);
-  // Top 5 + Other
-  const barData = [
-    ...sortedFeatures.slice(0, 5).map((f, i) => ({ ...f, color: SHAP_BAR_COLORS[i] || '#666' })),
-    ...(otherFeature ? [{ ...otherFeature, color: SHAP_BAR_COLORS[5] || '#666' }] : [])
-  ];
-  // Normalize to 100%
-  const totalImpact = barData.reduce((sum, item) => sum + item.impact_percentage, 0);
-  const normalizedBarData = barData.map(item => ({
-    ...item,
-    impact_percentage: totalImpact > 0 ? (item.impact_percentage * 100) / totalImpact : 0
+  // Split into main features and others
+  const mainFeatures = explanations
+    .filter(f => f.impact_percentage >= 10)
+    .sort((a, b) => b.impact_percentage - a.impact_percentage);
+  const otherFeatures = explanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 10);
+  const otherImpact = otherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
+
+  // Farben für Hauptfeatures (ursprüngliche Palette, zyklisch)
+  const barData = mainFeatures.map((f, i) => ({
+    ...f,
+    color: SHAP_BAR_COLORS[i % SHAP_BAR_COLORS.length]
   }));
+  if (otherImpact > 0) {
+    barData.push({
+      feature: 'Other',
+      impact_percentage: otherImpact,
+      description: 'All features with < 10% impact',
+      color: SHAP_BAR_COLORS[5] // immer grau für Other
+    });
+  }
+
+  // ========== Days Until Job Change (Range & Toggle) ==========
+  // Berechne die Range in 3-Monats-Schritten
+  const daysPerMonth = 30.44;
+  const months = daysUntilChange / daysPerMonth;
+  const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
+  const rangeEnd = rangeStart + 2;
+  const rangeLabel = `${rangeStart}-${rangeEnd} months`;
 
   // ===================== Render =====================
   return (
@@ -153,12 +160,19 @@ const Timeline = ({ prediction, profile }) => {
           gap: isMobile ? 0.5 : 1
         }}
       >
-        <Typography sx={{ fontWeight: 900, fontSize: isMobile ? 40 : 54, color: '#F59E42', mb: isMobile ? 0.2 : 0.5, lineHeight: 1 }}>
-          {daysUntilChange}
-        </Typography>
-        <Typography sx={{ fontWeight: 600, fontSize: isMobile ? '0.9rem' : '1rem', color: '#001242' }}>
-          Days until job change
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: isMobile ? 40 : 54, color: '#F59E42', mb: isMobile ? 0.2 : 0.5, lineHeight: 1 }}>
+            {rangeLabel}
+          </Typography>
+          <IconButton size="small" onClick={() => setShowDays(v => !v)} aria-label="Show exact days">
+            <ExpandMoreIcon sx={{ transform: showDays ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </IconButton>
+        </Box>
+        <Collapse in={showDays}>
+          <Typography sx={{ fontWeight: 600, fontSize: isMobile ? '0.9rem' : '1rem', color: '#001242', mt: 0.5 }}>
+            {daysUntilChange} days until job change
+          </Typography>
+        </Collapse>
       </Box>
 
       {/* ===== Timeline Visualization ===== */}
@@ -272,7 +286,7 @@ const Timeline = ({ prediction, profile }) => {
       </Box>
 
       {/* ===== SHAP Explanations Bar Chart ===== */}
-      {canViewExplanations && normalizedBarData.length > 0 && (
+      {canViewExplanations && barData.length > 0 && (
         <Box sx={{ width: '100%', mb: isMobile ? 1 : 2 }}>
           <Typography
             variant="h6"
@@ -299,7 +313,7 @@ const Timeline = ({ prediction, profile }) => {
               mb: isMobile ? 1 : 2
             }}
           >
-            {normalizedBarData.map((item, idx) => (
+            {barData.map((item, idx) => (
               <Box
                 key={item.feature}
                 sx={{
@@ -311,7 +325,7 @@ const Timeline = ({ prediction, profile }) => {
                   color: '#fff',
                   fontWeight: 600,
                   fontSize: isMobile ? '0.8rem' : '0.95rem',
-                  borderRight: idx < normalizedBarData.length - 1 ? '2px solid #fff' : 'none',
+                  borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
                   transition: 'width 0.3s ease'
                 }}
               >
@@ -327,10 +341,12 @@ const Timeline = ({ prediction, profile }) => {
           </Box>
           {/* SHAP legend */}
           <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, mt: isMobile ? 1 : 2, flexWrap: 'wrap' }}>
-            {normalizedBarData.map(item => (
+            {barData.map(item => (
               <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: isMobile ? 12 : 16, height: isMobile ? 12 : 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
-                <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>{item.feature}</Typography>
+                <Tooltip title={item.feature} arrow>
+                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>{item.description}</Typography>
+                </Tooltip>
               </Box>
             ))}
           </Box>

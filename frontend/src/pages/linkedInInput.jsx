@@ -158,7 +158,7 @@ const LinkedInInput = () => {
       const candidateData = {
         firstName: profileData.name.split(' ')[0],
         lastName: profileData.name.split(' ').slice(1).join(' '),
-        linkedinProfile: linkedinUrl,
+        linkedinProfile: profileData.linkedinProfile || profileData.profileLink || linkedinUrl,
         currentPosition: profileData.currentTitle,
         location: profileData.location,
         confidence: [predictionData.confidence],

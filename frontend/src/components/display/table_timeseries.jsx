@@ -57,14 +57,18 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   // --- Helper: Format Job Change Period (EN) ---
   const formatJobChangePeriod = (confidence) => {
     if (!confidence) return 'N/A';
-    const months = (confidence / 30.44).toFixed(1);
-    return `${months} month${months === '1.0' ? '' : 's'}`;
+    const months = confidence / 30.44;
+    const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
+    const rangeEnd = rangeStart + 2;
+    return `${rangeStart}-${rangeEnd} months`;
   };
   // --- Helper: Format Job Change Period (DE) ---
   const formatJobChangePeriodDE = (confidence) => {
     if (!confidence) return 'N/A';
-    const months = (confidence / 30.44).toFixed(1);
-    return `${months} Month${months === '1.0' ? '' : 's'}`;
+    const months = confidence / 30.44;
+    const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
+    const rangeEnd = rangeStart + 2;
+    return `${rangeStart}-${rangeEnd} Monate`;
   };
 
   // --- Error Handling: Show Error Message if Results Contain Error ---
