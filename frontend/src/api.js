@@ -3,4 +3,4 @@
 // cloudflared tunnel --url http://localhost:5100
 // copy url and push on github
 
-export const API_BASE_URL = "https://portal-stephen-stranger-owen.trycloudflare.com";
+export const API_BASE_URL = "https://rw-governments-henderson-residential.trycloudflare.com";
