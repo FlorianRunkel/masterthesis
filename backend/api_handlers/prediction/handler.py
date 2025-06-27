@@ -66,7 +66,7 @@ def predict_career():
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
-        prediction = module.predict(profile_data, with_llm_explanation=True)
+        prediction = module.predict(profile_data)
     
         if model_type == 'xgboost':
             formatted_prediction = {
@@ -143,7 +143,7 @@ def predict_batch():
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
-                prediction = module.predict(profile_data, with_llm_explanation=False)
+                prediction = module.predict(profile_data)
 
                 if "error" in prediction:
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": prediction["error"]})

@@ -63,7 +63,10 @@ const PredictionResult = ({ prediction }) => {
       <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: { xs: 4, md: 8 }, bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
         {/* --- Prediction Header --- */}
         <Box sx={{ mb: isMobile ? 2 : 3 }}>
-          <Typography variant="h1" color="primary" gutterBottom sx={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, mb: isMobile ? 2 : 4, color: '#001B41' }}>Career Change Prediction</Typography>
+          <Typography variant="h1" color="primary" gutterBottom sx={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, color: '#001B41' }}>Career Change Prediction</Typography>
+          <Typography sx={{ color: '#444', fontSize: '0.95rem', mb: isMobile ? 2 : 4 }}>
+            The candidate has been classified by the XGBoost model with a predicted probability of job change.
+          </Typography>
           {/* --- Confidence Bar and Value --- */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Typography variant="h3" sx={{ mr: 2, fontSize: '3rem', fontWeight: 600, color: probabilityClass === 'probability-low-single' ? '#001B41' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265' }}>{confidence}%</Typography>
@@ -87,6 +90,7 @@ const PredictionResult = ({ prediction }) => {
               }
             </Typography>
           </Box>
+
         </Box>
         {/* --- Feature Importance Bar --- */}
         {canViewExplanations && barData.length > 0 && (

@@ -309,7 +309,7 @@ def get_explanations(model, feature_names):
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, with_llm_explanation=False):
+def predict(profile_dict, model_path=None):
     try:
         # Determine model path
         if model_path is None:
@@ -412,12 +412,9 @@ def predict(profile_dict, model_path=None, with_llm_explanation=False):
             "recommendations": recommendations,
             "status": status,
             "explanations": explanations,
-            "shap_values": shap_values.tolist(),  # SHAP-Werte als Liste
+            "shap_values": shap_values.tolist(),
+            "llm_explanation": ""
         }
-
-        if with_llm_explanation:
-            result["llm_explanation"] = "LLM explanation is being generated..."  # LLM explanation could be added here
-
         return result
 
     except Exception as e:

@@ -25,8 +25,9 @@ cleanup() {
 wait_for_port() {
     local port=$1
     local attempts=0
-    local max_attempts=10
+    local max_attempts=20
 
+    echo -e "${BLUE}Warte auf Backend-Server (das Modell wird geladen, das kann mehrere Minuten dauern)...${NC}"
     while ! nc -z localhost $port >/dev/null 2>&1; do
         attempts=$((attempts + 1))
         if [ $attempts -ge $max_attempts ]; then
@@ -35,7 +36,7 @@ wait_for_port() {
             exit 1
         fi
         echo -e "${BLUE}Warte auf Backend-Server (Versuch $attempts von $max_attempts)...${NC}"
-        sleep 2
+        sleep 5
     done
 }
 

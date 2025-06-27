@@ -449,7 +449,7 @@ def transform_features_for_gru(profile_data, scaler_path="/Users/florianrunkel/D
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, with_llm_explanation=True):
+def predict(profile_dict, model_path=None):
     """Vorhersage der Tage bis zum Wechsel (Regression)."""
     try:
         # Modellpfad bestimmen
@@ -548,8 +548,8 @@ def predict(profile_dict, model_path=None, with_llm_explanation=True):
             "status": status,
             "explanations": explanations,
             "shap_summary": shap_summary,
-            "llm_explanation": "" if not with_llm_explanation else "LLM Explanation folgt."
-        }
+            "llm_explanation": ""
+            }
 
     except Exception as e:
         print(f"Fehler bei der Vorhersage: {str(e)}")

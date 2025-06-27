@@ -123,12 +123,12 @@ def map_tft_feature_names(feature_name):
 def get_feature_description(name):
     descriptions = {
         "Work Experience (Days)": "Cumulative length of professional experience measured in days",
-        "Number of Changes": "Total number of job transitions across the candidate’s career path",
+        "Number of Changes": "Total number of job transitions across the candidate's career path",
         "Number of Jobs": "Total count of distinct positions held throughout the career",
         "Average Job Duration": "Average duration (in days) spent in each previous position",
         "Highest Degree": "Highest level of formal education attained",
-        "Age Category": "Categorical representation of the candidate’s age group ",
-        "Position Level": "Seniority level of the current role",
+        "Age Category": "Categorical representation of the candidate's age group ",
+        "Position Level": "Level of the current role",
         "Industry": "Economic sector or industry in which the candidate is currently employed",
         "Position Average Duration": "Average tenure observed for similar roles within the dataset",
         "Position ID": "Encoded identifier for the current position type based on role taxonomy",
@@ -136,15 +136,15 @@ def get_feature_description(name):
         "Weekday (Cyclic)": "Cyclically encoded weekday to capture temporal patterns for modeling",
         "Month": "Calendar month when the current job started",
         "Month (Cyclic)": "Cyclically encoded month to reflect seasonal effects in career changes",
-        "Previous Position 1 Level": "Seniority level of the most recent prior role",
+        "Previous Position 1 Level": "Level of the most recent prior role",
         "Previous Position 1 Industry": "Industry in which the most recent prior role was held",
         "Previous Position 1 Duration": "Duration (in days) of the most recent previous position",
-        "Previous Position 2 Level": "Seniority level of the second most recent prior role",
+        "Previous Position 2 Level": "Level of the second most recent prior role",
         "Previous Position 2 Industry": "Industry of the second most recent prior role",
         "Previous Position 2 Duration": "Duration (in days) of the second most recent previous position",
         "Company Size": "Size of the employer, typically based on number of employees",
         "Study Field": "Academic discipline or field in which the highest degree was obtained",
-        "Career Timeline Position": "Relative point in the candidate’s overall career journey",
+        "Career Timeline Position": "Relative point in the candidate's overall career journey",
         "Career Progression Stage": "Abstracted stage of career development, derived from job history and progression patterns",
         "Historical Data Points": "Number of past career events available for analysis"
     }
@@ -238,7 +238,7 @@ def extract_features_from_linkedin_new(data):
     df = pd.DataFrame(rows)
     return df
 
-def predict(linkedin_data, with_llm_explanation=False):
+def predict(linkedin_data):
     # Extrahiere Features mit dem neuen System
     df_new = extract_features_from_linkedin_new(linkedin_data)
     print(f"Extrahierte Features: {len(df_new)} Zeilen")
@@ -317,7 +317,7 @@ def predict(linkedin_data, with_llm_explanation=False):
     # Lade das trainierte Modell
     print("Lade trainiertes Modell...")
     tft = TemporalFusionTransformer.load_from_checkpoint(
-        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250627_113734.ckpt"
+        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250627_133624.ckpt"
     )
     
     # Erstelle TimeSeriesDataSet für Vorhersage
@@ -450,6 +450,20 @@ def predict(linkedin_data, with_llm_explanation=False):
         status = "langfristig"
         recommendation = "Jobwechsel in weiterer Zukunft (> 6 Monate)"
     
+    # Liste der technischen Features, die du ausblenden willst
+    technical_features = ["encoder_length", "relative_time_idx", "target_scale", "target_center", "Career Timeline Position", "Career Progression Stage", "Historical Data Points"]
+
+    # Beim Erstellen der Explanations filtern:
+    explanations = [
+        e for e in explanations
+        if e["feature"] not in technical_features
+    ]
+    
+    # Normalisiere die Gewichte neu
+    total = sum(e["impact_percentage"] for e in explanations)
+    for e in explanations:
+        e["impact_percentage"] = e["impact_percentage"] / total * 100 if total > 0 else 0
+
     return {
         "confidence": tage,  # Einzelner Wert in Tagen
         "recommendations": [recommendation],
