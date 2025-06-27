@@ -258,8 +258,20 @@ class FeatureEngineering:
                     
                     features.extend(path_features)
                     
+                    # Company Size Feature (1) - 23. Feature für Kompatibilität
+                    company_size = doc.get("company_size_category", "medium")
+                    company_size_num = self.get_company_size_num(company_size)
+                    features.append(company_size_num)
+                    
+                    # Study Field Feature (1) - 24. Feature für Kompatibilität
+                    study_field = doc.get("study_field", "Informatics")
+                    study_field_num = self.get_study_field_num(study_field)
+                    features.append(study_field_num)
+                    
                     if processed_profiles < 3 and len(sequence) < 3:
                         print(f"    Karrierepfad-Features (erste 6): {path_features[:6]}")
+                        print(f"    Company Size: {company_size} -> {company_size_num}")
+                        print(f"    Study Field: {study_field} -> {study_field_num}")
                         print(f"    Finale Features (erste 10): {features[:10]}")
                         print(f"    Feature-Summe: {sum(features)}")
                         print(f"    Feature-Anzahl: {len(features)}")
@@ -304,7 +316,7 @@ class FeatureEngineering:
         for sequence in all_sequences:
             padded_seq = sequence.copy()
             while len(padded_seq) < max_seq_len:
-                padding_features = [0.0] * 22  # 22 Features
+                padding_features = [0.0] * 24  # 24 Features
                 padded_seq.append(padding_features)
             padded_sequences.append(padded_seq)
         

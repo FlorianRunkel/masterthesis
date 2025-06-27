@@ -1,4 +1,5 @@
-from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer, GroupNormalizer
+from pytorch_forecasting.data.encoders import NaNLabelEncoder
 from rapidfuzz import process, fuzz
 from datetime import datetime
 import sys
@@ -6,6 +7,7 @@ import json
 import pandas as pd
 import torch
 import os
+import numpy as np
 
 # Lade Konfigurationsdateien relativ zum Skriptpfad
 script_dir = os.path.dirname(__file__)
@@ -23,6 +25,9 @@ position_map = {
 }
 all_positions = list(position_map.keys())
 
+# Lade das neue FeatureEngineering
+sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
+from backend.ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
 
 '''
 Helper Functions
@@ -33,15 +38,24 @@ def get_branche_num(branche):
     return branche_map.get(branche, 0)
 
 def check_min_timesteps(df, encoder_length=4, prediction_length=2):
-
     required = encoder_length + prediction_length
     actual = len(df)
-
+    
     if actual >= required:
         return True, 0
     else:
         return False, required - actual
 
+def append_dummy_rows(df, missing_count):
+    df = df.copy()
+    last_row = df.iloc[-1].copy()
+    
+    for i in range(missing_count):
+        new_row = last_row.copy()
+        new_row["time_idx"] = df["time_idx"].max() + 1 if "time_idx" in df.columns else len(df) + 1
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    
+    return df
 
 '''
 Explanation Functions
@@ -49,41 +63,90 @@ Explanation Functions
 
 def get_feature_names():
     return [
-        "Work Experience",
+        "Work Experience (Days)",
         "Number of Changes",
         "Number of Jobs",
         "Average Job Duration",
+        "Highest Degree",
+        "Age Category",
         "Position Level",
         "Industry",
-        "Average Position Duration"
+        "Position Average Duration",
+        "Position ID",
+        "Weekday",
+        "Weekday (Cyclic)",
+        "Month",
+        "Month (Cyclic)",
+        "Previous Position 1 Level",
+        "Previous Position 1 Industry",
+        "Previous Position 1 Duration",
+        "Previous Position 2 Level",
+        "Previous Position 2 Industry",
+        "Previous Position 2 Duration",
+        "Company Size",
+        "Study Field"
     ]
 
 def map_tft_feature_names(feature_name):
     mapping = {
+        'berufserfahrung_tage': 'Work Experience (Days)',
+        'anzahl_wechsel_bisher': 'Number of Changes',
+        'anzahl_jobs_bisher': 'Number of Jobs',
+        'durchschnittsdauer_jobs': 'Average Job Duration',
+        'highest_degree': 'Highest Degree',
+        'age_category': 'Age Category',
+        'position_level': 'Position Level',
+        'position_branche': 'Industry',
+        'position_durchschnittszeit': 'Position Average Duration',
+        'position_id_numeric': 'Position ID',
+        'weekday': 'Weekday',
+        'weekday_sin': 'Weekday (Cyclic)',
+        'weekday_cos': 'Weekday (Cyclic)',
+        'month': 'Month',
+        'month_sin': 'Month (Cyclic)',
+        'month_cos': 'Month (Cyclic)',
+        'prev_position_1_level': 'Previous Position 1 Level',
+        'prev_position_1_branche': 'Previous Position 1 Industry',
+        'prev_position_1_dauer': 'Previous Position 1 Duration',
+        'prev_position_2_level': 'Previous Position 2 Level',
+        'prev_position_2_branche': 'Previous Position 2 Industry',
+        'prev_position_2_dauer': 'Previous Position 2 Duration',
+        'company_size': 'Company Size',
+        'study_field': 'Study Field',
+        'time_idx': 'Career Timeline Position',
         'label_scale': 'Average Job Duration',
         'relative_time_idx': 'Career Progression Stage',
-        'berufserfahrung_bis_zeitpunkt': 'Work Experience',
-        'time_idx': 'Career Timeline Position',
-        'encoder_length': 'Historical Data Points',
-        'durchschnittsdauer_bisheriger_jobs': 'Average Job Duration',
-        'anzahl_wechsel_bisher': 'Number of Changes',
-        'label_center': 'Average Job Duration',
-        'anzahl_jobs_bisher': 'Number of Jobs'
+        'encoder_length': 'Historical Data Points'
     }
     return mapping.get(feature_name, feature_name)
 
 def get_feature_description(name):
     descriptions = {
-        "Work Experience": "Total professional experience accumulated over time",
-        "Number of Changes": "Total number of job transitions in career history",
-        "Number of Jobs": "Total number of positions held throughout career",
-        "Average Job Duration": "Mean duration across all previous positions",
-        "Position Level": "Current role's seniority and responsibility level",
-        "Industry": "Professional sector and business domain",
-        "Average Position Duration": "Typical tenure in similar positions",
-        "Career Progression Stage": "Current phase in professional development",
-        "Career Timeline Position": "Position in overall career trajectory",
-        "Historical Data Points": "Number of career events analyzed"
+        "Work Experience (Days)": "Cumulative length of professional experience measured in days",
+        "Number of Changes": "Total number of job transitions across the candidate’s career path",
+        "Number of Jobs": "Total count of distinct positions held throughout the career",
+        "Average Job Duration": "Average duration (in days) spent in each previous position",
+        "Highest Degree": "Highest level of formal education attained",
+        "Age Category": "Categorical representation of the candidate’s age group ",
+        "Position Level": "Seniority level of the current role",
+        "Industry": "Economic sector or industry in which the candidate is currently employed",
+        "Position Average Duration": "Average tenure observed for similar roles within the dataset",
+        "Position ID": "Encoded identifier for the current position type based on role taxonomy",
+        "Weekday": "Day of the week on which the most recent job began",
+        "Weekday (Cyclic)": "Cyclically encoded weekday to capture temporal patterns for modeling",
+        "Month": "Calendar month when the current job started",
+        "Month (Cyclic)": "Cyclically encoded month to reflect seasonal effects in career changes",
+        "Previous Position 1 Level": "Seniority level of the most recent prior role",
+        "Previous Position 1 Industry": "Industry in which the most recent prior role was held",
+        "Previous Position 1 Duration": "Duration (in days) of the most recent previous position",
+        "Previous Position 2 Level": "Seniority level of the second most recent prior role",
+        "Previous Position 2 Industry": "Industry of the second most recent prior role",
+        "Previous Position 2 Duration": "Duration (in days) of the second most recent previous position",
+        "Company Size": "Size of the employer, typically based on number of employees",
+        "Study Field": "Academic discipline or field in which the highest degree was obtained",
+        "Career Timeline Position": "Relative point in the candidate’s overall career journey",
+        "Career Progression Stage": "Abstracted stage of career development, derived from job history and progression patterns",
+        "Historical Data Points": "Number of past career events available for analysis"
     }
     return descriptions.get(name, "This feature influences the prediction.")
 
@@ -107,35 +170,25 @@ def map_position_fuzzy(pos, threshold=30):
 
     return (match, float(level), float(get_branche_num(branche)), float(durchschnittszeit))
 
-def append_dummy_rows(df, missing_count):
-
-    df = df.copy()
-    last_row = df.iloc[-1].copy()
-
-    for i in range(missing_count):
-        new_row = last_row.copy()
-        new_row["time_idx"] = df["time_idx"].max() + 1
-        new_row["zeitpunkt"] = df["zeitpunkt"].max() + pd.Timedelta(days=30)
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-
-    return df
-
-def extract_features_from_linkedin(data):
+def extract_features_from_linkedin_new(data):
+    """
+    Neue Feature-Extraktion basierend auf dem 22-Feature-System
+    """
     rows = []
-
-    total_experience = 0
-    job_durations = []
     
     # Sortiere die Jobs nach Startdatum (älteste zuerst)
     sorted_jobs = sorted(data["workExperience"], 
                         key=lambda x: datetime.strptime(x["startDate"], "%d/%m/%Y"))
     
+    total_experience = 0
+    job_durations = []
+    
     for i, job in enumerate(sorted_jobs):
         start_date = datetime.strptime(job["startDate"], "%d/%m/%Y")
         end_date = datetime.today() if job["endDate"] == "Present" else datetime.strptime(job["endDate"], "%d/%m/%Y")
         
-        duration = end_date - start_date  # ➜ timedelta
-        duration_days = duration.days     # ➜ int
+        duration = end_date - start_date
+        duration_days = duration.days
         
         if i > 0:
             # Addiere die Dauer des vorherigen Jobs zur Gesamterfahrung
@@ -147,102 +200,242 @@ def extract_features_from_linkedin(data):
         # Berechne die durchschnittliche Dauer der bisherigen Jobs
         job_durations.append(duration_days)
         avg_duration = sum(job_durations) / len(job_durations) if job_durations else 0
-
-
-        mapped_position, level, branche, durchschnittszeit = map_position_fuzzy(job["position"])
-
+        
+        # Konvertiere Zeitstempel zu Unix-Timestamp
+        zeitpunkt = start_date.timestamp()
+        
+        # Schätze Alter und Degree basierend auf Erfahrung
+        estimated_age = min(25 + (total_experience // 365), 65)  # Schätzung
+        age_category = min((estimated_age - 18) // 10 + 1, 5)   # 1-5 Kategorien
+        
+        # Degree basierend auf Ausbildung
+        degree = 3  # Bachelor als Standard
+        if any("master" in edu.get("degree", "").lower() for edu in data.get("education", [])):
+            degree = 4
+        elif any("phd" in edu.get("degree", "").lower() for edu in data.get("education", [])):
+            degree = 5
+        
         row = {
             "profile_id": "new_user",
-            "zeitpunkt": start_date,
+            "aktuelle_position": job["position"],
+            "zeitpunkt": zeitpunkt,
             "label": float(duration_days),
             "berufserfahrung_bis_zeitpunkt": float(total_experience),
             "anzahl_wechsel_bisher": i,
             "anzahl_jobs_bisher": i + 1,
             "durchschnittsdauer_bisheriger_jobs": float(avg_duration),
-            "mapped_position": mapped_position, 
-            "level":level,
-            "branche":branche,
-            "durchschnittszeit": durchschnittszeit
+            "highest_degree": degree,
+            "age_category": age_category,
+            "anzahl_standortwechsel": 0,  # Schätzung
+            "study_field": "Informatics",  # Standard
+            "company_name": job["company"],
+            "company_industry": job.get("companyInformation", {}).get("industry", [""])[0] if job.get("companyInformation", {}).get("industry") else "",
+            "company_location": job.get("location", ""),
+            "company_size_category": "medium"  # Standard
         }
         rows.append(row)
-
+    
     df = pd.DataFrame(rows)
-    df["zeitpunkt"] = pd.to_datetime(df["zeitpunkt"])
-    df = df.sort_values("zeitpunkt")
-    df["time_idx"] = range(1, len(df) + 1)
     return df
 
 def predict(linkedin_data, with_llm_explanation=False):
-    df_new = extract_features_from_linkedin(linkedin_data)
-
-    training_dataset = torch.load(
-        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/training_dataset.pt"
-    )
-
-    is_valid, missing = check_min_timesteps(df_new, encoder_length=4, prediction_length=2)
-
-    if not is_valid:
-        df_new = append_dummy_rows(df_new, missing)
-        print(f"add {missing} Dummy-Zeitpunkte angehängt. Neue Länge: {len(df_new)}")
-
-    # Verwende die Struktur des originalen Trainings-Datasets
-    new_dataset = TimeSeriesDataSet.from_dataset(
-        training_dataset,
-        df_new,
-        predict=True,   
-        allow_missing_timesteps=True,
-        min_encoder_length=4,
-        min_prediction_idx=1 
-    )
-
-    # Dataloader für Vorhersage
-    new_dataloader = new_dataset.to_dataloader(train=False, batch_size=1)
-
-    tft = TemporalFusionTransformer.load_from_checkpoint(
-        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250606_151628.ckpt"
-    )
-
-    output = tft.predict(new_dataloader, mode="raw", return_x=True)
+    # Extrahiere Features mit dem neuen System
+    df_new = extract_features_from_linkedin_new(linkedin_data)
+    print(f"Extrahierte Features: {len(df_new)} Zeilen")
     
-    # Extrahiere die Vorhersage und nimm den Median-Wert (3. Wert) aus der ersten Liste
+    # Verwende das neue FeatureEngineering
+    feature_engineering = FeatureEngineering()
+    
+    # Konvertiere zu Dokumenten-Format
+    docs = df_new.to_dict('records')
+    sequences, labels, positions = feature_engineering.extract_sequences_by_profile(docs, min_seq_len=2)
+    
+    print(f"Sequences shape: {sequences.shape}")
+    print(f"Labels shape: {labels.shape}")
+    
+    # Erstelle DataFrame für Vorhersage
+    prediction_data = []
+    for i, (seq, label, pos_seq) in enumerate(zip(sequences, labels, positions)):
+        for j, (features, position) in enumerate(zip(seq, pos_seq)):
+            # Konvertiere PyTorch-Tensoren zu normalen Werten
+            features_numeric = [float(f.item()) if hasattr(f, 'item') else float(f) for f in features]
+            label_numeric = float(label.item()) if hasattr(label, 'item') else float(label)
+            
+            # Filtere Padding-Zeilen
+            if sum(features_numeric) == 0:
+                continue
+            
+            prediction_data.append({
+                'profile_id': i,
+                'time_idx': j,
+                'target': label_numeric,
+                'position': position,
+                **{f'feature_{k}': v for k, v in enumerate(features_numeric)}
+            })
+    
+    df_prediction = pd.DataFrame(prediction_data)
+    print(f"Prediction DataFrame shape: {df_prediction.shape}")
+    
+    # Feature-Namen für bessere Interpretierbarkeit
+    feature_names = {
+        'feature_0': 'berufserfahrung_tage',
+        'feature_1': 'anzahl_wechsel_bisher',
+        'feature_2': 'anzahl_jobs_bisher',
+        'feature_3': 'durchschnittsdauer_jobs',
+        'feature_4': 'highest_degree',
+        'feature_5': 'age_category',
+        'feature_6': 'position_level',
+        'feature_7': 'position_branche',
+        'feature_8': 'position_durchschnittszeit',
+        'feature_9': 'position_id_numeric',
+        'feature_10': 'weekday',
+        'feature_11': 'weekday_sin',
+        'feature_12': 'weekday_cos',
+        'feature_13': 'month',
+        'feature_14': 'month_sin',
+        'feature_15': 'month_cos',
+        'feature_16': 'prev_position_1_level',
+        'feature_17': 'prev_position_1_branche',
+        'feature_18': 'prev_position_1_dauer',
+        'feature_19': 'prev_position_2_level',
+        'feature_20': 'prev_position_2_branche',
+        'feature_21': 'prev_position_2_dauer',
+        'feature_22': 'company_size',
+        'feature_23': 'study_field'
+    }
+    
+    # Benenne Features um
+    df_prediction_renamed = df_prediction.rename(columns=feature_names)
+    
+    # Prüfe minimale Zeitpunkte
+    is_valid, missing = check_min_timesteps(df_prediction_renamed, encoder_length=4, prediction_length=2)
+    
+    if not is_valid:
+        df_prediction_renamed = append_dummy_rows(df_prediction_renamed, missing)
+        print(f"Added {missing} dummy timepoints. New length: {len(df_prediction_renamed)}")
+    
+    # Lade das trainierte Modell
+    print("Lade trainiertes Modell...")
+    tft = TemporalFusionTransformer.load_from_checkpoint(
+        "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250627_113734.ckpt"
+    )
+    
+    # Erstelle TimeSeriesDataSet für Vorhersage
+    time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24)]
+    
+    # Konvertiere Position-Strings zu numerischen IDs für kategorische Variable (wie im Training)
+    unique_positions = df_prediction_renamed['position'].unique()
+    position_to_id = {pos: i for i, pos in enumerate(unique_positions)}
+    df_prediction_renamed['position_id'] = df_prediction_renamed['position'].map(position_to_id)
+    df_prediction_renamed['position_id'] = df_prediction_renamed['position_id'].astype(str)
+    
+    prediction_dataset = TimeSeriesDataSet(
+        df_prediction_renamed,
+        time_idx="time_idx",
+        target="target",
+        group_ids=["profile_id"],
+        max_encoder_length=4,
+        max_prediction_length=2,
+        min_encoder_length=2,  # Wie im Training
+        min_prediction_length=1,
+        time_varying_unknown_reals=time_varying_unknown_reals_named,
+        time_varying_known_reals=["time_idx"],
+        static_categoricals=["position_id"],  # Wie im Training
+        categorical_encoders={
+            "profile_id": NaNLabelEncoder(add_nan=True),
+            "position_id": NaNLabelEncoder(add_nan=True),
+        },
+        target_normalizer=GroupNormalizer(groups=["profile_id"], transformation="softplus"),
+        add_relative_time_idx=True,
+        add_target_scales=True,
+        add_encoder_length=True,
+        allow_missing_timesteps=True,
+    )
+    
+    # Dataloader für Vorhersage
+    prediction_dataloader = prediction_dataset.to_dataloader(train=False, batch_size=1)
+    
+    # Mache Vorhersage
+    print("Mache Vorhersage...")
+    output = tft.predict(prediction_dataloader, mode="raw", return_x=True)
+    
+    # Extrahiere die Vorhersage und wähle intelligente Quantile
     prediction_list = output.output.prediction.tolist()
-    print(prediction_list)
-    # Extrahiere den 3. Wert (Index 2) aus der ersten Liste
-    print(prediction_list[0][0][3])
-    tage = prediction_list[0][0][3]
-
+    print(f"Raw prediction: {prediction_list}")
+    
+    # Extrahiere verschiedene Quantile aus der letzten Vorhersage
+    last_prediction = prediction_list[-1][0]  # Letzte Vorhersage
+    
+    # Intelligente Quantile-Auswahl
+    median_50 = last_prediction[3]  # 50% Quantile
+    quantile_75 = last_prediction[4]  # 75% Quantile
+    quantile_90 = last_prediction[5]  # 90% Quantile
+    quantile_100 = last_prediction[6]  # 100% Quantile
+    
+    # Wähle das beste Quantile basierend auf Realismus
+    if median_50 > 30:  # Wenn Median realistisch ist (>30 Tage)
+        tage = median_50
+        quantile_used = "50% (Median)"
+    elif quantile_75 > 60:  # Wenn 75% Quantile realistisch ist
+        tage = quantile_75
+        quantile_used = "75%"
+    elif quantile_90 > 90:  # Fallback auf 90%
+        tage = quantile_90
+        quantile_used = "90%"
+    else:  # Letzter Fallback auf 100%
+        tage = quantile_100
+        quantile_used = "100%"
+    
+    print(f"Predicted days: {tage} (verwendetes Quantile: {quantile_used})")
+    
+    # Debug: Zeige alle Quantile der letzten Vorhersage
+    quantiles = last_prediction
+    print(f"Alle Quantile (letzte Vorhersage): 0%={quantiles[0]}, 10%={quantiles[1]}, 25%={quantiles[2]}, 50%={quantiles[3]}, 75%={quantiles[4]}, 90%={quantiles[5]}, 100%={quantiles[6]}")
+    
+    # Debug: Zeige Quantile-Auswahl
+    print(f"Quantile-Auswahl: Median={median_50}, 75%={quantile_75}, 90%={quantile_90}, 100%={quantile_100}")
+    print(f"Gewähltes Quantile: {quantile_used} = {tage} Tage")
+    
     # Extrahiere Feature Importance
     var_weights = output.output.encoder_variables[0, -1]
-    feature_names = new_dataset.reals + new_dataset.time_varying_unknown_reals
+    feature_names_list = prediction_dataset.time_varying_unknown_reals + [
+         "relative_time_idx", "encoder_length"
+    ]
     
     weights = var_weights.tolist()
     if isinstance(weights[0], list):
         weights = weights[0]
     
+    if len(weights) != len(feature_names_list):
+        print("WARNUNG: Länge der weights und feature_names_list stimmt immer noch nicht überein!")
+        print("weights:", weights)
+        print("feature_names_list:", feature_names_list)
+        # Optional: abbrechen oder auffüllen
+    
     # Normalisiere die Gewichte zu Prozentwerten
     total = sum(abs(w) for w in weights)
     norm_weights = [(w / total * 100) if total > 0 else 0 for w in weights]
     
-    # Erstelle Explanations im gleichen Format wie GRU
+    # Mapping
     explanations = []
-    for name, val in zip(feature_names, norm_weights):
+    for name, val in zip(feature_names_list, norm_weights):
         mapped_name = map_tft_feature_names(name)
         explanations.append({
             "feature": mapped_name,
             "impact_percentage": float(val),
             "description": get_feature_description(mapped_name)
         })
-
+    
     # Sortiere Explanations nach Impact
     explanations = sorted(explanations, key=lambda x: -x['impact_percentage'])
-    print(explanations)
+    print(f"Feature explanations: {explanations}")
     
     # Erstelle SHAP Summary
     if len(explanations) >= 2:
         shap_summary = f"Die Vorhersage wurde hauptsächlich beeinflusst durch {explanations[0]['feature']} und {explanations[1]['feature']}."
     else:
         shap_summary = "Keine SHAP-Erklärung verfügbar."
-
+    
     # Bestimme Status und Empfehlung
     if tage < 30:
         status = "baldiger Wechsel"
@@ -256,7 +449,7 @@ def predict(linkedin_data, with_llm_explanation=False):
     else:
         status = "langfristig"
         recommendation = "Jobwechsel in weiterer Zukunft (> 6 Monate)"
-
+    
     return {
         "confidence": tage,  # Einzelner Wert in Tagen
         "recommendations": [recommendation],

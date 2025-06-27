@@ -8,12 +8,16 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // Color palette for SHAP bar chart (top 5 + other)
 const SHAP_BAR_COLORS = [
-  '#8AD265', // green
-  '#FFC03D', // yellow
+  '#8AD265', // grün
+  '#B6D94C', // gelb-grün
+  '#FFD700', // gelb
   '#FFA500', // orange
-  '#FF6F00', // dark orange
-  '#FF2525', // red
-  '#666'     // gray for 'Other'
+  '#FF8C00', // orange
+  '#FF6F00', // orange
+  '#FF4500', // orange
+  '#FF2525', // orange
+  '#FF2525', // rot
+  '#666'     // grau für "Other"
 ];
 
 /**
@@ -91,9 +95,9 @@ const Timeline = ({ prediction, profile }) => {
   let explanations = prediction.explanations || [];
   // Split into main features and others
   const mainFeatures = explanations
-    .filter(f => f.impact_percentage >= 10)
+    .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
-  const otherFeatures = explanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 10);
+  const otherFeatures = explanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 5);
   const otherImpact = otherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
 
   // Farben für Hauptfeatures (ursprüngliche Palette, zyklisch)
@@ -105,8 +109,8 @@ const Timeline = ({ prediction, profile }) => {
     barData.push({
       feature: 'Other',
       impact_percentage: otherImpact,
-      description: 'All features with < 10% impact',
-      color: SHAP_BAR_COLORS[5] // immer grau für Other
+      description: 'All features with < 5% impact',
+      color: SHAP_BAR_COLORS[9] // immer grau für Other
     });
   }
 

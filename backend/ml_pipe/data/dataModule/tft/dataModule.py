@@ -139,7 +139,13 @@ class CareerDataModule(pl.LightningDataModule):
             'feature_18': 'prev_position_1_dauer',
             'feature_19': 'prev_position_2_level',
             'feature_20': 'prev_position_2_branche',
-            'feature_21': 'prev_position_2_dauer'
+            'feature_21': 'prev_position_2_dauer',
+            
+            # Company Size Feature (1) - 23. Feature
+            'feature_22': 'company_size',
+            
+            # Study Field Feature (1) - 24. Feature
+            'feature_23': 'study_field'
         }
         
         # Debug: Zeige Feature-Statistiken
@@ -183,7 +189,7 @@ class CareerDataModule(pl.LightningDataModule):
         
         # Zeige auch die umbenannten Features
         print(f"\nDEBUG - Benannte Feature-Statistiken (erste 10 Features):")
-        for i in range(min(10, 22)):
+        for i in range(min(10, 24)):
             feature_key = f'feature_{i}'
             feature_name = feature_names[feature_key]
             values = df[feature_key].values
@@ -220,8 +226,8 @@ class CareerDataModule(pl.LightningDataModule):
         self.training['position_id'] = self.training['position_id'].astype(str)
         self.validation['position_id'] = self.validation['position_id'].astype(str)
 
-        # Definiere Features - 22 Features aus TFT-FeatureEngineering
-        time_varying_unknown_reals = [f'feature_{i}' for i in range(22)]  # 22 Features statt 40
+        # Definiere Features - 24 Features aus TFT-FeatureEngineering
+        time_varying_unknown_reals = [f'feature_{i}' for i in range(24)]  # 24 Features statt 40
         time_varying_known_reals = ['time_idx']  # time_idx als bekannte Variable
         static_categoricals = ['position_id']  # position_id als statische kategorische Variable
         
@@ -235,7 +241,7 @@ class CareerDataModule(pl.LightningDataModule):
         
         # Zeige Feature-Übersicht
         print(f"\nFeature-Übersicht:")
-        for i in range(22):
+        for i in range(24):
             feature_key = f'feature_{i}'
             feature_name = feature_names[feature_key]
             print(f"  {feature_key} -> {feature_name}")
@@ -245,7 +251,7 @@ class CareerDataModule(pl.LightningDataModule):
         self.validation_renamed = self.validation.rename(columns=feature_names)
         
         # Aktualisiere Feature-Listen mit neuen Namen
-        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(22)]
+        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24)]
         
         # TimeSeriesDataSet für Training - mit bewährter Konfiguration
         self.training_dataset = TimeSeriesDataSet(
