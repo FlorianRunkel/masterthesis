@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Tooltip, useTheme, useMediaQuery, Collapse, IconButton } from '@mui/material';
+import { Box, Typography, Tooltip, useTheme, useMediaQuery, Collapse, IconButton, Button } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SearchIcon from '@mui/icons-material/Search';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -39,10 +39,11 @@ const Timeline = ({ prediction, profile }) => {
 
   // ========== State für das Ausklappen der exakten Tage ==========
   const [showDays, setShowDays] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState('shap'); // 'shap' oder 'lime'
 
   // ========== Early Exit if No Prediction ==========
   if (!prediction) return null;
-
+  
   // ========== Calculate Timeline Dates ==========
   // Extract confidence value (days until job change)
   const confidenceValue = Array.isArray(prediction.confidence) ? prediction.confidence[0] : prediction.confidence;
@@ -87,33 +88,83 @@ const Timeline = ({ prediction, profile }) => {
     }
   ];
 
-  // ===================== SHAP Explanations =====================
+  // ===================== SHAP & LIME Explanations =====================
   /**
-   * SHAP explanations show which features had the greatest impact on the prediction.
-   * Zeige alle Features mit impact_percentage >= 10% einzeln, alle darunter als 'Other'.
+   * SHAP and LIME explanations show which features had the greatest impact on the prediction.
+   * Zeige alle Features mit impact_percentage >= 5% einzeln, alle darunter als 'Other'.
    */
-  let explanations = prediction.explanations || [];
-  // Split into main features and others
-  const mainFeatures = explanations
+  
+  // SHAP Explanations - unterstütze beide Datenstrukturen
+  let shapExplanations = prediction.shap_explanations || prediction.explanations || [];
+  
+  // Fallback: Falls explanations ein Boolean ist, versuche andere Felder
+  if (typeof shapExplanations === 'boolean' || !Array.isArray(shapExplanations)) {
+    console.log('SHAP explanations is not an array, trying fallback...');
+    shapExplanations = [];
+  }
+  
+  const shapMainFeatures = shapExplanations
     .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
-  const otherFeatures = explanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 5);
-  const otherImpact = otherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
+  const shapOtherFeatures = shapExplanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 5);
+  const shapOtherImpact = shapOtherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
 
-  // Farben für Hauptfeatures (ursprüngliche Palette, zyklisch)
-  const barData = mainFeatures.map((f, i) => ({
+  const shapBarData = shapMainFeatures.map((f, i) => ({
     ...f,
     color: SHAP_BAR_COLORS[i % SHAP_BAR_COLORS.length]
   }));
-  if (otherImpact > 0) {
-    barData.push({
+  if (shapOtherImpact > 0) {
+    shapBarData.push({
       feature: 'Other',
-      impact_percentage: otherImpact,
+      impact_percentage: shapOtherImpact,
       description: 'All features with < 5% impact',
       color: SHAP_BAR_COLORS[9] // immer grau für Other
     });
   }
 
+  // LIME Explanations - unterstütze beide Datenstrukturen
+  let limeExplanations = prediction.lime_explanations || [];
+  
+  // Fallback: Falls lime_explanations nicht korrekt ist
+  if (!Array.isArray(limeExplanations)) {
+    console.log('LIME explanations is not an array, using empty array...');
+    limeExplanations = [];
+  }
+  
+  const limeMainFeatures = limeExplanations
+    .filter(f => f.impact_percentage >= 5)
+    .sort((a, b) => b.impact_percentage - a.impact_percentage);
+  const limeOtherFeatures = limeExplanations.filter(f => f.impact_percentage > 0 && f.impact_percentage < 5);
+  const limeOtherImpact = limeOtherFeatures.reduce((sum, f) => sum + f.impact_percentage, 0);
+
+  const limeBarData = limeMainFeatures.map((f, i) => ({
+    ...f,
+    color: SHAP_BAR_COLORS[i % SHAP_BAR_COLORS.length]
+  }));
+  if (limeOtherImpact > 0) {
+    limeBarData.push({
+      feature: 'Other',
+      impact_percentage: limeOtherImpact,
+      description: 'All features with < 5% impact',
+      color: SHAP_BAR_COLORS[9] // immer grau für Other
+    });
+  }
+
+  // Wähle aktuelle Daten basierend auf Dropdown
+  const currentBarData = selectedMethod === 'shap' ? shapBarData : limeBarData;
+  const currentMethod = selectedMethod === 'shap' ? 'SHAP' : 'LIME';
+  const hasExplanations = (selectedMethod === 'shap' && shapBarData.length > 0) || (selectedMethod === 'lime' && limeBarData.length > 0);
+  
+  // Verfügbare Methoden für Dropdown
+  const availableMethods = [];
+  if (shapBarData.length > 0) availableMethods.push('shap');
+  if (limeBarData.length > 0) availableMethods.push('lime');
+  
+  // Setze Standard-Methode auf erste verfügbare
+  if (availableMethods.length > 0 && !availableMethods.includes(selectedMethod)) {
+    setSelectedMethod(availableMethods[0]);
+  }
+  
   // ========== Days Until Job Change (Range & Toggle) ==========
   // Berechne die Range in 3-Monats-Schritten
   const daysPerMonth = 30.44;
@@ -289,8 +340,8 @@ const Timeline = ({ prediction, profile }) => {
         </Box>
       </Box>
 
-      {/* ===== SHAP Explanations Bar Chart ===== */}
-      {canViewExplanations && barData.length > 0 && (
+      {/* ===== SHAP & LIME Explanations Bar Chart ===== */}
+      {canViewExplanations && (
         <Box sx={{ width: '100%', mb: isMobile ? 1 : 2 }}>
           <Typography
             variant="h6"
@@ -300,12 +351,74 @@ const Timeline = ({ prediction, profile }) => {
           >
             Explanation of the prediction
           </Typography>
-          <Typography
-            sx={{ color: '#444', fontSize: isMobile ? '0.85rem' : '0.98rem', lineHeight: 1.7, textAlign: 'justify', mb: isMobile ? 1 : 2 }}
-          >
-            The following bar shows which features had the greatest impact on the result. The larger the colored section, the more important this feature was for the prediction. The legend below explains what the colors stand for.
-          </Typography>
-          {/* SHAP bar chart */}
+          
+          {/* Buttons nur anzeigen, wenn mehr als eine Methode verfügbar ist */}
+          {hasExplanations && availableMethods.length > 1 && (
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start', gap: isMobile ? 1 : 2 }}>
+              <Button
+                onClick={() => setSelectedMethod('shap')}
+                variant={selectedMethod === 'shap' ? 'contained' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: isMobile ? '0.7rem' : '0.9rem',
+                  minWidth: isMobile ? 60 : 80,
+                  px: isMobile ? 0.5 : 1,
+                  py: isMobile ? 0.5 : 0.8,
+                  bgcolor: selectedMethod === 'shap' ? '#EB7836' : '#fff',
+                  color: selectedMethod === 'shap' ? '#fff' : '#EB7836',
+                  borderColor: '#EB7836',
+                  boxShadow: selectedMethod === 'shap' ? '0 2px 8px #EB783633' : 'none',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: '#001242',
+                    color: '#fff',
+                    borderColor: '#fff',
+                  }
+                }}
+              >
+                SHAP
+              </Button>
+              <Button
+                onClick={() => setSelectedMethod('lime')}
+                variant={selectedMethod === 'lime' ? 'contained' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: isMobile ? '0.7rem' : '0.9rem',
+                  minWidth: isMobile ? 60 : 80,
+                  px: isMobile ? 0.5 : 1,
+                  py: isMobile ? 0.5 : 0.8,
+                  bgcolor: selectedMethod === 'lime' ? '#EB7836' : '#fff',
+                  color: selectedMethod === 'lime' ? '#fff' : '#EB7836',
+                  borderColor: '#EB7836',
+                  boxShadow: selectedMethod === 'lime' ? '0 2px 8px #fff' : 'none',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: '#001242',
+                    color: '#fff',
+                    borderColor: '#fff',
+                  }
+                }}
+              >
+                LIME
+              </Button>
+            </Box>
+          )}
+
+          {/* Erklärung IMMER anzeigen */}
+          {hasExplanations && (
+            <Typography
+              sx={{ color: '#666', fontSize: isMobile ? '0.8rem' : '1rem', lineHeight: 1.7, mb: isMobile ? 1.2 : 2, textAlign: 'justify'}}
+            >
+              {currentMethod === 'SHAP' 
+                ? 'SHAP (SHapley Additive exPlanations) explains model predictions by fairly distributing the impact of each input feature, based on game theory. It considers all possible combinations of features to estimate how much each one contributes to the final prediction. This provides a consistent and theoretically grounded way to understand the influence of each feature.'
+                : 'LIME (Local Interpretable Model-agnostic Explanations) explains individual predictions by approximating the complex model locally with a simpler, interpretable one. It generates small variations of the input and observes how the prediction changes, helping to understand which features were most important for that specific prediction.'
+              }
+            </Typography>
+          )}
+          
+          {/* Bar chart */}
           <Box
             sx={{
               display: 'flex',
@@ -317,7 +430,7 @@ const Timeline = ({ prediction, profile }) => {
               mb: isMobile ? 1 : 2
             }}
           >
-            {barData.map((item, idx) => (
+            {currentBarData.map((item, idx) => (
               <Box
                 key={item.feature}
                 sx={{
@@ -329,7 +442,7 @@ const Timeline = ({ prediction, profile }) => {
                   color: '#fff',
                   fontWeight: 600,
                   fontSize: isMobile ? '0.8rem' : '0.95rem',
-                  borderRight: idx < barData.length - 1 ? '2px solid #fff' : 'none',
+                  borderRight: idx < currentBarData.length - 1 ? '2px solid #fff' : 'none',
                   transition: 'width 0.3s ease'
                 }}
               >
@@ -343,9 +456,10 @@ const Timeline = ({ prediction, profile }) => {
               </Box>
             ))}
           </Box>
-          {/* SHAP legend */}
+          
+          {/* Legend */}
           <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, mt: isMobile ? 1 : 2, flexWrap: 'wrap' }}>
-            {barData.map(item => (
+            {currentBarData.map(item => (
               <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: isMobile ? 12 : 16, height: isMobile ? 12 : 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
                 <Tooltip title={item.feature} arrow>

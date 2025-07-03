@@ -7,7 +7,10 @@ from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import parse
 from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
 from backend.ml_pipe.models.gru.model import GRUModel
 import numpy as np
-import shap
+from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
+import numpy as np
+import torch
+import joblib
 
 '''
 Helper Functions
@@ -359,78 +362,6 @@ def create_background_data(seq_tensor):
     background_seq = torch.zeros((10, seq_tensor.shape[1], 16))  # 12 Features
     return background_seq
 
-'''
-Explanation Functions
-'''
-def calculate_shap_values(model, background_data, seq_tensor):
-    """Berechnet SHAP-Werte für die Erklärung."""
-    # Modell temporär in eval-Modus setzen
-    model.eval()
-    
-    # Einfache Vorhersage für die Erklärung
-    with torch.no_grad():
-        # Berechne die Vorhersage für die Eingabedaten
-        pred_values = []
-        for i in range(seq_tensor.shape[0]):
-            out, _ = model(seq_tensor[i:i+1])
-            pred_values.append(out.item())
-        
-        # Berechne die Vorhersage für die Hintergrunddaten
-        background_values = []
-        for i in range(background_data.shape[0]):
-            out, _ = model(background_data[i:i+1])
-            background_values.append(out.item())
-        
-        # Berechne die Differenz zwischen Eingabe- und Hintergrundvorhersagen
-        shap_values = np.array(pred_values) - np.mean(background_values)
-        
-        # Normalisiere die Werte
-        abs_values = np.abs(shap_values)
-        total = np.sum(abs_values)
-        return (abs_values / total) * 100 if total > 0 else np.zeros_like(shap_values)
-
-def create_explanations(norm_shap):
-    """Erstellt die Feature-Erklärungen."""
-    feature_names = get_feature_names()
-    
-    explanations = []
-    for name, val in zip(feature_names, norm_shap):
-        if val > 0:  # Nur Features mit positivem Einfluss anzeigen
-            explanations.append({
-                "feature": name,
-                "impact_percentage": float(val),
-                "description": get_feature_description(name)
-            })
-
-    # Sortiere nach Impact
-    explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
-
-    return explanations
-
-def create_shap_summary(explanations):
-    """Erstellt eine Zusammenfassung aller Feature-Einflüsse."""
-    if not explanations:
-        return "Keine SHAP-Erklärung verfügbar."
-    
-    # Sortiere nach Impact
-    sorted_exp = sorted(explanations, key=lambda x: -x['impact_percentage'])
-    
-    # Erstelle eine detaillierte Zusammenfassung für alle Features
-    summary_parts = []
-    for exp in sorted_exp:
-        impact = exp['impact_percentage']
-        if impact > 0:  # Nur Features mit positivem Einfluss anzeigen
-            summary_parts.append(f"{exp['feature']}: {impact:.1f}%")
-    
-    if not summary_parts:
-        return "Keine signifikanten Feature-Einflüsse gefunden."
-    
-    return "Feature-Einflüsse auf die Vorhersage:\n" + "\n".join(summary_parts)
-
-
-import numpy as np
-import torch
-import joblib
 
 def transform_features_for_gru(profile_data, scaler_path="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/scaler_gru.joblib"):
     """Skaliert und transformiert das Profil für das GRU-Modell."""
@@ -489,65 +420,36 @@ def predict(profile_dict, model_path=None):
 
         status, recommendation = get_status_and_recommendation(tage)
 
-        # SHAP-Analyse
-        background_data = create_background_data(features_tensor)
-        print(background_data.shape)
+        # Explainable AI mit der neuen Klasse
+        print("\n=== Explainable AI Analyse ===")
+        feature_names = get_feature_names()
+        explainer = ModelExplainer(model, feature_names, model_type="gru")
         
-        # Wrapper für SHAP, damit nur der Output-Tensor zurückgegeben wird
-        class GRUModelForSHAP(torch.nn.Module):
-            def __init__(self, gru_model_lightning):
-                super().__init__()
-                # Nur relevante Submodule extrahieren
-                self.gru = gru_model_lightning.gru
-                self.attention = gru_model_lightning.attention
-                self.fc = gru_model_lightning.fc
-
-            def forward(self, x):
-                gru_out, _ = self.gru(x)
-                context = self.attention(gru_out)
-
-                # Falls attention ein Tuple zurückgibt → entpacken:
-                if isinstance(context, tuple):
-                    context, _ = context  # nur den Context-Vektor nehmen
-
-                output = self.fc(context)
-                return output
-
-        shap_model = GRUModelForSHAP(model)
-        explainer = shap.DeepExplainer(shap_model, background_data)
-        shap_values = explainer.shap_values(features_tensor, check_additivity=False)
-        # shap_values[0] hat die Form (samples, features)
-        print(shap_values[0].shape)
-
-        # Normalisiere die SHAP-Werte auf Prozentwerte
-        abs_sum = np.abs(shap_values[0]).sum()
-        if abs_sum > 0:
-            norm_shap = (np.abs(shap_values[0][0]) / abs_sum) * 100
-        else:
-            norm_shap = np.zeros_like(shap_values[0][0])
-
-        # Stelle sicher, dass wir die richtige Anzahl von Features haben
-        expected_features = len(get_feature_names())
-        if len(norm_shap) != expected_features:
-            print(f"Warnung: SHAP-Werte haben {len(norm_shap)} Features, erwartet {expected_features}")
-            # Padden oder trimmen auf die erwartete Anzahl
-            if len(norm_shap) < expected_features:
-                norm_shap = np.pad(norm_shap, (0, expected_features - len(norm_shap)), 'constant')
-            else:
-                norm_shap = norm_shap[:expected_features]
-
-        explanations = create_explanations(norm_shap)
-        shap_summary = create_shap_summary(explanations)
+        # SHAP-Analyse
+        print("Berechne SHAP-Werte...")
+        background_data = create_background_data(features_tensor)
+        shap_values = explainer.calculate_shap_values(features_tensor, background_data)
+        shap_explanations = explainer.extract_shap_results(shap_values)
+        shap_summary = explainer.create_summary(shap_explanations, "SHAP")
         print(shap_summary)
-
+        
+        # LIME-Analyse
+        print("\nBerechne LIME-Erklärungen...")
+        lime_explanation = explainer.calculate_lime_explanations(features_tensor)
+        lime_explanations = explainer.extract_lime_results(lime_explanation)
+        lime_summary = explainer.create_summary(lime_explanations, "LIME")
+        print(lime_summary)
+        
         print("\n=== Vorhersage abgeschlossen ===")
 
         return {
             "confidence": torch.expm1(torch.tensor(tage)).item(),  # Rücktransformation
             "recommendations": [recommendation],
             "status": status,
-            "explanations": explanations,
+            "shap_explanations": shap_explanations,
             "shap_summary": shap_summary,
+            "lime_explanations": lime_explanations,
+            "lime_summary": lime_summary,
             "llm_explanation": ""
             }
 

@@ -74,13 +74,22 @@ def predict_career():
                 'recommendations': prediction['recommendations'][0],
                 'status': prediction.get('status', ''),
                 'explanations': prediction.get('explanations', []),
+                'shap_explanations': prediction.get('shap_explanations', []),
+                'lime_explanations': prediction.get('lime_explanations', []),
+                'shap_summary': prediction.get('shap_summary', ''),
+                'lime_summary': prediction.get('lime_summary', ''),
+                'llm_explanation': prediction.get('llm_explanation', '')
             }
         else:
             formatted_prediction = {
                 'confidence': prediction['confidence'],
                 'recommendations': prediction['recommendations'],
                 'status': prediction.get('status', ''),
-                'explanations': prediction.get('explanations', []),
+                'shap_explanations': prediction.get('shap_explanations', []),
+                'lime_explanations': prediction.get('lime_explanations', []),
+                'shap_summary': prediction.get('shap_summary', ''),
+                'lime_summary': prediction.get('lime_summary', ''),
+                'llm_explanation': prediction.get('llm_explanation', '')
             }
         
         logging.info(f"Formatted Prediction: {formatted_prediction}")
@@ -148,7 +157,20 @@ def predict_batch():
                 if "error" in prediction:
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": prediction["error"]})
                 else:
-                    results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"confidence": prediction["confidence"],"recommendations": prediction["recommendations"],"status": prediction.get("status", ""),"explanations": prediction.get("explanations", [])})
+                    results.append({
+                        "firstName": row.get("firstName", ""),
+                        "lastName": row.get("lastName", ""),
+                        "linkedinProfile": row.get("profileLink", ""),
+                        "confidence": prediction["confidence"],
+                        "recommendations": prediction["recommendations"],
+                        "status": prediction.get("status", ""),
+                        "explanations": prediction.get("explanations", []),
+                        "shap_explanations": prediction.get("shap_explanations", []),
+                        "lime_explanations": prediction.get("lime_explanations", []),
+                        "shap_summary": prediction.get("shap_summary", ""),
+                        "lime_summary": prediction.get("lime_summary", ""),
+                        "llm_explanation": prediction.get("llm_explanation", "")
+                    })
 
             except Exception as user_err:
                 logging.error(f"Error processing row {idx+1}: {str(user_err)}")

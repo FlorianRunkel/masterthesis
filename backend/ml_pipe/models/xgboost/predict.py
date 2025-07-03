@@ -13,6 +13,7 @@ from collections import defaultdict
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import joblib
+from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
 
 with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
     position_categories = pickle.load(f)
@@ -319,7 +320,6 @@ def predict(profile_dict, model_path=None):
 
         # Process profile data
         profile_dict = parse_profile_data(profile_dict)
-        print("[DEBUG] Profile data parsed")
         
         # Perform feature engineering
         fe = FeatureEngineering()
@@ -327,14 +327,11 @@ def predict(profile_dict, model_path=None):
         education_data = extract_education_data(profile_dict)
         age_category = estimate_age_category(profile_dict)
         
-        print(f"[DEBUG] Career history found: {len(career_history)} entries")
-        
         if not career_history:
             raise ValueError("No career history found")
         
         # Extract features for the last position
         last_position = career_history[0]  # The newest position is the first in the sorted list
-        print(f"[DEBUG] Last position: {last_position['position']}")
         
         # Calculate features  
         features = {
@@ -381,38 +378,41 @@ def predict(profile_dict, model_path=None):
 
         # In XGBoost-kompatibles Format bringen
         X = np.array([feature_vector], dtype=np.float32)
-        print(f"[DEBUG] XGBoost Input Shape: {X.shape}")
-        print(f"[DEBUG] XGBoost Input: {X}")
 
         # Load model and make prediction
         model = load_xgb_model(model_path)
         prob = model.predict_proba(X)[0]
-        print(f"[DEBUG] Probability: {prob}")
         status = get_status(prob[1])
         recommendations = [
             f"The candidate is {status}.",
             f"Change probability: {prob[1]:.1%}"
         ]
 
-        # Generate explanations using SHAP values for local interpretability
+        # === Explainable AI: ModelExplainer für XGBoost ===
         feature_names = get_feature_names()
+        explainer = ModelExplainer(model, feature_names, model_type="xgboost")
+        # SHAP
+        shap_values = explainer.calculate_shap_values(X)
+        shap_explanations = explainer.extract_shap_results(shap_values)
+        shap_summary = explainer.create_summary(shap_explanations, "SHAP")
         
-        # SHAP-Explainer und Werte berechnen
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-        
-        # Generate explanations from SHAP values
-        explanations = get_explanations_from_shap(shap_values, feature_names)
-
-        # Optional: SHAP-Werte ausgeben
-        print("[DEBUG] SHAP values:", shap_values)
+        # LIME-Workarounds für XGBoost
+        os.environ["LIME_NO_TORCH"] = "1"  # Verhindert Torch-Branch in LIME
+        X_lime = X.astype(np.float64)  # LIME bevorzugt float64
+        print("DEBUG: X shape for LIME:", X_lime.shape, X_lime.dtype, X_lime[:5])
+        lime_explanation = explainer.calculate_lime_explanations(X_lime)
+        lime_explanations = explainer.extract_lime_results(lime_explanation)
+        print("DEBUG: LIME explanations:", lime_explanations)
+        lime_summary = explainer.create_summary(lime_explanations, "LIME")
 
         result = {
             "confidence": [float(prob[1])],
             "recommendations": recommendations,
             "status": status,
-            "explanations": explanations,
-            "shap_values": shap_values.tolist(),
+            "shap_explanations": shap_explanations,
+            "shap_summary": shap_summary,
+            "lime_explanations": lime_explanations,
+            "lime_summary": lime_summary,
             "llm_explanation": ""
         }
         return result
