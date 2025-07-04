@@ -463,7 +463,7 @@ const Timeline = ({ prediction, profile }) => {
               <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: isMobile ? 12 : 16, height: isMobile ? 12 : 16, bgcolor: item.color, borderRadius: 1, mr: 0.5 }} />
                 <Tooltip title={item.feature} arrow>
-                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>{item.description}</Typography>
+                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>{item.feature}</Typography>
                 </Tooltip>
               </Box>
             ))}

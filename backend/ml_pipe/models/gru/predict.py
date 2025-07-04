@@ -428,7 +428,7 @@ def predict(profile_dict, model_path=None):
         # SHAP-Analyse
         print("Berechne SHAP-Werte...")
         background_data = create_background_data(features_tensor)
-        shap_values = explainer.calculate_shap_values(features_tensor, background_data)
+        shap_values = explainer.calculate_shap_values(features_tensor, background_data=background_data)
         shap_explanations = explainer.extract_shap_results(shap_values)
         shap_summary = explainer.create_summary(shap_explanations, "SHAP")
         print(shap_summary)
