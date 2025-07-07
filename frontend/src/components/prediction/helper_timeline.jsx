@@ -166,12 +166,27 @@ const Timeline = ({ prediction, profile }) => {
   }
   
   // ========== Days Until Job Change (Range & Toggle) ==========
+  function formatMonthsRange(start, end) {
+    if (end < 12) {
+      // Alles unter 12 Monaten: "X-Y Monate"
+      return `${start}-${end} months`;
+    } else {
+      // Ab 12 Monaten: "N Jahr(e) und X-Y Monate"
+      const years = Math.floor(start / 12);
+      const remStart = start % 12;
+      const remEnd = end % 12;
+      const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
+      // Wenn z.B. 12-14 → 1 Jahr und 0-2 Monate
+      return `${yearLabel} ${remStart}-${remEnd} months`;
+    }
+  }
+  
   // Berechne die Range in 3-Monats-Schritten
   const daysPerMonth = 30.44;
   const months = daysUntilChange / daysPerMonth;
   const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
   const rangeEnd = rangeStart + 2;
-  const rangeLabel = `${rangeStart}-${rangeEnd} months`;
+  const rangeLabel = formatMonthsRange(rangeStart, rangeEnd);
 
   // ===================== Render =====================
   return (
