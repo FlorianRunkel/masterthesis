@@ -44,12 +44,12 @@ def get_feature_names():
         "position average duration",
         "position id",
         # Career path features (2 positions × 3 features each)
-        "previous position 1 level",
-        "previous position 1 industry", 
-        "previous position 1 duration",
-        "previous position 2 level",
-        "previous position 2 industry",
-        "previous position 2 duration"
+        "latest previous position level",
+        "latest previous position industry", 
+        "latest previous position duration",
+        "second latest previous position level",
+        "second latest previous position industry",
+        "second latest previous position duration"
     ]
     return names
 
@@ -65,12 +65,12 @@ def get_feature_description(name):
         "industry": "Industry of the current employer",
         "position average duration": "Average duration of similar positions",
         "position id": "Type of current position",  
-        "previous position 1 level": "Responsibility level of the previous position",
-        "previous position 1 industry": "Industry of the previous employer",
-        "previous position 1 duration": "Duration of the previous position",
-        "previous position 2 level": "Responsibility level of the position before last",
-        "previous position 2 industry": "Industry of the employer before last",
-        "previous position 2 duration": "Duration of the position before last"
+        "latest previous position level": "Responsibility level of the previous position",
+        "latest previous position industry": "Industry of the previous employer",
+        "latest previous position duration": "Duration of the previous position",
+        "second latest previous position level": "Responsibility level of the position before last",
+        "second latest previous position industry": "Industry of the employer before last",
+        "second latest previous position duration": "Duration of the position before last"
     }
     return descriptions.get(name, "This factor influences the prediction.")
 
