@@ -2,10 +2,7 @@ from flask import Blueprint, request, jsonify
 from backend.ml_pipe.data.database.mongodb import MongoDb
 import logging
 
-# Blueprint für User-Management-Routen
 user_management_bp = Blueprint('user_management_bp', __name__)
-
-# --- Interne API-Logik (ehemals admin_api.py) ---
 
 def create_user_api(first_name, last_name, email, password, canViewExplanations=False):
     """Erstellt einen neuen Benutzer in der Datenbank."""
@@ -53,7 +50,6 @@ def delete_user_api(user_id):
     return mongo_db.delete_by_id(user_id, 'users')
 
 
-# --- API-Endpunkte / Routen ---
 
 @user_management_bp.route('/api/login', methods=['POST'])
 def login_user():

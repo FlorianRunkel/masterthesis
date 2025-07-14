@@ -300,7 +300,7 @@ const SettingsPage = () => {
                     }
                     label="Show Explanations"
                     labelPlacement="start"
-                    sx={{ mt: 1, justifyContent: 'space-between', ml: 0 }}
+                    sx={{ mt: 1, justifyContent: 'space-between', ml: 0, '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
                   />
                   <Button
                     variant="contained"
@@ -317,63 +317,67 @@ const SettingsPage = () => {
             ))}
           </Box>
         ) : (
-          <TableContainer component={Paper} sx={{ maxHeight: 400, boxShadow: 'none', borderRadius: 2, border: '1px solid #e0e0e0', width: '100%', overflowX: 'visible' }}>
+          <TableContainer component={Paper} sx={{maxHeight: '450px', boxShadow: 'none', borderRadius: 2, border: '1px #e0e0e0', width: '100%'}}>
             <Table stickyHeader size="medium">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>First Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc', }}>First Name</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Last Name</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>E-Mail</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Password</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc', textAlign: 'center' }}>Explanations</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Action</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc'}}>Explanations</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc'}}>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {editUsers.map((user, idx) => (
-                  <TableRow key={user._id}>
-                    <TableCell>
+                {editUsers.filter(user => user && user._id).map((user, idx) => (
+                  <TableRow key={user._id} sx={{ height: 64, verticalAlign: 'middle'}}>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
                       <TextField
                         value={user.firstName}
                         onChange={e => handleEditChange(idx, 'firstName', e.target.value)}
                         size="small"
-                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 } }}
+                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2, height: '36px', boxSizing: 'border-box', display: 'flex', alignItems: 'center' } }}
+                        inputProps={{ style: { height: '36px', padding: '0 12px', display: 'flex', alignItems: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
                       <TextField
                         value={user.lastName}
                         onChange={e => handleEditChange(idx, 'lastName', e.target.value)}
                         size="small"
-                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 } }}
+                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2, height: '36px', boxSizing: 'border-box', display: 'flex', alignItems: 'center' } }}
+                        inputProps={{ style: { height: '36px', padding: '0 12px', display: 'flex', alignItems: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
                       <TextField
                         value={user.email}
                         onChange={e => handleEditChange(idx, 'email', e.target.value)}
                         size="small"
-                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 } }}
+                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2, height: '36px', boxSizing: 'border-box', display: 'flex', alignItems: 'center' } }}
+                        inputProps={{ style: { height: '36px', padding: '0 12px', display: 'flex', alignItems: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
                       <TextField
                         value={user.password}
                         onChange={e => handleEditChange(idx, 'password', e.target.value)}
                         size="small"
                         type="password"
                         placeholder="Neues Passwort"
-                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 } }}
+                        sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2, height: '36px', boxSizing: 'border-box', display: 'flex', alignItems: 'center' } }}
+                        inputProps={{ style: { height: '36px', padding: '0 12px', display: 'flex', alignItems: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
                       <Switch
                         checked={user.canViewExplanations || false}
                         onChange={(e) => handleEditChange(idx, 'canViewExplanations', e.target.checked)}
                         disabled={user.uid === 'UID001'}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
                       <Button
                         variant="contained"
                         color="primary"

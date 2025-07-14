@@ -235,6 +235,7 @@ def process_profile(row):
  
     return samples
 
+'''
 if __name__ == "__main__":
     datafiles_dir = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/data/datafiles"
     all_samples = []
@@ -255,3 +256,4 @@ if __name__ == "__main__":
         print(sample)
         mongo_db.create(sample, 'timeseries_dataset')
     print(f"{len(all_samples)} Einträge erfolgreich in 'timeseries_dataset' gespeichert.")
+'''
