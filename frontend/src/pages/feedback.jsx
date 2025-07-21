@@ -31,13 +31,13 @@ const FeedbackPage = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations;
   const explanationQuestionsNo = [
-    { key: 'wantFeatureImportance', label: 'Would it help you to see feature importance (e.g., top features)?' },
-    { key: 'wantMoreExplainability', label: 'Would more explainability help you trust the prediction?' }
+    { key: 'wantFeatureImportance', label: "Would it make the result easier to understand if the system showed you what mattered most in making the decision?" },
+    { key: 'wantMoreExplainability', label: "Would you trust the result more if the system explained how it came to this decision?" }
   ];
   const explanationQuestionsYes = [
-    { key: 'explanationHelpful', label: 'Did the explanation help you understand the prediction?' },
-    { key: 'featureImportanceUseful', label: 'Was the feature importance useful for your assessment?' },
-    { key: 'lessTrustWithoutExplanation', label: 'Would you trust the prediction less without explanation?' }
+    { key: 'explanationHelpful', label: "Did the explanation make it clearer how the system came to this result?" },
+    { key: 'featureImportanceUseful', label: "Was it helpful to see what mattered most in the system’s decision?" },
+    { key: 'lessTrustWithoutExplanation', label: "If there had been no explanation at all, do you think you would have trusted the result in the same way?" }
   ];
 
   const handlePrognoseChange = (idx, field, value) => {
