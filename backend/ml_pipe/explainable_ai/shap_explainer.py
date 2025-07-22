@@ -36,7 +36,7 @@ class ShapExplainer:
         background_data = np.random.normal(
             loc=last_features.mean(),
             scale=last_features.std(),
-            size=(100, len(last_features))
+            size=(5, len(last_features))
         )
         def predict_wrapper(X):
             predictions = []
@@ -51,7 +51,7 @@ class ShapExplainer:
             background_data,
             feature_names=self.feature_names
         )
-        shap_values = explainer.shap_values(last_features.reshape(1, -1))
+        shap_values = explainer.shap_values(last_features.reshape(1, -1), nsamples=20)
         return shap_values
 
     def extract_shap_results(self, shap_values, min_impact=0.001):
