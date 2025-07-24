@@ -67,6 +67,7 @@ class CareerRules:
         """
         Prüft, ob die letzte (aktuelle) Position jünger als min_months ist.
         Gibt (True/False, Monate seit Start) zurück.
+        Ausnahme: Wenn die aktuelle Firma gleich der vorherigen Firma ist, wird immer False zurückgegeben.
         """
         if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
             return False, None
@@ -76,6 +77,14 @@ class CareerRules:
         # Unterstütze verschiedene Feldnamen (start_date, startDate, etc.)
         start_date = last_pos.get('start_date') or last_pos.get('startDate')
         end_date = last_pos.get('end_date') or last_pos.get('endDate', 'Present')
+        
+        # Ausnahme: Wenn aktuelle und vorherige Firma gleich sind, immer False
+        if len(career_history) > 1:
+            prev_pos = career_history[1]
+            curr_company = (last_pos.get('company') or '').strip().lower()
+            prev_company = (prev_pos.get('company') or '').strip().lower()
+            if curr_company and prev_company and curr_company == prev_company:
+                return False, None
         
         if not start_date:
             return False, None
