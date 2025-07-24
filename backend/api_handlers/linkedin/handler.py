@@ -14,27 +14,28 @@ unipile = UnipileLayer(API_KEY, SUBDOMAIN, PORT)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
+'''
+Scrape LinkedIn profile
+'''
 @linkedin_bp.route('/scrape-linkedin', methods=['POST'])
 def scrape_linkedin():
     try:
         data = request.get_json()
         linkedin_url = data.get('url')
         if not linkedin_url:
-            return jsonify({'error': 'Keine LinkedIn-URL angegeben'}), 400
+            return jsonify({'error': 'No LinkedIn URL provided'}), 400
 
         profile_raw = unipile.get_profile_by_url(linkedin_url, ACCOUNT_ID)
         if not profile_raw:
-            return jsonify({'error': 'Profil konnte nicht abgerufen werden'}), 500
-        
+            return jsonify({'error': 'Profile could not be fetched'}), 500
+
         logger.error(f"Unipile Profile: {str(profile_raw)}")
 
         model_input = unipile.transform_profile(profile_raw)
         logger.error(f"Unipile Model Input: {str(model_input)}")
 
-        # Erstelle Frontend-kompatibles Format
         profile_info = json.loads(model_input['linkedinProfileInformation'])
-        
-        # Frontend-Format erstellen
+
         frontend_profile = {
             'name': model_input['name'],
             'firstName': model_input['firstName'],

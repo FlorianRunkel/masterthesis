@@ -5,13 +5,16 @@ from datetime import datetime
 
 feedback_bp = Blueprint('feedback_bp', __name__)
 
+'''
+Save feedback in database
+'''
 @feedback_bp.route('/api/feedback', methods=['POST'])
 def save_feedback():
     try:
         data = request.get_json()
         uid = request.headers.get('X-User-Uid')
         if not uid:
-            return jsonify({'error': 'Keine User-UID übergeben!'}), 400
+            return jsonify({'error': 'No user uid provided!'}), 400
         feedback = {
             'uid': uid,
             'freeText': data.get('freeText', ''),
@@ -23,13 +26,16 @@ def save_feedback():
         mongo_db = MongoDb()
         result = mongo_db.create(feedback, 'feedback')
         if result['statusCode'] == 200:
-            return jsonify({'message': 'Feedback gespeichert!'}), 201
+            return jsonify({'message': 'Feedback saved!'}), 201
         else:
-            return jsonify({'error': result.get('error', 'Fehler beim Speichern')}), 500
+            return jsonify({'error': result.get('error', 'Error saving feedback')}), 500
     except Exception as e:
-        logging.error(f"Fehler beim Speichern des Feedbacks: {str(e)}")
+        logging.error(f"Error saving feedback: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+'''
+Get all feedback from the database
+'''
 @feedback_bp.route('/api/feedback', methods=['GET'])
 def get_feedback():
     try:
@@ -38,7 +44,7 @@ def get_feedback():
         if result['statusCode'] == 200:
             return jsonify(result['data']), 200
         else:
-            return jsonify({'error': result.get('error', 'Fehler beim Abrufen')}), 500
+            return jsonify({'error': result.get('error', 'Error getting feedback')}), 500
     except Exception as e:
-        logging.error(f"Fehler beim Abrufen des Feedbacks: {str(e)}")
+        logging.error(f"Error getting feedback: {str(e)}")
         return jsonify({'error': str(e)}), 500 

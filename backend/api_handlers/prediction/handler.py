@@ -4,12 +4,12 @@ import logging
 import json
 import re
 
-# Blueprint für Vorhersage-Routen
 prediction_bp = Blueprint('prediction_bp', __name__)
 
-# Hilfsfunktion, die hier benötigt wird
+'''
+Helper function to preprocess dates and time
+'''
 def preprocess_dates_time(data):
-    """Formatiert Datumsangaben in den Profildaten zu MM/YYYY."""
     def to_mm_yyyy(date_str):
         if not date_str or date_str == "Present":
             return "Present"
@@ -31,24 +31,26 @@ def preprocess_dates_time(data):
         edu['endDate'] = to_mm_yyyy(edu.get('endDate', ''))
     return data
 
+'''
+Predict career for a single profile
+'''
 @prediction_bp.route('/predict', methods=['POST'])
 def predict_career():
-    """Führt eine Vorhersage für ein einzelnes Profil aus."""
     try:
         data = request.get_json()
-        logging.info(f"Eingehende Daten: {data}")
+        logging.info(f"Incoming data: {data}")
 
         if "linkedinProfileInformation" in data:
             try:
                 profile_data = json.loads(data["linkedinProfileInformation"])
             except Exception as json_err:
                 logging.error(f"JSON parsing error: {str(json_err)}")
-                return jsonify({'error': f'Ungültiges JSON-Format: {str(json_err)}'}), 400
+                return jsonify({'error': f'Invalid JSON format: {str(json_err)}'}), 400
         else:
             profile_data = data
 
         model_type = data.get('modelType', 'tft').lower()
-        logging.info(f"Verwende Modell: {model_type}")
+        logging.info(f"Use model: {model_type}")
 
         model_predictors = {
             "gru": "backend.ml_pipe.models.gru.predict",
@@ -57,17 +59,17 @@ def predict_career():
         }
 
         if model_type not in model_predictors:
-            logging.error(f"Unbekannter Modelltyp: {model_type}")
-            return jsonify({'error': f"Unbekannter Modelltyp: {model_type}"}), 400
+            logging.error(f"Unknown model type: {model_type}")
+            return jsonify({'error': f"Unknown model type: {model_type}"}), 400
 
         module = __import__(model_predictors[model_type], fromlist=['predict'])
-        logging.info(f"Modul erfolgreich geladen: {model_predictors[model_type]}")
+        logging.info(f"Module loaded successfully: {model_predictors[model_type]}")
 
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
         prediction = module.predict(profile_data)
-    
+
         if model_type == 'xgboost':
             formatted_prediction = {
                 'confidence': max(0.0, prediction['confidence'][0]),
@@ -91,7 +93,7 @@ def predict_career():
                 'lime_summary': prediction.get('lime_summary', ''),
                 'llm_explanation': prediction.get('llm_explanation', '')
             }
-        
+
         logging.info(f"Formatted Prediction: {formatted_prediction}")
         return jsonify(formatted_prediction)
 
@@ -99,22 +101,24 @@ def predict_career():
         logging.error(f"Fehler bei der Vorhersage: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+'''
+Predict career for a batch of profiles
+'''
 @prediction_bp.route('/predict-batch', methods=['POST'])
 def predict_batch():
-    """Führt eine Batch-Vorhersage für eine CSV-Datei aus."""
     try:
         if 'file' not in request.files:
-            return jsonify({'error': 'Keine Datei im Request gefunden'}), 400
+            return jsonify({'error': 'No file found in request'}), 400
 
         file = request.files['file']
         logging.info(f"Received file: {file.filename}")
-        
+
         try:
             df = pd.read_csv(file)
             logging.info(f"CSV loaded successfully with {len(df)} rows")
         except Exception as csv_err:
             logging.error(f"CSV parsing error: {str(csv_err)}")
-            return jsonify({'error': f'Fehler beim Lesen der CSV-Datei: {str(csv_err)}'}), 400
+            return jsonify({'error': f'Error reading CSV file: {str(csv_err)}'}), 400
 
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
@@ -125,30 +129,30 @@ def predict_batch():
             }
 
             if model_type not in model_predictors:
-                return jsonify({'error': f"Unbekannter Modelltyp: {model_type}"}), 400
+                return jsonify({'error': f"Unknown model type: {model_type}"}), 400
 
             module = __import__(model_predictors[model_type], fromlist=['predict'])
             logging.info("Model module imported successfully")
         except Exception as import_err:
             logging.error(f"Model import error: {str(import_err)}")
-            return jsonify({'error': f'Fehler beim Laden des Modells: {str(import_err)}'}), 500
+            return jsonify({'error': f'Error loading model: {str(import_err)}'}), 500
 
         results = []
         for idx, row in df.iterrows():
             try:
                 logging.info(f"Processing row {idx+1}/{len(df)}")
-                
+
                 if "linkedinProfileInformation" not in row or pd.isna(row["linkedinProfileInformation"]):
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": "Fehlende LinkedIn-Profilinformationen"})
                     continue
-                
+
                 try:
                     profile_data = json.loads(row["linkedinProfileInformation"])
                 except Exception as json_err:
                     logging.error(f"JSON parsing error for row {idx+1}: {str(json_err)}")
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": f"Ungültiges JSON-Format: {str(json_err)}"})
                     continue
-                    
+
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
@@ -181,4 +185,4 @@ def predict_batch():
 
     except Exception as e:
         logging.error(f"Batch prediction error: {str(e)}")
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500

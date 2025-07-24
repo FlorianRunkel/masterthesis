@@ -4,10 +4,13 @@ import json
 from datetime import datetime
 from random import randint
 from time import sleep
-# Configure logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
+'''
+UnipileLayer class to get profile data from LinkedIn
+'''
 class UnipileLayer:
     def __init__(self, api_key, subdomain, port):
         self.api_key = api_key
@@ -19,23 +22,28 @@ class UnipileLayer:
             'Content-Type': 'application/json'
         }
 
+    '''
+    Get profile data from LinkedIn via url
+    '''
     def get_profile_by_url(self, linkedin_url, account_id, api_type='classic'):
-        # Extrahiere public identifier
         public_identifier = linkedin_url.rstrip('/').split('/in/')[1]
         if api_type == 'classic':
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_sections=%2A&account_id={account_id}'
         elif api_type == 'recruiter':
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_api=recruiter&linkedin_sections=%2A&account_id={account_id}'
         else:    
-            raise ValueError('Unbekannter API-Typ')
+            raise ValueError('Unknown API type')
         sleep(randint(1, 3))
         response = requests.get(url, headers=self.headers)
         if response.ok:
             return response.json()
         else:
-            logger.error(f"Unipile API Fehler: {response.status_code} - {response.text}")
+            logger.error(f"Unipile API error: {response.status_code} - {response.text}")
             return None
-    
+
+    '''
+    Format dates
+    '''
     def format_duration(self, start, end):
         def to_date_str(date_str):
             if not date_str or not isinstance(date_str, str):
@@ -53,9 +61,12 @@ class UnipileLayer:
         if start_fmt:
             return f"{start_fmt} - {end_fmt}"
         return ""
-    
+
+    '''
+    Transform profile data to a format that can be used in the database
+    '''
     def transform_profile(self, input_data):
-        # LinkedIn Basisdaten
+
         first_name = input_data.get("first_name", "")
         last_name = input_data.get("last_name", "")
         public_identifier = input_data.get("public_identifier", "")
