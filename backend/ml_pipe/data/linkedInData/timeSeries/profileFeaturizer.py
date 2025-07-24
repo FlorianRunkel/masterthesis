@@ -5,6 +5,9 @@ import random
 import os
 from backend.ml_pipe.data.database.mongodb import MongoDb
 
+'''
+Classify change
+'''
 def classify_change(diff_months):
     if diff_months <= 6:
         return 1
@@ -15,6 +18,9 @@ def classify_change(diff_months):
     elif diff_months > 24:
         return 4
 
+'''
+Parse date
+'''
 def parse_date(date_str):
     if not date_str or pd.isna(date_str):
         return None
@@ -31,9 +37,10 @@ def parse_date(date_str):
             except Exception:
                 return None
 
+'''
+Random point for category
+'''
 def random_point_for_category(current_end, cat_min, cat_max, current_start):
-    """Wähle einen zufälligen Zeitpunkt, der so weit vor current_end liegt, dass er in die Kategorie fällt und im Positionszeitraum liegt."""
-    # cat_min, cat_max in Monaten (z.B. 0-6, 7-12, ...)
     latest = current_end - timedelta(days=cat_min*30)
     earliest = current_end - timedelta(days=cat_max*30)
     if earliest < current_start:
@@ -46,6 +53,9 @@ def random_point_for_category(current_end, cat_min, cat_max, current_start):
     random_days = random.randint(0, delta)
     return earliest + timedelta(days=random_days)
 
+'''
+Extract year
+'''
 def extract_year(date_str):
     if not date_str or pd.isna(date_str):
         return None
@@ -58,6 +68,9 @@ def extract_year(date_str):
             continue
     return None
 
+'''
+Estimate age category
+'''
 def estimate_age_category(profile_info):
     current_year = datetime.now().year
     earliest_year = None
@@ -84,19 +97,24 @@ def estimate_age_category(profile_info):
     else:
         return 5
 
+'''
+Get company info
+'''
 def get_company_info_field(exp, field):
-    # Erst direkt im Experience-Objekt prüfen
     if field in exp and exp[field]:
         return exp[field]
-    # Dann in companyInformation prüfen
+
     if 'companyInformation' in exp and isinstance(exp['companyInformation'], dict):
         val = exp['companyInformation'].get(field)
-        # Falls industry eine Liste ist, als String joinen
+
         if field == 'industry' and isinstance(val, list):
             return ', '.join(val)
         return val
     return ""
 
+'''
+Categorize company size
+'''
 def categorize_company_size(employee_count):
     if employee_count is None:
         return None
@@ -115,6 +133,9 @@ def categorize_company_size(employee_count):
     except Exception:
         return None
 
+'''
+Process profile
+'''
 def process_profile(row):
     try:
         profile_info = json.loads(row['linkedinProfileInformation'])
@@ -156,20 +177,20 @@ def process_profile(row):
                 continue
             label_days = (current_end - sample_timepoint).days
 
-            # a) Berufserfahrung bis zum Zeitpunkt
+            # experience until timepoint
             alle_starts = [parse_date(exp.get('startDate', '')) for exp in experiences if parse_date(exp.get('startDate', '')) and parse_date(exp.get('startDate', '')) < sample_timepoint]
             if alle_starts:
                 berufserfahrung_bis_zeitpunkt = (sample_timepoint - min(alle_starts)).days
             else:
                 berufserfahrung_bis_zeitpunkt = 0
 
-            # b) Anzahl Wechsel bisher (Anzahl Positionen mit Enddatum < sample_timepoint)
+            # number of changes until timepoint
             anzahl_wechsel_bisher = sum(1 for exp in experiences if parse_date(exp.get('endDate', '')) and parse_date(exp.get('endDate', '')) < sample_timepoint)
 
-            # c) Anzahl Jobs bisher (Anzahl Positionen mit Startdatum < sample_timepoint)
+            # number of jobs until timepoint
             anzahl_jobs_bisher = sum(1 for exp in experiences if parse_date(exp.get('startDate', '')) and parse_date(exp.get('startDate', '')) < sample_timepoint)
 
-            # d) Durchschnittsdauer bisheriger Jobs
+            # average duration of previous jobs
             dauer_liste = []
             for exp in experiences:
                 s = parse_date(exp.get('startDate', ''))
@@ -178,7 +199,6 @@ def process_profile(row):
                     dauer_liste.append((e - s).days)
             durchschnittsdauer_bisheriger_jobs = sum(dauer_liste) / len(dauer_liste) if dauer_liste else 0
 
-            # Degree-Ranking analog zur Klassifikation
             degree_ranking = {
                 'phd': 5,
                 'master': 4,
@@ -198,7 +218,7 @@ def process_profile(row):
                 elif 'apprenticeship' in degree or 'ausbildung' in degree:
                     highest_degree = max(highest_degree, degree_ranking['apprenticeship'])
 
-            # anzahl_standortwechsel: Anzahl verschiedener Städte/Länder
+            # number of location changes
             locations = set()
             for exp in experiences:
                 loc = exp.get('location', '').strip().lower()
@@ -206,7 +226,7 @@ def process_profile(row):
                     locations.add(loc)
             anzahl_standortwechsel = len(locations)
 
-            # study_field: Erster nicht-leerer subjectStudy oder fieldOfStudy aus education_data
+            # study_field: first non-empty subjectStudy or fieldOfStudy from education_data
             study_field = None
             for edu in education_data:
                 val = edu.get('subjectStudy') or edu.get('fieldOfStudy') or edu.get('degree')
@@ -232,7 +252,7 @@ def process_profile(row):
                 "company_location": get_company_info_field(current_exp, "location"),
                 "company_size_category": categorize_company_size(get_company_info_field(current_exp, "employee_count")),
             })
- 
+
     return samples
 
 '''

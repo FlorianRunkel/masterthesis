@@ -13,6 +13,9 @@ from backend.ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb imp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+'''
+Parse date
+'''
 def parse_date(date_str):
     if not date_str or date_str == 'Present':
         return None
@@ -29,11 +32,17 @@ def parse_date(date_str):
     except Exception:
         return None
 
+'''
+Normalize position
+'''
 def normalize_position(position):
     if not position:
         return ""
     return position.lower().strip()
 
+'''
+Extract year
+'''
 def extract_year(date_str):
     if not date_str:
         return None
@@ -52,6 +61,9 @@ def extract_year(date_str):
     except (ValueError, IndexError):
         return None
 
+'''
+Estimate age category
+'''
 def estimate_age_category(profile_info):
     current_year = datetime.now().year
     earliest_year = None
@@ -78,6 +90,9 @@ def estimate_age_category(profile_info):
     else:
         return 5
 
+'''
+Extract career data
+'''
 def extract_career_data(profile_info, fe):
     career_history = []
     for exp in profile_info.get('workExperience', []):
@@ -120,6 +135,9 @@ def extract_career_data(profile_info, fe):
     career_history.sort(key=lambda x: parse_date(x['start_date']) if parse_date(x['start_date']) else datetime.min, reverse=True)
     return career_history
 
+'''
+Extract education data
+'''
 def extract_education_data(profile_info):
     education_data = []
     for edu in profile_info.get('education', []):
@@ -136,6 +154,9 @@ def extract_education_data(profile_info):
         education_data.append(edu_entry)
     return education_data
 
+'''
+Extract additional features
+'''
 def extract_additional_features(career_history, education_data, fe, age_category):
     features = {}
     features['total_positions'] = len(career_history)
@@ -198,8 +219,10 @@ def extract_additional_features(career_history, education_data, fe, age_category
     features['age_category'] = age_category
     return features
 
+'''
+Generate career sequences
+'''
 def generate_career_sequences(career_history, education_data, fe, age_category):
-    # Aggregierte Features für die gesamte Karriere
     highest_degree = extract_additional_features(career_history, education_data, fe, age_category)['highest_degree']
 
     sequence_examples = []
@@ -216,8 +239,7 @@ def generate_career_sequences(career_history, education_data, fe, age_category):
         location_changes = len(locations) - 1 if len(locations) > 0 else 0
         current_pos = current_sequence[0]
         duration = int(current_pos['duration_months']*30.44) 
-        
-        # Vorherige Positionen als Features (nur die Positionen vor der aktuellen)
+
         career_history_features = {}
         for j, prev_pos in enumerate(reversed(career_history[i+1:])):
             career_history_features[f"position_{j+1}"] = {
@@ -226,8 +248,7 @@ def generate_career_sequences(career_history, education_data, fe, age_category):
                 "level": prev_pos['level'],
                 "position": prev_pos['position']
             }
-        
-        # Basis-Features
+
         career_history_durations = sum(
             v["duration"] for v in career_history_features.values()
         )
@@ -246,19 +267,19 @@ def generate_career_sequences(career_history, education_data, fe, age_category):
             "age_category": age_category,   
             "career_history": career_history_features
         }
-            
+
         label = 1
         sequence_examples.append({
             "features": sequence_features,
             "label": label
         })
-        
+
         if duration > 1:
 
             career_history_durations = sum(
                 v["duration"] for v in career_history_features.values()
             )
-            
+
             random_tag = randint(1, duration - 1)
             random_pos = dict(current_pos)
             random_pos['duration'] = random_tag
@@ -278,7 +299,7 @@ def generate_career_sequences(career_history, education_data, fe, age_category):
                 "age_category": age_category,
                 "career_history": career_history_features
             }
-                
+
             sequence_examples.append({
                 "features": sequence_features_random,
                 "label": 0
@@ -286,6 +307,9 @@ def generate_career_sequences(career_history, education_data, fe, age_category):
 
     return sequence_examples
 
+'''
+Check if sequence is valid
+'''
 def is_valid_sequence(seq_features):
     if seq_features.get("position_level", 0) == 0 or seq_features.get("position_branche", 0) == 0:
         return False
@@ -293,6 +317,9 @@ def is_valid_sequence(seq_features):
         return False
     return True
 
+'''
+Import candidates from csv
+'''
 def import_candidates_from_csv(csv_file):
     mongo = MongoDb()
     fe = FeatureEngineering()
@@ -330,37 +357,36 @@ def import_candidates_from_csv(csv_file):
                         else:
                             failed_imports += 1
             else:
-                logger.info(f"Profil {index} übersprungen (keine Profildaten)")
+                logger.info(f"Profile {index} skipped: no profile data")
 
         except Exception as e:
-            logger.error(f"Fehler beim Import des Kandidaten {index}: {str(e)}")
+            logger.error(f"Error importing candidate {index}: {str(e)}")
             failed_imports += 1
-    logger.info(f"Import abgeschlossen: Erfolgreich: {successful_imports}, Fehlgeschlagen: {failed_imports}")
+    logger.info(f"Import completed: Successfully: {successful_imports}, Failed: {failed_imports}")
     return successful_imports, failed_imports
 
+'''
+Handler process csv file and import candidates to mongodb
+'''
 def handler(file_path):
-    '''
-    Verarbeitet CSV-Dateien und importiert die Kandidatendaten in die MongoDB.
-    '''
-    logger.info(f"Starte Verarbeitung der Datei: {file_path}")
+    logger.info(f"Start processing file: {file_path}")
     if not os.path.exists(file_path):
-        logger.error(f"Datei nicht gefunden: {file_path}")
+        logger.error(f"File not found: {file_path}")
         return
-    logger.info(f"Verarbeite Datei: {file_path}")
+    logger.info(f"Processing file: {file_path}")
     try:
-        # Rufe die Import-Funktion auf
         successful, failed = import_candidates_from_csv(file_path)
-        logger.info("\nFinaler Import-Status:")
-        logger.info(f"✓ Erfolgreich importierte Datenpunkte: {successful}")
-        logger.info(f"✗ Fehlgeschlagene Imports: {failed}")
+        logger.info("\nFinal import status:")
+        logger.info(f"✓ Successfully imported data points: {successful}")
+        logger.info(f"✗ Failed imports: {failed}")
     except Exception as e:
-        logger.error(f"Kritischer Fehler beim Verarbeiten der Datei: {str(e)}")
+        logger.error(f"Critical error processing file: {str(e)}")
         return
 
 '''
 csv_folder = "backend/ml_pipe/data/datafiles/"
 if not os.path.exists(csv_folder):
-    logger.error(f"Ordner nicht gefunden: {csv_folder}")
+    logger.error(f"Folder not found: {csv_folder}")
 else:
     for filename in os.listdir(csv_folder):
         if filename.endswith(".csv"):
