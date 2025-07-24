@@ -2,7 +2,11 @@ import pytorch_lightning as pl
 from pytorch_forecasting import TemporalFusionTransformer, QuantileLoss
 from torchmetrics import MeanAbsoluteError, MeanSquaredError, R2Score, MeanAbsolutePercentageError, SymmetricMeanAbsolutePercentageError
 
+'''
+TFT Model
+'''
 class TFTModel(pl.LightningModule):
+
     def __init__(self, training_dataset, learning_rate=0.03, hidden_size=32, attention_head_size=2,
                  dropout=0.1, hidden_continuous_size=16, output_size=7, **kwargs):
         super().__init__()

@@ -12,28 +12,25 @@ import numpy as np
 import torch
 import joblib
 from backend.ml_pipe.models.career_rules import CareerRules
-import random
 
 '''
 Helper Functions
 '''
 def get_latest_model_path(model_dir=None):
     if model_dir is None:
-        # Dynamischen Pfad zum Modell-Ordner erstellen
         script_dir = os.path.dirname(os.path.abspath(__file__))
         model_dir = os.path.join(script_dir, "saved_models")
 
     model_files = glob.glob(os.path.join(model_dir, "gru_model_*.pt"))
     if not model_files:
-        raise FileNotFoundError(f"Kein Modell gefunden im Verzeichnis {model_dir}")
+        raise FileNotFoundError(f"No model found in directory {model_dir}")
     latest_model = max(model_files, key=os.path.getmtime)
     return latest_model
 
+'''
+Get feature names
+'''
 def get_feature_names():
-    """
-    Returns feature names in the exact order they appear in the feature vector.
-    Must match the order in the prepare_features function.
-    """
     names = [
         "job experience total",
         "job changes total", 
@@ -55,6 +52,9 @@ def get_feature_names():
     ]
     return names
 
+'''
+Get feature description
+'''
 def get_feature_description(name):
     descriptions = {
         "job experience total": "Total work experience",
@@ -66,7 +66,7 @@ def get_feature_description(name):
         "position level": "Responsibility level of the current position",
         "industry": "Industry of the current employer",
         "position average duration": "Average duration of similar positions",
-        "position id": "Type of current position",  
+        "position id": "Type of current position",
         "latest previous position level": "Responsibility level of the previous position",
         "latest previous position industry": "Industry of the previous employer",
         "latest previous position duration": "Duration of the previous position",
@@ -76,6 +76,9 @@ def get_feature_description(name):
     }
     return descriptions.get(name, "This factor influences the prediction.")
 
+'''
+Get status and recommendation
+'''
 def get_status_and_recommendation(tage):
     if tage < 30:
         return "short-term change", "High probability of job change within the next month"
@@ -90,30 +93,28 @@ def get_status_and_recommendation(tage):
 Data Processing Functions
 '''
 def parse_profile_data(profile_dict):
-    """Verarbeitet die eingehenden Profildaten."""
     if isinstance(profile_dict, str):
         try:
             return json.loads(profile_dict)
         except:
             pass
-    
-    # Wenn das Profil direkt als Dict übergeben wurde, packen wir es in das erwartete Format
+
     if isinstance(profile_dict, dict) and "workExperience" in profile_dict:
         profile_dict = {"linkedinProfileInformation": json.dumps(profile_dict)}
-    
+
     return profile_dict
 
+'''
+Prepare prediction sample
+'''
 def prepare_prediction_sample(profile_data):
-    """Bereitet ein Sample für die Vorhersage vor."""
     try:
-        # Wenn die Daten als String übergeben wurden, parsen wir sie
         if isinstance(profile_data, str):
             try:
                 profile_data = json.loads(profile_data)
             except:
                 pass
 
-        # Wenn die Daten in linkedinProfileInformation sind, extrahieren wir sie
         if isinstance(profile_data, dict) and "linkedinProfileInformation" in profile_data:
             try:
                 profile_data = json.loads(profile_data["linkedinProfileInformation"])
@@ -122,45 +123,38 @@ def prepare_prediction_sample(profile_data):
 
         experiences = profile_data.get('workExperience', [])
         if not experiences:
-            raise ValueError("Keine Berufserfahrung gefunden")
+            raise ValueError("No work experience found")
 
-        # Sortiere Erfahrungen nach Startdatum (neueste zuerst)
         experiences = sorted(
             experiences,
             key=lambda x: parse_date(x.get('startDate', '')) or datetime(1900, 1, 1),
             reverse=True
         )
 
-        # Extrahiere Features für die aktuelle Position
-        current_exp = experiences[0]  # Neueste Position
+        current_exp = experiences[0]
         current_start = parse_date(current_exp.get('startDate', ''))
         current_end = parse_date(current_exp.get('endDate', '')) if current_exp.get('endDate') != 'Present' else datetime.now()
 
         if not current_start:
-            raise ValueError("Kein Startdatum für die aktuelle Position gefunden")
+            raise ValueError("No start date found for the current position")
 
-        # Berechne Features
         berufserfahrung_bis_zeitpunkt = 0
         anzahl_wechsel_bisher = 0
         anzahl_jobs_bisher = 0
         durchschnittsdauer_bisheriger_jobs = 0
 
-        # Berechne Berufserfahrung
         for exp in experiences:
             start = parse_date(exp.get('startDate', ''))
             end = parse_date(exp.get('endDate', '')) if exp.get('endDate') != 'Present' else datetime.now()
-            
             if start and end:
                 berufserfahrung_bis_zeitpunkt += (end - start).days
                 anzahl_jobs_bisher += 1
                 if exp.get('endDate') != 'Present':
                     anzahl_wechsel_bisher += 1
 
-        # Berechne durchschnittliche Jobdauer
         if anzahl_jobs_bisher > 0:
             durchschnittsdauer_bisheriger_jobs = berufserfahrung_bis_zeitpunkt / anzahl_jobs_bisher
 
-        # Erstelle Sample
         sample = {
             "aktuelle_position": current_exp.get("position", ""),
             "berufserfahrung_bis_zeitpunkt": berufserfahrung_bis_zeitpunkt,
@@ -169,27 +163,29 @@ def prepare_prediction_sample(profile_data):
             "durchschnittsdauer_bisheriger_jobs": durchschnittsdauer_bisheriger_jobs
         }
 
-        return [sample]  # Liste mit einem Sample zurückgeben
+        return [sample]
 
     except Exception as e:
-        print(f"Fehler bei der Profilverarbeitung: {str(e)}")
+        print(f"Error in profile processing: {str(e)}")
         return []
 
+'''
+Prepare features
+'''
 def prepare_features(profile_dict):
-    """Bereitet die Features für die Vorhersage vor (neues Feature Engineering)."""
     try:
-        # Profil in das richtige Format bringen
         samples = prepare_prediction_sample(profile_dict)
         if not samples:
-            raise ValueError("Keine gültigen Samples aus dem Profil extrahiert")
+            raise ValueError("No valid samples extracted from the profile")
 
         latest_sample = samples[0]
         fe = FeatureEngineering()
 
-        # Hilfsfunktionen für zusätzliche Features
         from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import estimate_age_category, categorize_company_size
 
-        # highest_degree
+        '''
+        Extract highest degree
+        '''
         def extract_highest_degree(education_data):
             degree_ranking = {
                 'phd': 5,
@@ -211,7 +207,9 @@ def prepare_features(profile_dict):
                     highest_degree = max(highest_degree, degree_ranking['apprenticeship'])
             return highest_degree
 
-        # anzahl_standortwechsel
+        '''
+        Extract number of location changes
+        '''
         def extract_anzahl_standortwechsel(experiences):
             locations = set()
             for exp in experiences:
@@ -220,7 +218,9 @@ def prepare_features(profile_dict):
                     locations.add(loc)
             return len(locations)
 
-        # study_field
+        '''
+        Extract study field
+        '''
         def extract_study_field(education_data):
             for edu in education_data:
                 val = edu.get('subjectStudy') or edu.get('fieldOfStudy') or edu.get('degree')
@@ -228,12 +228,13 @@ def prepare_features(profile_dict):
                     return val.strip()
             return None
 
-        # company_size_category (als Zahl)
+        '''
+        Map company size category to a number
+        '''
         def map_company_size_category(cat):
             mapping = {'micro': 1, 'small': 2, 'medium': 3, 'large': 4, 'enterprise': 5}
             return mapping.get(str(cat).lower(), 0)
 
-        # Profil-Infos extrahieren
         if isinstance(profile_dict, dict) and "linkedinProfileInformation" in profile_dict:
             try:
                 profile_info = json.loads(profile_dict["linkedinProfileInformation"])
@@ -245,7 +246,6 @@ def prepare_features(profile_dict):
         experiences = profile_info.get('workExperience', [])
         education_data = profile_info.get('education', [])
 
-        # Features extrahieren mit Fehlerbehandlung
         features = [
             float(latest_sample.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
             float(latest_sample.get("anzahl_wechsel_bisher", 0) or 0),
@@ -257,15 +257,13 @@ def prepare_features(profile_dict):
             #float(fe.get_study_field_num(extract_study_field(education_data)) or 0)
         ]
 
-        # Company Size Feature
         current_exp = experiences[0] if experiences else {}
         company_size_cat = categorize_company_size(
-            current_exp.get('employee_count') or 
+            current_exp.get('employee_count') or
             (current_exp.get('companyInformation', {}) or {}).get('employee_count')
         )
         #features.append(float(map_company_size_category(company_size_cat) or 0))
 
-        # Position-bezogene Features
         level, branche, durchschnittszeit = fe.map_position(latest_sample.get("aktuelle_position", ""))
         features.extend([
             float(level or 0),
@@ -273,11 +271,9 @@ def prepare_features(profile_dict):
             float(durchschnittszeit or 0)
         ])
 
-        # Positions-ID
         position_idx = fe.get_position_idx(latest_sample.get("aktuelle_position", ""))
         features.append(float(position_idx or 0))
 
-        # Debug-Ausgabe
         print("\nFeature-Werte:")
         for i, (name, val) in enumerate(zip(get_feature_names(), features)):
             print(f"{name}: {val}")
@@ -287,7 +283,6 @@ def prepare_features(profile_dict):
         used_positions = set()
         count = 0
 
-        # Extrahiere echte Positionswechsel (wie im Training)
         experiences = profile_info.get('workExperience', [])
         experiences = sorted(
             experiences,
@@ -306,7 +301,6 @@ def prepare_features(profile_dict):
                 })
                 last_position = pos
 
-        # Aktueller Zeitpunkt (z.B. Startdatum der aktuellen Position)
         current_time = parse_date(current_exp.get("startDate", "")).timestamp() if parse_date(current_exp.get("startDate", "")) else 0
 
         for prev in reversed(echte_positionen):
@@ -329,77 +323,65 @@ def prepare_features(profile_dict):
         return torch.tensor([features], dtype=torch.float32).unsqueeze(0)  # (1, 1, 13)
 
     except Exception as e:
-        print(f"Fehler bei der Feature-Extraktion: {str(e)}")
+        print(f"Error in feature extraction: {str(e)}")
         raise
 
+'''
+Get branch name
+'''
 def get_branche_name(branche_num):
-    """Konvertiert Branchennummer in Namen."""
     branche_map = {1: "Sales", 2: "Engineering", 3: "Consulting"}
     return branche_map.get(branche_num, "Unbekannt")
 
 '''
-Model Functions
+Load model
 '''
 def load_model(model_path):
-    """Loads the GRU model."""
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    
-    # Create model with correct dimensions
     model = GRUModel(seq_input_size=16, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
-    
-    # Load state dict
     model.load_state_dict(checkpoint)
     model.eval()
-    
-    # Debug: Print model weights
+
     print("\nModel weights:")
     for name, param in model.named_parameters():
         if param.requires_grad:
             print(f"{name}: {param.data.mean().item():.4f} (mean)")
-    
+
     return model
 
+'''
+Create background data
+'''
 def create_background_data(seq_tensor):
-    """Erstellt Hintergrunddaten für SHAP mit der richtigen Dimension (13 Features)."""
     background_seq = torch.zeros((10, seq_tensor.shape[1], 16))  # 12 Features
     return background_seq
 
-
+'''
+Transform features for GRU
+'''
 def transform_features_for_gru(profile_data, scaler_path="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/scaler_gru.joblib"):
-    """Skaliert und transformiert das Profil für das GRU-Modell."""
-    # Features extrahieren
     raw_features = prepare_features(profile_data)
     flat = np.array(raw_features).flatten().reshape(1, -1)
-
-    # Skaler laden
     scaler = joblib.load(scaler_path)
     scaled = scaler.transform(flat)
 
-    # In GRU-kompatiblen Tensor umwandeln: (1, 1, F)
     return torch.tensor(scaled, dtype=torch.float32).unsqueeze(0)
-
 
 '''
 Main Prediction Function
 '''
 def predict(profile_dict, model_path=None):
-    """Vorhersage der Tage bis zum Wechsel (Regression)."""
     try:
-        # Modellpfad bestimmen
         if model_path is None:
             model_path = get_latest_model_path()
-            print(f"\nLade neuestes Modell: {model_path}")
-        
+            print(f"\nLoad latest model: {model_path}")
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Kein Modell gefunden unter {model_path}")
+            raise FileNotFoundError(f"No model found under {model_path}")
 
-        print("\n=== Starte Vorhersage ===")
-        
-        # Profil verarbeiten
+        print("\n=== Start prediction ===")
+
         profile_data = parse_profile_data(profile_dict)
 
-        # === Career Rule: Letzte Position < 6 Monate ===
-        # Extrahiere Karrierehistorie (wie im Feature Engineering)
         if isinstance(profile_data, dict) and "linkedinProfileInformation" in profile_data:
             import json
             profile_info = json.loads(profile_data["linkedinProfileInformation"])
@@ -410,27 +392,24 @@ def predict(profile_dict, model_path=None):
         too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=8)
         print(f"Too new: {too_new}, Months: {months}")
         if too_new:
-            # Erstelle SHAP und LIME Erklärungen für die Career Rule
             feature_names = get_feature_names()
-            
-            # SHAP Erklärung: Aktuelle Position zu 100%
+
             shap_explanations = [{
                 "feature": "duration current position",
                 "impact_percentage": 100.0,
                 "method": "SHAP",
                 "description": "The current position is too new for a change."
             }]
-            
-            # LIME Erklärung: Aktuelle Position zu 100%
+
             lime_explanations = [{
                 "feature": "duration current position", 
                 "impact_percentage": 100.0,
                 "method": "LIME",
                 "description": "The current position is too new for a change."
             }]
-            
+
             return {
-                "confidence": [400],  # 0% Wechselwahrscheinlichkeit
+                "confidence": [400],
                 "recommendations": [
                     "The current position is too new for a change.",
                     f"Months in current position: {months:.1f}"
@@ -441,54 +420,48 @@ def predict(profile_dict, model_path=None):
                 "llm_explanation": "Candidate is too new in the current position."
             }
 
-        # Skaliertes Input-Feature für GRU erzeugen
         features_tensor = transform_features_for_gru(profile_data)
 
-        # Modell laden
         model = load_model(model_path)
         model.eval()
-        
+
         with torch.no_grad():
             gru_out, _ = model.gru(features_tensor)
-            print("\nGRU Ausgabe:", gru_out.mean().item())
-            
+            print("\nGRU output:", gru_out.mean().item())
             context, attention_weights = model.attention(gru_out)
             print("Attention Weights:", attention_weights.mean().item())
-            
+
             pred = model.fc(context)
-            print("Finale Ausgabe:", pred.mean().item())
-            
+            print("Final output:", pred.mean().item())
+
             tage = max(0, pred.item())
-            print(f"\nModell-Ausgabe:")
-            print(f"Rohausgabe: {pred}")
-            print(f"Tage bis zum Wechsel: {tage:.2f}")
+            print(f"\nModel output:")
+            print(f"Raw output: {pred}")
+            print(f"Days until change: {tage:.2f}")
 
         status, recommendation = get_status_and_recommendation(tage)
 
-        # Explainable AI mit der neuen Klasse
         print("\n=== Explainable AI Analyse ===")
         feature_names = get_feature_names()
         explainer = ModelExplainer(model, feature_names, model_type="gru")
-        
-        # SHAP-Analyse
-        print("Berechne SHAP-Werte...")
+
+        print("Calculate SHAP values...")
         background_data = create_background_data(features_tensor)
         shap_values = explainer.calculate_shap_values(features_tensor, background_data=background_data)
         shap_explanations = explainer.extract_shap_results(shap_values)
         shap_summary = explainer.create_summary(shap_explanations, "SHAP")
         print(shap_summary)
-        
-        # LIME-Analyse
-        print("\nBerechne LIME-Erklärungen...")
+
+        print("\nCalculate LIME explanations...")
         lime_explanation = explainer.calculate_lime_explanations(features_tensor)
         lime_explanations = explainer.extract_lime_results(lime_explanation)
         lime_summary = explainer.create_summary(lime_explanations, "LIME")
         print(lime_summary)
-        
-        print("\n=== Vorhersage abgeschlossen ===")
+
+        print("\n=== Prediction completed ===")
 
         return {
-            "confidence": torch.expm1(torch.tensor(tage)).item(),  # Rücktransformation
+            "confidence": torch.expm1(torch.tensor(tage)).item(),
             "recommendations": [recommendation],
             "status": status,
             "shap_explanations": shap_explanations,
@@ -499,5 +472,5 @@ def predict(profile_dict, model_path=None):
             }
 
     except Exception as e:
-        print(f"Fehler bei der Vorhersage: {str(e)}")
+        print(f"Error in prediction: {str(e)}")
         raise

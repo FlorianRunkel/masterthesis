@@ -1,20 +1,17 @@
-import sys
 from backend.ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb import FeatureEngineering
 from backend.ml_pipe.data.linkedInData.classification.profileFeaturizer import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
-import numpy as np
-import joblib
-import os
-import glob
-import json
-import shap
-import pickle
-
 from collections import defaultdict
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import joblib
 from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
 from backend.ml_pipe.models.career_rules import CareerRules
+import numpy as np
+import joblib
+import os
+import glob
+import json
+import pickle
 
 with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
     position_categories = pickle.load(f)
@@ -27,7 +24,6 @@ position_encoder.classes_ = np.array(position_categories)
 Helper Functions
 '''
 def parse_profile_data(profile_dict):
-    # If profile is stored as JSON string in 'linkedinProfileInformation', parse it!
     if "linkedinProfileInformation" in profile_dict:
         try:
             return json.loads(profile_dict["linkedinProfileInformation"])
@@ -35,11 +31,10 @@ def parse_profile_data(profile_dict):
             raise ValueError(f"Profile could not be parsed: {e}")
     return profile_dict
 
+'''
+Extract features from the profile
+'''
 def extract_xgb_features(features_dict):
-    """
-    Extracts flat features from the feature dictionary for XGBoost.
-    Returns a list of numerical features.
-    """
     return [
         features_dict.get("total_positions", 0),
         features_dict.get("avg_position_duration_months", 0),
@@ -55,13 +50,10 @@ def extract_xgb_features(features_dict):
         features_dict.get("current_position", {}).get("time_since_start", 0),
     ]
 
-# Optional: Funktion für die gesamte Datenvorbereitung für XGBoost
-
+'''
+Prepare data for XGBoost
+'''
 def prepare_xgb_data(data):
-    """
-    Expects a list of dictionaries with 'features' and 'label'.
-    Returns X (2D array) and y (1D array) for XGBoost.
-    """
     X = [extract_xgb_features(sample['features']) for sample in data]
     y = [sample.get('label', 0) for sample in data]
     return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
@@ -76,11 +68,10 @@ def extract_features(profile_dict):
     age_category = estimate_age_category(profile_dict)
     return extract_additional_features(career_history, education_data, fe, age_category)
 
+'''
+Converts features to XGBoost format.
+'''
 def get_xgb_input(features):
-    """
-    Converts features to XGBoost format.
-    """
-    # Dictionary for industry mapping
     industry_levels = {
         "bau": 1,
         "consulting": 2,
@@ -114,7 +105,6 @@ def get_xgb_input(features):
     except ValueError:
         position_encoded = 0
 
-    # Convert features to correct order
     xgb_features = [
         features["company_changes"],
         features["total_experience_days"],
@@ -128,11 +118,13 @@ def get_xgb_input(features):
         features["position_duration_days"],
         features["age_category"]
     ]
-    
-    # Convert to numpy array
+
     X = np.array([xgb_features], dtype=np.float32)
     return X
 
+'''
+Extract features from the career history
+'''
 def extract_career_history_features(career_history, branche_levels, position_mapping):
     durations = [pos.get("duration", 0) for pos in career_history.values()]
     avg_duration = sum(durations) / len(durations) if durations else 0
@@ -247,48 +239,44 @@ def get_explanations_from_shap(shap_values, feature_names, threshold=1.0):
     """
     Generate explanations from SHAP values for local interpretability.
     """
-    # SHAP values for positive class (class 1 - likely to change)
     shap_values_positive = shap_values[1] if len(shap_values) > 1 else shap_values[0]
-    
-    # Calculate absolute SHAP values and total
+
     abs_shap_values = np.abs(shap_values_positive)
     total_impact = np.sum(abs_shap_values)
-    
+
     explanations = []
     for name, shap_val in zip(feature_names, shap_values_positive):
         impact_percentage = abs(shap_val) / total_impact * 100 if total_impact > 0 else 0
         if impact_percentage > threshold:
-            # Determine direction of influence
             direction = "increased" if shap_val > 0 else "decreased"
             base_description = get_feature_description(name)
             enhanced_description = get_feature_description(name)
-            
+
             explanations.append({
                 "feature": name,
                 "impact_percentage": round(float(impact_percentage), 1),
                 "description": enhanced_description,
-                "shap_value": float(shap_val),  # Positive/negative impact
+                "shap_value": float(shap_val),
                 "direction": direction
             })
-    
-    # Sort by impact percentage
+
     explanations.sort(key=lambda x: x["impact_percentage"], reverse=True)
-    
+
     if not explanations:
         explanations.append({
             "feature": "Gesamtanalyse",
             "impact_percentage": 0.0,
             "description": "Die Vorhersage basiert auf einer Kombination verschiedener Karrierefaktoren."
         })
-    
+
     return explanations
 
+'''
+Legacy function using feature importance (global interpretability).
+Use get_explanations_from_shap for local interpretability.
+'''
 def get_explanations(model, feature_names):
-    """
-    Legacy function using feature importance (global interpretability).
-    Use get_explanations_from_shap for local interpretability.
-    """
-    import numpy as np
+
     importances = model.feature_importances_
     total = np.sum(importances)
     explanations = []
@@ -312,46 +300,38 @@ Main Prediction Function
 '''
 def predict(profile_dict, model_path=None):
     try:
-        # Determine model path
         if model_path is None:
             model_path = get_latest_model_path()
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"No model found at {model_path}")
 
-        # Process profile data
         profile_dict = parse_profile_data(profile_dict)
-        
-        # Perform feature engineering
+
         fe = FeatureEngineering()
         career_history = extract_career_data(profile_dict, fe)
         education_data = extract_education_data(profile_dict)
         age_category = estimate_age_category(profile_dict)
-        
+
         if not career_history:
             raise ValueError("No career history found")
 
-        # === Career Rule: Letzte Position < 6 Monate ===
         too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=6)
         if too_new:
-            # Erstelle SHAP und LIME Erklärungen für die Career Rule
             feature_names = get_feature_names()
-            
-            # SHAP Erklärung: Aktuelle Position zu 100%
             shap_explanations = [{
                 "feature": "duration current position",
                 "impact_percentage": 100.0,
                 "method": "SHAP",
                 "description": "The current position is too new for a change."
             }]
-            
-            # LIME Erklärung: Aktuelle Position zu 100%
+
             lime_explanations = [{
                 "feature": "duration current position", 
                 "impact_percentage": 100.0,
                 "method": "LIME",
                 "description": "The current position is too new for a change."
             }]
-            
+
             return {
                 "confidence": [0.0],
                 "recommendations": [
@@ -363,11 +343,9 @@ def predict(profile_dict, model_path=None):
                 "lime_explanations": lime_explanations,
                 "llm_explanation": "Candidate is too new in the current position."
             }
-        
-        # Extract features for the last position
-        last_position = career_history[0]  # The newest position is the first in the sorted list
-        
-        # Calculate features  
+
+        last_position = career_history[0]
+
         features = {
             "company_changes": len(set(entry['company'] for entry in career_history)) - 1,
             "total_experience_days": int(sum(entry['duration_months'] * 30.44 for entry in career_history)),
@@ -380,10 +358,9 @@ def predict(profile_dict, model_path=None):
             "position_duration": int(last_position['duration_months'] * 30.44),
             "avg_position_duration_days": last_position.get('durchschnittszeit_tage', 0),
             "age_category": age_category,
-            "career_history": {}  # wird gleich befüllt
+            "career_history": {}
         }
-        
-        # Karrierehistorie als Dict wie im Training
+
         career_history_features = {}
         for j, prev_pos in enumerate(reversed(career_history[1:])):
             career_history_features[f"position_{j+1}"] = {
@@ -394,7 +371,6 @@ def predict(profile_dict, model_path=None):
             }
         features["career_history"] = career_history_features
 
-        # Alle numerischen Features extrahieren
         feature_vector = [
             features["company_changes"],
             features["total_experience_days"],
@@ -410,10 +386,8 @@ def predict(profile_dict, model_path=None):
             extract_career_history_features(features["career_history"], position_mapping, position_mapping)
         )
 
-        # In XGBoost-kompatibles Format bringen
         X = np.array([feature_vector], dtype=np.float32)
 
-        # Load model and make prediction
         model = load_xgb_model(model_path)
         prob = model.predict_proba(X)[0]
         status = get_status(prob[1])
@@ -422,17 +396,14 @@ def predict(profile_dict, model_path=None):
             f"Change probability: {prob[1]:.1%}"
         ]
 
-        # === Explainable AI: ModelExplainer für XGBoost ===
         feature_names = get_feature_names()
         explainer = ModelExplainer(model, feature_names, model_type="xgboost")
-        # SHAP
         shap_values = explainer.calculate_shap_values(X)
         shap_explanations = explainer.extract_shap_results(shap_values)
         shap_summary = explainer.create_summary(shap_explanations, "SHAP")
-        
-        # LIME-Workarounds für XGBoost
-        os.environ["LIME_NO_TORCH"] = "1"  # Verhindert Torch-Branch in LIME
-        X_lime = X.astype(np.float64)  # LIME bevorzugt float64
+
+        os.environ["LIME_NO_TORCH"] = "1"
+        X_lime = X.astype(np.float64)
         print("DEBUG: X shape for LIME:", X_lime.shape, X_lime.dtype, X_lime[:5])
         lime_explanation = explainer.calculate_lime_explanations(X_lime)
         lime_explanations = explainer.extract_lime_results(lime_explanation)
