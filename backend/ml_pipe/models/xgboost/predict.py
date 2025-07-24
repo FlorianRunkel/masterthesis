@@ -14,6 +14,7 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import joblib
 from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
+from backend.ml_pipe.models.career_rules import CareerRules
 
 with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
     position_categories = pickle.load(f)
@@ -328,6 +329,40 @@ def predict(profile_dict, model_path=None):
         
         if not career_history:
             raise ValueError("No career history found")
+
+        # === Career Rule: Letzte Position < 6 Monate ===
+        too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=6)
+        if too_new:
+            # Erstelle SHAP und LIME Erklärungen für die Career Rule
+            feature_names = get_feature_names()
+            
+            # SHAP Erklärung: Aktuelle Position zu 100%
+            shap_explanations = [{
+                "feature": "duration current position",
+                "impact_percentage": 100.0,
+                "method": "SHAP",
+                "description": "The current position is too new for a change."
+            }]
+            
+            # LIME Erklärung: Aktuelle Position zu 100%
+            lime_explanations = [{
+                "feature": "duration current position", 
+                "impact_percentage": 100.0,
+                "method": "LIME",
+                "description": "The current position is too new for a change."
+            }]
+            
+            return {
+                "confidence": [0.0],
+                "recommendations": [
+                    "The current position is too new for a change.",
+                    f"Months in current position: {months:.1f}"
+                ],
+                "status": "Very unlikely",
+                "shap_explanations": shap_explanations,
+                "lime_explanations": lime_explanations,
+                "llm_explanation": "Candidate is too new in the current position."
+            }
         
         # Extract features for the last position
         last_position = career_history[0]  # The newest position is the first in the sorted list

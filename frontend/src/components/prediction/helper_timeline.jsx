@@ -47,7 +47,9 @@ const Timeline = ({ prediction, profile }) => {
   // ========== Calculate Timeline Dates ==========
   // Extract confidence value (days until job change)
   const confidenceValue = Array.isArray(prediction.confidence) ? prediction.confidence[0] : prediction.confidence;
-  const daysUntilChange = Math.round(confidenceValue);
+  
+  // Use predicted_time_to_change if available, otherwise use confidence
+  const daysUntilChange = prediction.predicted_time_to_change || Math.round(confidenceValue);
   const today = new Date();
   const changeDate = new Date(today.getTime() + daysUntilChange * 24 * 60 * 60 * 1000);
 

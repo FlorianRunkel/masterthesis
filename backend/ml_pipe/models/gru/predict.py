@@ -11,6 +11,8 @@ from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
 import numpy as np
 import torch
 import joblib
+from backend.ml_pipe.models.career_rules import CareerRules
+import random
 
 '''
 Helper Functions
@@ -395,6 +397,49 @@ def predict(profile_dict, model_path=None):
         
         # Profil verarbeiten
         profile_data = parse_profile_data(profile_dict)
+
+        # === Career Rule: Letzte Position < 6 Monate ===
+        # Extrahiere Karrierehistorie (wie im Feature Engineering)
+        if isinstance(profile_data, dict) and "linkedinProfileInformation" in profile_data:
+            import json
+            profile_info = json.loads(profile_data["linkedinProfileInformation"])
+        else:
+            profile_info = profile_data
+        career_history = profile_info.get('workExperience', [])
+        print(f"Career history: {career_history}")
+        too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=8)
+        print(f"Too new: {too_new}, Months: {months}")
+        if too_new:
+            # Erstelle SHAP und LIME Erklärungen für die Career Rule
+            feature_names = get_feature_names()
+            
+            # SHAP Erklärung: Aktuelle Position zu 100%
+            shap_explanations = [{
+                "feature": "duration current position",
+                "impact_percentage": 100.0,
+                "method": "SHAP",
+                "description": "The current position is too new for a change."
+            }]
+            
+            # LIME Erklärung: Aktuelle Position zu 100%
+            lime_explanations = [{
+                "feature": "duration current position", 
+                "impact_percentage": 100.0,
+                "method": "LIME",
+                "description": "The current position is too new for a change."
+            }]
+            
+            return {
+                "confidence": [400],  # 0% Wechselwahrscheinlichkeit
+                "recommendations": [
+                    "The current position is too new for a change.",
+                    f"Months in current position: {months:.1f}"
+                ],
+                "status": "Very unlikely",
+                "shap_explanations": shap_explanations,
+                "lime_explanations": lime_explanations,
+                "llm_explanation": "Candidate is too new in the current position."
+            }
 
         # Skaliertes Input-Feature für GRU erzeugen
         features_tensor = transform_features_for_gru(profile_data)
