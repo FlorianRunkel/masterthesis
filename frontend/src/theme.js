@@ -3,27 +3,27 @@ import { createTheme, withTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#001B41', // aurio-blue
-      light: '#EB7836', // aurio-orange
+      main: '#001B41',
+      light: '#EB7836',
     },
     background: {
-      default: '#f6f6f6',  // Hellgrauer Haupthintergrund für alles
-      paper: '#FFFFFF',    // Weiße Karten/Boxen
-      sidebar: '#1C2536', // Dunkle Sidebar
-      hover: '#F8FAFB'    // Hover-Effekt Hintergrund
+      default: '#f6f6f6',
+      paper: '#FFFFFF',
+      sidebar: '#1C2536',
+      hover: '#F8FAFB'
     },
     text: {
       primary: '#333333',
       secondary: '#666666',
     },
     error: {
-      main: '#dc3545', // error-red
+      main: '#dc3545',
     },
     warning: {
-      main: '#ffc107', // warning-yellow
+      main: '#ffc107',
     },
     success: {
-      main: '#28a745', // success-green
+      main: '#28a745',
     }
   },
   typography: {
@@ -101,7 +101,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',  // Subtilerer Schatten
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
           borderRadius: '16px',
           padding: '30px',
           backgroundColor: '#FFFFFF'

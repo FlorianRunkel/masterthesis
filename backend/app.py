@@ -4,31 +4,28 @@ import logging
 from flask import Flask
 from flask_cors import CORS
 
-# Füge den Backend-Ordner zum Python-Path hinzu
 backend_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(backend_dir)
 sys.path.insert(0, parent_dir)
 
-# Lokale Konfiguration und Handler importieren
 from backend.config import Config
-# from backend.api_handlers.pages.handler import pages_bp # Entfernt
 from backend.api_handlers.candidates.handler import candidates_bp
-from backend.api_handlers.linkedin.handler import linkedin_bp #, initialize_linkedin_api # Geändert
+from backend.api_handlers.linkedin.handler import linkedin_bp
 from backend.api_handlers.prediction.handler import prediction_bp
 from backend.api_handlers.user_management.handler import user_management_bp
 from backend.api_handlers.feedback.handler import feedback_bp
 
+'''
+Create and configure the backend application
+'''
 def create_app():
-    """Erstellt und konfiguriert die Flask-Anwendung."""
-    
+
     app = Flask(__name__,
             template_folder=Config.TEMPLATE_DIR,
             static_folder=Config.STATIC_DIR)
 
-        # Logging konfigurieren
     app.logger.setLevel(logging.INFO)
 
-    # CORS explizit konfigurieren für Render-Deployment
     origins = [
         "https://masterthesis-igbq.onrender.com",
         "http://localhost:3000",
@@ -41,27 +38,19 @@ def create_app():
          allow_headers=["Content-Type", "Authorization", "X-User-Uid"],
          supports_credentials=True)
 
-    # Blueprints registrieren, um die Routen zu aktivieren
-    # app.register_blueprint(pages_bp) # Entfernt
     app.register_blueprint(candidates_bp)
     app.register_blueprint(linkedin_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(user_management_bp)
     app.register_blueprint(feedback_bp)
 
-    # App-Kontext für Initialisierungen verwenden
-    # with app.app_context(): # Entfernt
-        # LinkedIn API initialisieren, falls benötigt
-        # initialize_linkedin_api() # Entfernt
-        # Hier könnten weitere Initialisierungen stattfinden (z.B. DB-Check)
-
-    app.logger.info("Flask-Anwendung erfolgreich erstellt und konfiguriert.")
+    app.logger.info("Flask application successfully created and configured.")
 
     return app
 
-# App erstellen
+# Create app
 app = create_app()
 
 if __name__ == '__main__':
-    # Starte die App
+    # Start app
     app.run(host='0.0.0.0', port=5100, debug=True)

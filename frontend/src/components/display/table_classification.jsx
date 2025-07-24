@@ -7,24 +7,18 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
-// ResultsTableClassification: Displays a table of classification results for candidates
 const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
-  // --- State Management ---
-  // Set of selected candidates for saving
+
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
-  // Set of expanded rows for details view
   const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // --- Early Return: No results ---
   if (!results) return null;
 
-  // --- Statistics ---
   const successCount = results.filter(r => !r.error).length;
   const errorCount = results.filter(r => r.error).length;
 
-  // --- Candidate Selection Handler ---
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
     if (newSelected.has(index)) {
@@ -35,7 +29,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     setSelectedCandidates(newSelected);
   };
 
-  // --- Save Selected Candidates Handler ---
   const handleSaveSelected = () => {
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
       ...(originalProfiles && originalProfiles[index] ? originalProfiles[index] : {}),
@@ -45,7 +38,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     onSave(candidatesToSave);
   };
 
-  // --- Row Expand/Collapse Handler ---
   const toggleDetails = (index) => {
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
@@ -56,14 +48,12 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     setExpandedRows(newExpandedRows);
   };
 
-  // --- Helper: Get Probability Class for Styling ---
   const getProbabilityClass = (confidence) => {
     if (confidence < 40) return 'probability-low';
     if (confidence < 70) return 'probability-medium';
     return 'probability-high';
   };
 
-  // --- Helper: Get Status Icon by Probability ---
   const getStatusIcon = (probabilityClass) => {
     switch (probabilityClass) {
       case 'probability-high':
@@ -73,7 +63,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     }
   };
 
-  // --- Helper: Get Color by Probability ---
   const getColorByProbability = (probabilityClass) => {
     switch (probabilityClass) {
       case 'probability-low':
@@ -85,7 +74,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     }
   };
 
-  // --- Error Handling: Show Error Message if Results Contain Error ---
   if (results.error) {
     return (
       <Box sx={{ maxWidth: '1200px', ml: 0 }}>
@@ -104,10 +92,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     );
   }
 
-  // --- Main Render: Table of Results ---
   return (
     <Box sx={{margin: '0 auto' }}>
-      {/* --- Table Header: Summary and Save Button --- */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '13px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2, width: '100%' }}>
         <Box sx={{ p: '24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -119,10 +105,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
             <Button variant="contained" color="primary" onClick={handleSaveSelected} disabled={isSaving} startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />} sx={{ bgcolor: '#001242', color: 'white', p: '8px 16px', borderRadius: '6.4px', textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', '&:hover': { bgcolor: '#EB7836' } }}>{isSaving ? 'Save...' : `${selectedCandidates.size} candidates to save`}</Button>
           )}
         </Box>
-        {/* --- Table Content: Mobile and Desktop Views --- */}
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
           {isMobile ? (
-            // --- Mobile View: Render as List ---
             results.map((result, index) => {
               const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
               const linkedin = result.linkedinProfile || 'Not specified';
@@ -144,7 +128,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
               );
             })
           ) : (
-            // --- Desktop View: Render as Table ---
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
@@ -163,10 +146,9 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                   const probabilityClass = getProbabilityClass(confidence);
                   const color = getColorByProbability(probabilityClass);
                   const isExpanded = expandedRows.has(index);
-                  // --- Error Row ---
                   if (result.error) {
                     return (
-                      <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
+                      <tr key={index} style={{ background: 'rgba(62, 54, 55, 0.05)' }}>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}></td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}>{name}</td>
                         <td style={{ padding: '12px 24px', borderBottom: '1px solid #eee' }}><Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#666', textDecoration: 'none', fontSize: '0.85rem', opacity: 0.8, transition: 'opacity 0.2s ease', '&:hover': { opacity: 1 } }}>{linkedin}</Link></td>
@@ -174,7 +156,6 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                       </tr>
                     );
                   }
-                  // --- Normal Row ---
                   return (
                     <React.Fragment key={index}>
                       <tr>

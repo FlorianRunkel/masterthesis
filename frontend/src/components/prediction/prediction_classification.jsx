@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
 
-// --- Color palette for feature importance bars ---
 const getBarColors = [
     '#8AD265', // grün
     '#B6D94C', // gelb-grün
@@ -15,47 +14,31 @@ const getBarColors = [
     '#666'     // grau für "Other"
   ];
 
-// PredictionResult: Shows the classification prediction and explanation for a candidate
 const PredictionResult = ({ prediction }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  // Benutzerberechtigung aus dem localStorage abrufen
   const user = JSON.parse(localStorage.getItem('user'));
-  // ROBUSTE PRÜFUNG: Explizit auf den Wert `true` prüfen, um String vs. Boolean Fehler zu vermeiden.
   const canViewExplanations = user?.canViewExplanations === true;
+  const [selectedMethod, setSelectedMethod] = useState('shap');
 
-  // State für SHAP/LIME Auswahl
-  const [selectedMethod, setSelectedMethod] = useState('shap'); // 'shap' oder 'lime'
-
-  // --- Early return if no prediction ---
   if (!prediction) return null;
 
-  // --- Prepare recommendations (not always used) ---
-  const recommendations = Array.isArray(prediction.recommendations) ? prediction.recommendations : [prediction.recommendations];
-
-  // --- Helper: Get probability class for styling ---
   const getProbabilityClass = (confidence) => {
     if (confidence < 40) return 'probability-low-single';  
     if (confidence < 70) return 'probability-medium-single';
     return 'probability-high-single';
   };
 
-  // --- Calculate confidence and probability class ---
   const confidenceValue = Array.isArray(prediction.confidence) ? prediction.confidence[0] : prediction.confidence;
   const confidence = Math.round(confidenceValue * 1000) / 10;
   const probabilityClass = getProbabilityClass(confidence);
-
-  // --- Prepare SHAP and LIME explanations ---
-  // SHAP Explanations - unterstütze beide Datenstrukturen
   let shapExplanations = prediction.shap_explanations || prediction.explanations || [];
-  
-  // Fallback: Falls explanations ein Boolean ist, versuche andere Felder
+
   if (typeof shapExplanations === 'boolean' || !Array.isArray(shapExplanations)) {
     console.log('SHAP explanations is not an array, trying fallback...');
     shapExplanations = [];
   }
-  
+
   const shapMainFeatures = shapExplanations
     .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
@@ -75,15 +58,12 @@ const PredictionResult = ({ prediction }) => {
     });
   }
 
-  // LIME Explanations - unterstütze beide Datenstrukturen
   let limeExplanations = prediction.lime_explanations || [];
-  
-  // Fallback: Falls lime_explanations nicht korrekt ist
   if (!Array.isArray(limeExplanations)) {
     console.log('LIME explanations is not an array, using empty array...');
     limeExplanations = [];
   }
-  
+
   const limeMainFeatures = limeExplanations
     .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
@@ -103,33 +83,23 @@ const PredictionResult = ({ prediction }) => {
     });
   }
 
-  // Wähle aktuelle Daten basierend auf Dropdown
   const currentBarData = selectedMethod === 'shap' ? shapBarData : limeBarData;
   const currentMethod = selectedMethod === 'shap' ? 'SHAP' : 'LIME';
   const hasExplanations = (selectedMethod === 'shap' && shapBarData.length > 0) || (selectedMethod === 'lime' && limeBarData.length > 0);
-  
-  // Verfügbare Methoden für Dropdown
   const availableMethods = [];
   if (shapBarData.length > 0) availableMethods.push('shap');
   if (limeBarData.length > 0) availableMethods.push('lime');
-  
-  // Setze Standard-Methode auf erste verfügbare
   if (availableMethods.length > 0 && !availableMethods.includes(selectedMethod)) {
     setSelectedMethod(availableMethods[0]);
   }
-
-  // --- Main Render ---
   return (
     <Box>
-      {/* --- Main Card --- */}
       <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: { xs: 4, md: 8 }, bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
-        {/* --- Prediction Header --- */}
         <Box sx={{ mb: isMobile ? 2 : 3 }}>
           <Typography variant="h1" color="primary" gutterBottom sx={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, color: '#001B41' }}>Career Change Prediction</Typography>
           <Typography sx={{ color: '#444', fontSize: '0.95rem', mb: isMobile ? 2 : 4 }}>
             The candidate has been classified by the XGBoost model with a predicted probability of job change.
           </Typography>
-          {/* --- Confidence Bar and Value --- */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Typography variant="h3" sx={{ mr: 2, fontSize: '3rem', fontWeight: 600, color: probabilityClass === 'probability-low-single' ? '#001B41' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265' }}>{confidence}%</Typography>
             <Box sx={{ flex: 1, position: 'relative', height: '16px', mr: 2 }}>
@@ -137,7 +107,6 @@ const PredictionResult = ({ prediction }) => {
               <Box sx={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${confidence}%`, bgcolor: probabilityClass === 'probability-low-single' ? '#FF2525' : probabilityClass === 'probability-medium-single' ? '#FFC03D' : '#8AD265', borderRadius: '6px', transition: 'width 0.3s ease' }} />
             </Box>
           </Box>
-          {/* --- Classification Result Text --- */}
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: isMobile ? 1 : 2, mb: isMobile ? 1 : 2 }}>
             <Typography variant="h3" sx={{ fontSize: isMobile ? '1.2rem' : '1.8rem', fontWeight: 700, color: '#444' }}>
               {confidence >= 80
@@ -152,14 +121,10 @@ const PredictionResult = ({ prediction }) => {
               }
             </Typography>
           </Box>
-
         </Box>
-        {/* --- Feature Importance Bar --- */}
         {canViewExplanations && hasExplanations && (
         <>
           <Typography variant="h6" color="primary" gutterBottom sx={{ mt: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 700, color: '#001B41' }}>Prediction Explanation</Typography>
-          
-          {/* Buttons nur anzeigen, wenn mehr als eine Methode verfügbar ist */}
           {availableMethods.length > 1 && (
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start', gap: isMobile ? 1 : 2 }}>
               <Button
@@ -212,8 +177,6 @@ const PredictionResult = ({ prediction }) => {
               </Button>
             </Box>
           )}
-
-          {/* Erklärung IMMER anzeigen */}
           <Typography
             sx={{ color: '#666', fontSize: isMobile ? '0.8rem' : '1rem', lineHeight: 1.7, mb: isMobile ? 1.2 : 2, textAlign: 'justify'}}
           >
@@ -249,7 +212,6 @@ const PredictionResult = ({ prediction }) => {
           </Box>
         </>
       )}
-      {/* --- LLM Explanation (if available) --- */}
       {prediction.llm_explanation && (
         <Box sx={{ mb: isMobile ? 2 : 3, p: isMobile ? 2 : 3 }}>
           <Typography sx={{ color: '#444', fontSize: isMobile ? '0.8rem' : '0.88rem', lineHeight: 1.9, textAlign: 'justify' }}>{prediction.llm_explanation}</Typography>

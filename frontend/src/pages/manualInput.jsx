@@ -139,26 +139,23 @@ const ManualInput = () => {
       const filteredExperiences = experiences.filter(exp => 
         exp.company || exp.position || exp.startDate || exp.endDate
       );
-      
+
       const filteredEducation = education.filter(edu =>
         edu.school || edu.degree || edu.fieldOfStudy || edu.startDate || edu.endDate
       );
 
       const formatDate = (dateStr, model) => {
         if (!dateStr || dateStr === 'Present') return dateStr;
-    
-        // dateStr is in YYYY-MM-DD format from the date picker
         if (dateStr.includes('-')) {
             const [year, month, day] = dateStr.split('-');
-            
+
             if (model === 'tft') {
-                return `${day}/${month}/${year}`; // Format for TFT: DD/MM/YYYY
+                return `${day}/${month}/${year}`;
             } else {
-                return `${month}/${year}`; // Format for others: MM/YYYY
+                return `${month}/${year}`;
             }
         }
-        
-        return dateStr; // Fallback
+        return dateStr;
       };
 
       const profile_data = {
@@ -241,8 +238,6 @@ const ManualInput = () => {
         Analyze the job change probability of a single candidate based on their work experience.
       </Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-
-        {/* Education Section */}
         <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 8px 16px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: education.length > 0 ? 3 : 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -258,7 +253,6 @@ const ManualInput = () => {
                     Add
                 </Button>
             </Box>
-
             {education.map((edu, index) => (
               <Box
                 key={index}
@@ -375,8 +369,6 @@ const ManualInput = () => {
               </Box>
             ))}
         </Paper>
-
-        {/* Work Experience Section */}
         <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 8px 16px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: experiences.length > 0 ? 3 : 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -392,7 +384,6 @@ const ManualInput = () => {
                     Add
                 </Button>
             </Box>
-
             {experiences.map((exp, index) => (
               <Box
                 key={index}
@@ -481,7 +472,6 @@ const ManualInput = () => {
               </Box>
             ))}
         </Paper>
-        
         <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
           <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
             Select AI model

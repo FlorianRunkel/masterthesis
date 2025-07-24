@@ -35,7 +35,6 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
 
   const DrawerContent = ({ isMobileDrawer = false }) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* User Info */}
       <Box sx={{p: 2, display: 'flex', alignItems: 'center', gap: 2, justifyContent: isCollapsed && !isMobileDrawer ? 'center' : 'flex-start' }}>
         <Avatar sx={{ bgcolor: '#001242', width: 40, height: 40 }}>
           {user ? user.firstName.charAt(0) : 'U'}
@@ -51,8 +50,6 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
           </Box>
         )}
       </Box>
-
-      {/* Navigation */}
       <List sx={{ flexGrow: 1, px: 2, mt: 2, overflowY: 'auto' }}>
         {menuItems.map((item) => (
           <ListItem
@@ -85,8 +82,6 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
           </ListItem>
         ))}
       </List>
-
-      {/* Logout */}
       <Box sx={{ p: 2, mt: 'auto' }}>
         <Button
           fullWidth

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Card, CardContent, Grid, Button, Paper, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Typography, Box, Card, CardContent, Grid, Button, Paper, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -12,7 +11,6 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import StorageIcon from '@mui/icons-material/Storage';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -259,8 +257,7 @@ const Index = () => {
           ))}
         </Grid>
       </Box>
-      
-      {/* Benefits Section */}
+
       <Box sx={{ py: { xs: 6, md: 10 } }}>
         <Typography variant="h2" sx={{ fontWeight: 700, color: '#002442', mb: 2, textAlign: 'center' }}>
             Why Career Prediction AI?
@@ -280,8 +277,6 @@ const Index = () => {
             ))}
         </Grid>
       </Box>
-
-      {/* Collaboration Section */}
       <Box sx={{ bgcolor: '#fff' }}>
         <Typography variant="h2" sx={{ textAlign: 'center', fontWeight: 700, color: '#002442', mb: 6 }}>
             Academic-Industry Collaboration

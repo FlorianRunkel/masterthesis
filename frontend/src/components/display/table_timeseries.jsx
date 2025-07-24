@@ -5,24 +5,18 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Timeline from '../prediction/helper_timeline';
 
-// ResultsTableTimeSeries: Displays a table of time series prediction results for candidates
 const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles }) => {
-  // --- State Management ---
-  // Set of selected candidates for saving
+
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
-  // Set of expanded rows for details view
   const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // --- Early Return: No results ---
   if (!results) return null;
 
-  // --- Statistics ---
   const successCount = results.filter(r => !r.error && r.status !== 'error').length;
   const errorCount = results.filter(r => r.error || r.status === 'error').length;
 
-  // --- Candidate Selection Handler ---
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
     if (newSelected.has(index)) {
@@ -33,7 +27,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     setSelectedCandidates(newSelected);
   };
 
-  // --- Save Selected Candidates Handler ---
   const handleSaveSelected = () => {
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
       ...originalProfiles[index],
@@ -43,7 +36,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     onSave(candidatesToSave);
   };
 
-  // --- Row Expand/Collapse Handler ---
   const toggleDetails = (index) => {
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
@@ -54,7 +46,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     setExpandedRows(newExpandedRows);
   };
 
-  // --- Helper: Format Job Change Period (EN) ---
   const formatJobChangePeriod = (confidence) => {
     if (!confidence) return 'N/A';
     const months = confidence / 30.44;
@@ -62,7 +53,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     const rangeEnd = rangeStart + 2;
     return `${rangeStart}-${rangeEnd} months`;
   };
-  // --- Helper: Format Job Change Period (DE) ---
+
   const formatJobChangePeriodDE = (confidence) => {
     if (!confidence) return 'N/A';
     const months = confidence / 30.44;
@@ -71,7 +62,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     return `${rangeStart}-${rangeEnd} Monate`;
   };
 
-  // --- Error Handling: Show Error Message if Results Contain Error ---
   if (results.error) {
     const errorMessage = typeof results.error === 'string' && results.error.includes('confidence')
       ? 'Processing error: Recommendations could not be generated.'
@@ -88,10 +78,8 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     );
   }
 
-  // --- Main Render: Table of Results ---
   return (
     <Box sx={{ml: 0 }}>
-      {/* --- Table Header: Summary and Save Button --- */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '13px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2, width: '100%' }}>
         <Box sx={{ p: '24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -103,10 +91,8 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
             <Button variant="contained" color="primary" onClick={handleSaveSelected} disabled={isSaving} startIcon={isSaving ? <CircularProgress size={19} sx={{ color: 'white' }} /> : <SaveIcon />} sx={{ bgcolor: '#001242', color: 'white', p: isMobile ? '6px 12px' : '8px 16px', borderRadius: '6.4px', textTransform: 'none', fontWeight: 600, fontSize: isMobile ? '0.75rem' : '0.8rem','&:hover': { bgcolor: '#EB7836' }, display: 'flex', alignItems: 'center', gap: 0.5,  whiteSpace: 'nowrap'}}>{isSaving ? 'Saving...' : `${selectedCandidates.size} ${isMobile ? 'Save' : 'Save candidates'}`}</Button>
           )}
         </Box>
-        {/* --- Table Content: Mobile and Desktop Views --- */}
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
           {isMobile ? (
-            // --- Mobile View: Render as List ---
             results.map((result, index) => {
               const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
               const linkedin = result.linkedinProfile || 'Not specified';
@@ -130,7 +116,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
               );
             })
           ) : (
-            // --- Desktop View: Render as Table ---
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
@@ -146,7 +131,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                   const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
                   const linkedin = result.linkedinProfile || 'Not specified';
                   const isExpanded = expandedRows.has(index);
-                  // --- Error Row ---
                   if (result.error || result.status === 'error') {
                     return (
                       <tr key={index} style={{ background: 'rgba(220, 53, 69, 0.05)' }}>
@@ -158,7 +142,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                       </tr>
                     );
                   }
-                  // --- Normal Row ---
                   return (
                     <React.Fragment key={index}>
                       <tr style={{ transition: 'background 0.2s', cursor: 'pointer', ':hover': { background: '#f5f8ff' } }}>

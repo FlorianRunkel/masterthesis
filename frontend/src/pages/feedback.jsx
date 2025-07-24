@@ -102,7 +102,6 @@ const FeedbackPage = () => {
         Please share your experience with the dashboard and rate the predictions and user experience. Your feedback helps me to improve the system!
       </Typography>
       <form onSubmit={handleSubmit}>
-        {/* Free text feedback */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>General feedback</Typography>
           <TextField
@@ -115,7 +114,6 @@ const FeedbackPage = () => {
             sx={{ mb: 1.5, bgcolor: '#fff', borderRadius: 2, fontSize: '0.8rem' }}
           />
         </Box>
-        {/* Prediction evaluation table */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Candidate input & prediction evaluation</Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
@@ -255,7 +253,6 @@ const FeedbackPage = () => {
             + Add row
           </Button>
         </Box>
-        {/* Rating scale */}
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Evaluation Criteria</Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>

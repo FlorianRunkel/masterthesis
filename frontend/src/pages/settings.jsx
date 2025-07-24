@@ -24,10 +24,6 @@ const SettingsPage = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user?.firstName !== 'admin') {
-      // Da wir useNavigate hier nicht verwenden können, muss diese Logik
-      // in eine höhere Komponente oder durch einen anderen Mechanismus
-      // sichergestellt werden. Die primäre Sicherung ist die Anzeige
-      // des Links in der Sidebar.
     }
   }, []);
 
@@ -57,7 +53,6 @@ const SettingsPage = () => {
     }
   };
 
-  // Fetch all users
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/users`);
@@ -73,8 +68,7 @@ const SettingsPage = () => {
 
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line
-  }, []); // Nur beim ersten Rendern
+  }, []);
 
   useEffect(() => {
     if (success || deleteSuccess) {
@@ -83,7 +77,7 @@ const SettingsPage = () => {
   }, [success, deleteSuccess]);
 
   useEffect(() => {
-    setEditUsers(users.map(u => ({ ...u, password: '' }))); // Passwort leer lassen!
+    setEditUsers(users.map(u => ({ ...u, password: '' })));
   }, [users]);
 
   const handleDeleteClick = (user) => {
@@ -133,15 +127,14 @@ const SettingsPage = () => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          password: user.password || undefined, // Nur setzen, wenn geändert
-          canViewExplanations: user.canViewExplanations || false // Schalter-Status mitsenden
+          password: user.password || undefined,
+          canViewExplanations: user.canViewExplanations || false
         })
       });
       const data = await res.json();
       if (res.ok) {
         fetchUsers();
         setUpdateSuccess('User erfolgreich aktualisiert!');
-        // Optional: Erfolgsmeldung anzeigen
       } else {
         setUpdateError(data.error || 'Fehler beim Aktualisieren des Users.');
       }
@@ -168,7 +161,6 @@ const SettingsPage = () => {
       }}>
         Here you can create a new user account for the application.
       </Typography>
-      {/* Create User Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>Create User</Typography>
         <form onSubmit={handleSubmit}>
@@ -236,7 +228,6 @@ const SettingsPage = () => {
         {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       </Box>
-      {/* Edit Users Tabelle */}
       <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>
           Edit Users
@@ -395,7 +386,6 @@ const SettingsPage = () => {
           </TableContainer>
         )}
       </Box>
-      {/* Delete User Bereich */}
       <Box sx={{ mb: isMobile ? 2 : 4 }}>
         <Card
           sx={{
@@ -452,7 +442,6 @@ const SettingsPage = () => {
             ))}
           </List>
         </Card>
-        {/* Delete Dialog */}
         <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} maxWidth="xs" fullWidth>
           <DialogTitle>Delete User</DialogTitle>
           <DialogContent>

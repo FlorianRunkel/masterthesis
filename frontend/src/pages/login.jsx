@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, InputAdornment, IconButton } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import EmailIcon from '@mui/icons-material/Email';
 import axios from 'axios';
 import { API_BASE_URL } from '../api';
 

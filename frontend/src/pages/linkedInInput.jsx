@@ -63,7 +63,6 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      // LinkedIn-Profil abrufen
       const profileResponse = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,19 +77,11 @@ const LinkedInInput = () => {
       const profile = await profileResponse.json();
       setProfileData(profile);
       localStorage.setItem('linkedinProfileData', JSON.stringify(profile));
-
-      // Namen extrahieren
       const [firstName, ...rest] = profile.name.split(' ');
       const lastName = rest.join(' ');
-
-      // Berufserfahrung aufbereiten
       const workExperience = profile.experience.map(exp => {
-        // Versuche, das Datum zu parsen
         let startDate = exp.startDate;
         let endDate = exp.endDate;
-      
-        // Falls nur Jahr vorhanden, ergänze Monat
-      
         return {
           company: exp.company,
           position: exp.title,
@@ -101,10 +92,7 @@ const LinkedInInput = () => {
           description: ""
         };
       });
-
-      // Optional: education, skills etc. ergänzen, falls vorhanden
       const education = profile.education || [];
-
       const profile_data = {
         firstName: firstName || "Unbekannt",
         lastName: lastName || "Unbekannt",
@@ -121,8 +109,6 @@ const LinkedInInput = () => {
           languageSkills: {}
         })
       };
-
-      // Karriere-Vorhersage
       const predictionResponse = await fetch(`${API_BASE_URL}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,7 +132,7 @@ const LinkedInInput = () => {
 
   const handleSaveCandidate = async () => {
     if (!profileData || !predictionData) return;
-    
+
     setSaving(true);
     setSaveSuccess(false);
     setError(null);

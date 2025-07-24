@@ -53,7 +53,7 @@ const CandidatesPage = () => {
       const matchesSearch = name.includes(searchTerm.toLowerCase()) || 
                            candidate.linkedinProfile?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesModel = selectedModel === 'all' || candidate.modelType === selectedModel;
-      
+
       return matchesSearch && matchesModel;
     });
     setFilteredCandidates(filtered);
@@ -67,7 +67,7 @@ const CandidatesPage = () => {
       if (!uid) {
         throw new Error("User not authenticated");
       }
-      
+
       const response = await fetch(`${API_BASE_URL}/api/candidates/${candidateId}`, {
         method: 'DELETE',
         headers: {
@@ -78,10 +78,7 @@ const CandidatesPage = () => {
       if (!response.ok) {
         throw new Error('Failed to delete candidate');
       }
-
-      // Remove the candidate from the state
       setCandidates(prevCandidates => prevCandidates.filter(c => c._id !== candidateId));
-
     } catch (err) {
       setError(err.message);
     }
@@ -120,7 +117,6 @@ const CandidatesPage = () => {
       }}>
         Here you can see all saved candidates.
       </Typography>
-      
       <Box sx={{
         bgcolor: '#fff',
         borderRadius: '13px',
@@ -137,7 +133,6 @@ const CandidatesPage = () => {
         }}>
           Search candidates
         </Typography>
-
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.6 }}>
           <TextField 
             placeholder="Search by name or LinkedIn profile..."
@@ -174,7 +169,6 @@ const CandidatesPage = () => {
               )
             }}
           />
-
           <Box sx={{ 
             display: 'flex', 
             gap: 1.6, 
@@ -275,7 +269,6 @@ const CandidatesPage = () => {
           </Box>
         </Box>
       </Box>
-
       {filteredCandidates.length === 0 ? (
         <Box sx={{
           bgcolor: '#fff',

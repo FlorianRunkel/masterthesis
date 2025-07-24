@@ -20,8 +20,6 @@ const AppContent = ({ onLogout, onLogin }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wenn die Komponente geladen wird, prüfen wir, ob wir uns auf der
-    // Login-Seite befinden und leiten ggf. um.
     if (localStorage.getItem('isLoggedIn') === 'true') {
       const user = JSON.parse(localStorage.getItem('user'));
       if (window.location.pathname === '/login') {
@@ -35,7 +33,7 @@ const AppContent = ({ onLogout, onLogin }) => {
 
   const handleLogoutAndRedirect = () => {
     localStorage.clear();
-    onLogout(); // Funktion von App-Komponente aufrufen
+    onLogout();
     navigate('/login');
   };
 
@@ -84,9 +82,8 @@ const App = () => {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    // Die Navigation wird jetzt in AppContent gehandhabt
   };
-  
+
   const handleLogout = () => {
     setIsLoggedIn(false);
   };

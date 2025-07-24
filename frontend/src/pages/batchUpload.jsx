@@ -156,7 +156,6 @@ const BatchUpload = () => {
       const user = JSON.parse(localStorage.getItem('user'));
       const uid = user?.uid;
 
-      // Hole für alle Kandidaten mit LinkedIn-Link die Profildaten
       const candidatesWithProfile = await Promise.all(
         candidates.map(async (candidate) => {
           if (candidate.linkedinProfile) {
@@ -168,7 +167,6 @@ const BatchUpload = () => {
               });
               const data = await response.json();
               if (data && !data.error) {
-                // Profildaten extrahieren und auf oberster Ebene speichern
                 const [firstName, ...rest] = (data.name || '').split(' ');
                 const lastName = rest.join(' ');
                 return {
@@ -184,19 +182,16 @@ const BatchUpload = () => {
                 };
               }
             } catch (err) {
-              // Fehler beim Scrapen: Kandidat trotzdem speichern, aber mit Fehlerhinweis
               return {
                 ...candidate,
                 scrapeError: 'LinkedIn scraping failed',
               };
             }
           }
-          // Falls kein LinkedIn-Link, Kandidat unverändert zurückgeben
           return candidate;
         })
       );
 
-      // Jetzt alle Kandidaten speichern
       const candidatesWithModel = candidatesWithProfile.map(candidate => ({
         ...candidate,
         modelType: modelType
@@ -215,7 +210,7 @@ const BatchUpload = () => {
         throw new Error(data.error || 'Error saving candidates');
       }
       setSaveSuccess(true);
-      setResults(null); // Reset results after successful save
+      setResults(null);
       setFile(null);
     } catch (error) {
       setSaveError(error.message);
@@ -248,8 +243,6 @@ const BatchUpload = () => {
       }}>
         Upload a CSV file to analyze the job change probability of multiple candidates at once.
       </Typography>
-      
-      {/* Upload-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
         <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CloudUploadOutlinedIcon sx={{ color: '#001242', fontSize: 24, mr: 1 }} />
@@ -541,8 +534,6 @@ const BatchUpload = () => {
           Download Example CSV
         </Button>
       </Box>
-
-      {/* Modellauswahl-Box */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
         <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
           Select AI model

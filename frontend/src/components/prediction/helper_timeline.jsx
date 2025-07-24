@@ -6,54 +6,33 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-// Color palette for SHAP bar chart (top 5 + other)
 const SHAP_BAR_COLORS = [
-  '#8AD265', // grün
-  '#B6D94C', // gelb-grün
-  '#FFD700', // gelb
-  '#FFA500', // orange
-  '#FF8C00', // orange
-  '#FF6F00', // orange
-  '#FF4500', // orange
-  '#FF2525', // orange
-  '#FF2525', // rot
-  '#666'     // grau für "Other"
+  '#8AD265',
+  '#B6D94C',
+  '#FFD700',
+  '#FFA500',
+  '#FF8C00',
+  '#FF6F00',
+  '#FF4500',
+  '#FF2525',
+  '#FF2525',
+  '#666'
 ];
 
-/**
- * Timeline component visualizes the predicted career change process for a candidate.
- * It displays the current status, expected job search phases, and the estimated job change date.
- * Additionally, it explains the prediction using a SHAP bar chart.
- *
- * @param {Object} prediction - Prediction object containing confidence and explanations.
- * @param {Object} profile - Candidate profile (currently unused, reserved for future use).
- */
 const Timeline = ({ prediction, profile }) => {
-  // ========== Theme & Responsiveness ==========
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  // ========== User Permission Check ==========
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations === true;
-
-  // ========== State für das Ausklappen der exakten Tage ==========
   const [showDays, setShowDays] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('shap'); // 'shap' oder 'lime'
+  const [selectedMethod, setSelectedMethod] = useState('shap');
 
-  // ========== Early Exit if No Prediction ==========
   if (!prediction) return null;
-  
-  // ========== Calculate Timeline Dates ==========
-  // Extract confidence value (days until job change)
+
   const confidenceValue = Array.isArray(prediction.confidence) ? prediction.confidence[0] : prediction.confidence;
-  
-  // Use predicted_time_to_change if available, otherwise use confidence
   const daysUntilChange = prediction.predicted_time_to_change || Math.round(confidenceValue);
   const today = new Date();
   const changeDate = new Date(today.getTime() + daysUntilChange * 24 * 60 * 60 * 1000);
-
-  // Calculate intermediate phases (first job search, intensive search)
   const daysUntilFirstSearch = Math.round(daysUntilChange * 0.3);
   const daysUntilIntensiveSearch = Math.round(daysUntilChange * 0.7);
   const firstSearchDate = new Date(today.getTime() + daysUntilFirstSearch * 24 * 60 * 60 * 1000);
@@ -90,21 +69,12 @@ const Timeline = ({ prediction, profile }) => {
     }
   ];
 
-  // ===================== SHAP & LIME Explanations =====================
-  /**
-   * SHAP and LIME explanations show which features had the greatest impact on the prediction.
-   * Zeige alle Features mit impact_percentage >= 5% einzeln, alle darunter als 'Other'.
-   */
-  
-  // SHAP Explanations - unterstütze beide Datenstrukturen
   let shapExplanations = prediction.shap_explanations || prediction.explanations || [];
-  
-  // Fallback: Falls explanations ein Boolean ist, versuche andere Felder
   if (typeof shapExplanations === 'boolean' || !Array.isArray(shapExplanations)) {
     console.log('SHAP explanations is not an array, trying fallback...');
     shapExplanations = [];
   }
-  
+
   const shapMainFeatures = shapExplanations
     .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
@@ -124,15 +94,13 @@ const Timeline = ({ prediction, profile }) => {
     });
   }
 
-  // LIME Explanations - unterstütze beide Datenstrukturen
   let limeExplanations = prediction.lime_explanations || [];
-  
-  // Fallback: Falls lime_explanations nicht korrekt ist
+
   if (!Array.isArray(limeExplanations)) {
     console.log('LIME explanations is not an array, using empty array...');
     limeExplanations = [];
   }
-  
+
   const limeMainFeatures = limeExplanations
     .filter(f => f.impact_percentage >= 5)
     .sort((a, b) => b.impact_percentage - a.impact_percentage);
@@ -148,49 +116,38 @@ const Timeline = ({ prediction, profile }) => {
       feature: 'Other',
       impact_percentage: limeOtherImpact,
       description: 'All features with < 5% impact',
-      color: SHAP_BAR_COLORS[9] // immer grau für Other
+      color: SHAP_BAR_COLORS[9]
     });
   }
 
-  // Wähle aktuelle Daten basierend auf Dropdown
   const currentBarData = selectedMethod === 'shap' ? shapBarData : limeBarData;
   const currentMethod = selectedMethod === 'shap' ? 'SHAP' : 'LIME';
   const hasExplanations = (selectedMethod === 'shap' && shapBarData.length > 0) || (selectedMethod === 'lime' && limeBarData.length > 0);
-  
-  // Verfügbare Methoden für Dropdown
   const availableMethods = [];
   if (shapBarData.length > 0) availableMethods.push('shap');
   if (limeBarData.length > 0) availableMethods.push('lime');
-  
-  // Setze Standard-Methode auf erste verfügbare
   if (availableMethods.length > 0 && !availableMethods.includes(selectedMethod)) {
     setSelectedMethod(availableMethods[0]);
   }
-  
-  // ========== Days Until Job Change (Range & Toggle) ==========
+
   function formatMonthsRange(start, end) {
     if (end < 12) {
-      // Alles unter 12 Monaten: "X-Y Monate"
       return `${start}-${end} months`;
     } else {
-      // Ab 12 Monaten: "N Jahr(e) und X-Y Monate"
       const years = Math.floor(start / 12);
       const remStart = start % 12;
       const remEnd = end % 12;
       const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
-      // Wenn z.B. 12-14 → 1 Jahr und 0-2 Monate
       return `${yearLabel} ${remStart}-${remEnd} months`;
     }
   }
-  
-  // Berechne die Range in 3-Monats-Schritten
+
   const daysPerMonth = 30.44;
   const months = daysUntilChange / daysPerMonth;
   const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
   const rangeEnd = rangeStart + 2;
   const rangeLabel = formatMonthsRange(rangeStart, rangeEnd);
 
-  // ===================== Render =====================
   return (
     <Box
       sx={{
@@ -205,7 +162,6 @@ const Timeline = ({ prediction, profile }) => {
         overflow: 'visible'
       }}
     >
-      {/* ===== Timeline Explanation Header ===== */}
       <Box sx={{ width: '100%', mb: 0 }}>
         <Typography
           variant="h6"
@@ -219,8 +175,6 @@ const Timeline = ({ prediction, profile }) => {
           This timeline visualizes the predicted career change process for the candidate. It shows the current status, the expected start of job search activities, the phase of intensive job seeking, and the estimated date of the next job change.
         </Typography>
       </Box>
-
-      {/* ===== Days Until Job Change (Highlight) ===== */}
       <Box
         sx={{
           width: '100%',
@@ -246,10 +200,7 @@ const Timeline = ({ prediction, profile }) => {
           </Typography>
         </Collapse>
       </Box>
-
-      {/* ===== Timeline Visualization ===== */}
       <Box sx={{ width: '100%', maxWidth: 1200, mb: 2, position: 'relative', minHeight: { xs: 500, md: 180 } }}>
-        {/* Horizontal line (only visible on large screens) */}
         <Box
           sx={{
             position: 'absolute',
@@ -264,7 +215,6 @@ const Timeline = ({ prediction, profile }) => {
             display: { xs: 'none', sm: 'none', md: 'none', lg: 'block' }
           }}
         />
-        {/* Timeline phases (responsive layout) */}
         <Box
           sx={{
             display: { xs: 'flex', sm: 'flex', md: 'flex', lg: 'grid' },
@@ -292,7 +242,6 @@ const Timeline = ({ prediction, profile }) => {
                 flexWrap: { xs: 'nowrap', sm: 'nowrap', md: 'nowrap', lg: 'unset' }
               }}
             >
-              {/* Icon and vertical line (mobile), icon on top (desktop) */}
               <Box
                 sx={{
                   bgcolor: '#fff',
@@ -308,11 +257,10 @@ const Timeline = ({ prediction, profile }) => {
                   minWidth: 70,
                   minHeight: 70,
                   position: 'relative',
-                  zIndex: 2 // icon above the line
+                  zIndex: 2
                 }}
               >
                 {phase.icon}
-                {/* Vertical line below icon (only on mobile) */}
                 {idx < phases.length - 1 && (
                   <Box
                     sx={{
@@ -323,10 +271,10 @@ const Timeline = ({ prediction, profile }) => {
                       height: 40,
                       background:
                         idx === 0
-                          ? 'linear-gradient(180deg, #3B82F6 0%, #F59E42 100%)' // blue to orange
+                          ? 'linear-gradient(180deg, #3B82F6 0%, #F59E42 100%)'
                           : idx === 1
-                          ? 'linear-gradient(180deg, #F59E42 0%, #F59E42 100%)' // orange to orange
-                          : 'linear-gradient(180deg, #F59E42 0%, #F87171 100%)', // orange to red
+                          ? 'linear-gradient(180deg, #F59E42 0%, #F59E42 100%)'
+                          : 'linear-gradient(180deg, #F59E42 0%, #F87171 100%)',
                       transform: 'translateX(-50%)',
                       zIndex: 1,
                       display: { xs: 'block', sm: 'block', md: 'block', lg: 'none' }
@@ -334,7 +282,6 @@ const Timeline = ({ prediction, profile }) => {
                   />
                 )}
               </Box>
-              {/* Phase text block */}
               <Box
                 sx={{
                   display: 'flex',
@@ -356,8 +303,6 @@ const Timeline = ({ prediction, profile }) => {
           ))}
         </Box>
       </Box>
-
-      {/* ===== SHAP & LIME Explanations Bar Chart ===== */}
       {canViewExplanations && (
         <Box sx={{ width: '100%', mb: isMobile ? 1 : 2 }}>
           <Typography
@@ -368,8 +313,6 @@ const Timeline = ({ prediction, profile }) => {
           >
             Explanation of the prediction
           </Typography>
-          
-          {/* Buttons nur anzeigen, wenn mehr als eine Methode verfügbar ist */}
           {hasExplanations && availableMethods.length > 1 && (
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start', gap: isMobile ? 1 : 2 }}>
               <Button
@@ -422,8 +365,6 @@ const Timeline = ({ prediction, profile }) => {
               </Button>
             </Box>
           )}
-
-          {/* Erklärung IMMER anzeigen */}
           {hasExplanations && (
             <Typography
               sx={{ color: '#666', fontSize: isMobile ? '0.8rem' : '1rem', lineHeight: 1.7, mb: isMobile ? 1.2 : 2, textAlign: 'justify'}}
@@ -434,8 +375,6 @@ const Timeline = ({ prediction, profile }) => {
               }
             </Typography>
           )}
-          
-          {/* Bar chart */}
           <Box
             sx={{
               display: 'flex',
@@ -473,8 +412,6 @@ const Timeline = ({ prediction, profile }) => {
               </Box>
             ))}
           </Box>
-          
-          {/* Legend */}
           <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, mt: isMobile ? 1 : 2, flexWrap: 'wrap' }}>
             {currentBarData.map(item => (
               <Box key={item.feature} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
