@@ -1,8 +1,10 @@
 import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import logging
 
-# Mapping für Monatsnamen (deutsch/englisch, kurz/lang)
+logger = logging.getLogger(__name__)
+
 MONTHS = {
     'januar': 1, 'jan': 1, 'january': 1,
     'februar': 2, 'feb': 2, 'february': 2,
@@ -18,90 +20,109 @@ MONTHS = {
     'dezember': 12, 'dez': 12, 'december': 12, 'dec': 12
 }
 
+'''
+Replace month names with numbers
+'''
 def normalize_month_names(date_str):
-    # Ersetze Monatsnamen durch Zahl
-    for name, num in MONTHS.items():
-        pattern = re.compile(rf'\b{name}\b', re.IGNORECASE)
-        date_str = pattern.sub(str(num), date_str)
-    return date_str
+    try:
+        for name, num in MONTHS.items():
+            pattern = re.compile(rf'\b{name}\b', re.IGNORECASE)
+            date_str = pattern.sub(str(num), date_str)
+            return date_str
+    except Exception:
+        logger.error(f"Error normalizing month names: {date_str}")
+        return date_str
 
-def smart_parse_date(date_str):
-    if not date_str or str(date_str).strip().lower() in ["present", "heute", "now", "aktuell"]:
+'''
+Parse a date string in various formats
+'''
+def parse_flexible_date(date_str):
+    try:
+        if not date_str or str(date_str).strip().lower() in ["present", "heute", "now", "aktuell"]:
+            return None
+        date_str = date_str.strip().lower()
+        date_str = normalize_month_names(date_str)
+        date_str = re.sub(r"[\.\-\s]", "/", date_str)
+        now = datetime.now()
+        future_limit = now.replace(year=now.year + 2)
+        patterns = [
+            "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d",
+            "%d/%m/%y", "%m/%d/%y", "%y/%m/%d",
+            "%Y/%m", "%m/%Y", "%Y",
+            "%d/%m", "%m/%d",
+        ]
+        for fmt in patterns:
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                if dt.year < 1950 or dt > future_limit:
+                    continue
+                return dt
+            except Exception:
+                continue
+        year_match = re.match(r"^(\d{4})$", date_str)
+        if year_match:
+            return datetime(int(year_match.group(1)), 1, 1)
+        return None
+    except Exception:
+        logger.error(f"Error parsing date: {date_str}")
         return None
 
-    date_str = date_str.strip().lower()
-    date_str = normalize_month_names(date_str)
-    # Vereinheitliche Trennzeichen
-    date_str = re.sub(r"[\.\-\s]", "/", date_str)
+'''
+Compare two companies
+'''
+def companies_are_equal(pos1, pos2):
+    try:
+        c1 = (pos1.get('company') or '').strip().lower()
+        c2 = (pos2.get('company') or '').strip().lower()
+        return bool(c1 and c2 and c1 == c2)
+    except Exception:
+        logger.error(f"Error comparing companies: {pos1} and {pos2}")
+        return False
 
-    now = datetime.now()
-    future_limit = now.replace(year=now.year + 2)  # max. 2 Jahre in die Zukunft
-
-    # Alle Formate, die wir probieren wollen
-    patterns = [
-        "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d",
-        "%d/%m/%y", "%m/%d/%y", "%y/%m/%d",
-        "%Y/%m", "%m/%Y", "%Y",
-        "%d/%m", "%m/%d",
-    ]
-
-    for fmt in patterns:
-        try:
-            dt = datetime.strptime(date_str, fmt)
-            if dt.year < 1950 or dt > future_limit:
-                continue
-            return dt
-        except Exception:
-            continue
-
-    # Fallback: Versuche nur Jahr zu extrahieren
-    year_match = re.match(r"^(\d{4})$", date_str)
-    if year_match:
-        return datetime(int(year_match.group(1)), 1, 1)
-
-    return None
+'''
+Calculate the months between two dates
+'''
+def months_between_dates(start_dt, end_dt):
+    try:
+        diff = relativedelta(end_dt, start_dt)
+        return diff.years * 12 + diff.months + diff.days / 30.44
+    except Exception:
+        logger.error(f"Error calculating months between dates: {start_dt} and {end_dt}")
+        return 0
 
 class CareerRules:
+
+    '''
+    Check if the last position is too new
+    '''
     @staticmethod
     def is_last_position_too_new(career_history, min_months=6):
-        """
-        Prüft, ob die letzte (aktuelle) Position jünger als min_months ist.
-        Gibt (True/False, Monate seit Start) zurück.
-        Ausnahme: Wenn die aktuelle Firma gleich der vorherigen Firma ist, wird immer False zurückgegeben.
-        """
-        if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
-            return False, None
-        last_pos = career_history[0]
-        print(f"Last position: {last_pos}")
-        
-        # Unterstütze verschiedene Feldnamen (start_date, startDate, etc.)
-        start_date = last_pos.get('start_date') or last_pos.get('startDate')
-        end_date = last_pos.get('end_date') or last_pos.get('endDate', 'Present')
-        
-        # Ausnahme: Wenn aktuelle und vorherige Firma gleich sind, immer False
-        if len(career_history) > 1:
-            prev_pos = career_history[1]
-            curr_company = (last_pos.get('company') or '').strip().lower()
-            prev_company = (prev_pos.get('company') or '').strip().lower()
-            if curr_company and prev_company and curr_company == prev_company:
+        try:
+            if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
                 return False, None
-        
-        if not start_date:
-            return False, None
-        # Robustere Datumserkennung
-        start_dt = smart_parse_date(start_date)
-        if not start_dt:
-            return False, None
-        # Sonderfall: Startdatum in der Zukunft
-        now = datetime.now()
-        if start_dt > now:
-            return False, None
-        if end_date == 'Present':
-            end_dt = now
-        else:
-            end_dt = smart_parse_date(end_date)
-            if not end_dt:
+            last_pos = career_history[0]
+
+            start_date = last_pos.get('start_date') or last_pos.get('startDate')
+            end_date = last_pos.get('end_date') or last_pos.get('endDate', 'Present')
+
+            if len(career_history) > 1 and companies_are_equal(last_pos, career_history[1]):
+                return False, None
+            if not start_date:
+                return False, None
+            start_dt = parse_flexible_date(start_date)
+            if not start_dt:
+                return False, None
+            now = datetime.now()
+            if start_dt > now:
+                return False, None
+            if end_date == 'Present':
                 end_dt = now
-        diff = relativedelta(end_dt, start_dt)
-        months = diff.years * 12 + diff.months + diff.days / 30.44
-        return months < min_months, months 
+            else:
+                end_dt = parse_flexible_date(end_date)
+                if not end_dt:
+                    end_dt = now
+            months = months_between_dates(start_dt, end_dt)
+            return months < min_months, months 
+        except Exception:
+            logger.error(f"Error checking if last position is too new: {career_history}")
+            return False, None
