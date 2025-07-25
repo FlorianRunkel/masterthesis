@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, InputAdornment, IconButton } from '@mui/material';
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, TextField, Typography, Paper, InputAdornment, IconButton } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import axios from 'axios';
@@ -10,12 +10,16 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [openDemoDialog, setOpenDemoDialog] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    setOpenDemoDialog(true);
+  }, []);
+
+  const handleLoginWithCredentials = async (email, password) => {
     setError('');
     if (!email || !password) {
-      setError('Bitte E-Mail und Passwort eingeben.');
+      setError('Please enter email and password.');
       return;
     }
     try {
@@ -34,6 +38,17 @@ const Login = ({ onLogin }) => {
         setError('Login failed.');
       }
     }
+  };
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    await handleLoginWithCredentials(email, password);
+  };
+
+  const handleDemoLogin = async () => {
+    const demoEmail = "research@recruiting.ai";
+    const demoPassword = "research";
+    await handleLoginWithCredentials(demoEmail, demoPassword);
   };
 
   return (
@@ -64,7 +79,7 @@ const Login = ({ onLogin }) => {
         <Typography color="#444" textAlign="center" fontSize={15}>
           Sign into your account to get started!
         </Typography>
-        <form onSubmit={handleLogin} style={{ width: '100%' }}>
+        <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
           <TextField
             fullWidth
             variant="outlined"
@@ -142,8 +157,24 @@ const Login = ({ onLogin }) => {
           >
             Login
           </Button>
+
         </form>
-        <Typography textAlign="center" mt={1.5} fontSize={15}>
+        <Button
+            onClick={handleDemoLogin}
+            variant="text"
+            sx={{
+              mt: -1,
+              color: '#001242',
+              fontWeight: 700,
+              fontSize: '1.08rem',
+              textTransform: 'none',
+              letterSpacing: 0.5,
+              '&:hover': {bgcolor: 'transparent', cursor: 'pointer'},
+            }}
+          >
+            Research Login
+          </Button>
+        <Typography textAlign="center" fontSize={15} mt={-1.5}>
           Don't have an account yet?<br />
           Please <a href="mailto:florian.runkel@stud.uni-regensburg.de" style={{ color: '#0a1929', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>reach out</a> to us!
         </Typography>

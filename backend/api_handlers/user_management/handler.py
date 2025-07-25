@@ -145,9 +145,9 @@ def api_update_user(user_id):
         result = update_user_helper(user_id, data)
 
         if result.get('statusCode') == 200:
-            return jsonify({'message': 'User erfolgreich aktualisiert'}), 200
+            return jsonify({'message': 'User successfully updated'}), 200
         else:
-            return jsonify({'error': result.get('error', 'Update fehlgeschlagen')}), result.get('statusCode', 400)
+            return jsonify({'error': result.get('error', 'Update failed')}), result.get('statusCode', 400)
     except Exception as e:
         logger.error(f"Error in api_update_user: {e}")
         return jsonify({'error': str(e)}), 500
