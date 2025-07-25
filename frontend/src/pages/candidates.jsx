@@ -121,7 +121,7 @@ const CandidatesPage = () => {
         bgcolor: '#fff',
         borderRadius: '13px',
         p: '24px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
         mb: 3.2,
         width: '100%'
       }}>
@@ -191,7 +191,7 @@ const CandidatesPage = () => {
                   borderColor: '#EB7836',
                   color: selectedModel === 'all' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
-                  boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }
               }}
             >
@@ -214,7 +214,7 @@ const CandidatesPage = () => {
                   borderColor: '#EB7836',
                   color: selectedModel === 'gru' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
-                  boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }
               }}
             >
@@ -237,7 +237,7 @@ const CandidatesPage = () => {
                   borderColor: '#EB7836',
                   color: selectedModel === 'tft' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
-                  boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }
               }}
             >
@@ -260,7 +260,7 @@ const CandidatesPage = () => {
                   borderColor: '#EB7836',
                   color: selectedModel === 'xgboost' ? '#fff' : '#EB7836',
                   transform: 'translateY(-1.6px)',
-                  boxShadow: '0 3.2px 6.4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }
               }}
             >
@@ -272,9 +272,9 @@ const CandidatesPage = () => {
       {filteredCandidates.length === 0 ? (
         <Box sx={{
           bgcolor: '#fff',
-          borderRadius: '13px',
+          borderRadius: '16px',
           p: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
           textAlign: 'center',
           width: '100%'
         }}>

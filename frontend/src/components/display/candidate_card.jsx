@@ -30,7 +30,7 @@ const CandidateCard = ({ candidate, onDelete }) => {
         bgcolor: '#fff', 
         borderRadius: '16px', 
         p: isMobile ? '20px' : '30px', 
-        boxShadow: { xs: 1, md: 2 }, 
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)', 
         height: '95%', 
         display: 'flex', 
         flexDirection: 'column', 

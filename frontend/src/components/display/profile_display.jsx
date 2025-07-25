@@ -8,7 +8,7 @@ const ProfileDisplay = ({ profile, onSaveCandidate, saving, saveSuccess }) => {
   if (!profile) return null;
 
   return (
-    <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: { xs: 2, sm: 3, md: 4 }, boxShadow: { xs: 4, md: 8 }, mb: 4, width: '100%', mx: 'auto' }}>
+    <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: { xs: 2, sm: 3, md: 4 }, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', mb: 4, width: '100%', mx: 'auto' }}>
       <Box className="profile-header" sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', gap: { xs: 2, sm: '20px' }, mb: { xs: 2, sm: '30px' } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 2, sm: '20px' } }}>
           {profile.imageUrl && (

@@ -161,7 +161,7 @@ const SettingsPage = () => {
       }}>
         Here you can create a new user account for the application.
       </Typography>
-      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>Create User</Typography>
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', gap: isMobile ? 1.2 : 2.4, flexDirection: isMobile ? 'column' : 'row', mb: 2 }}>
@@ -228,7 +228,7 @@ const SettingsPage = () => {
         {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       </Box>
-      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: 1, p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', p: isMobile ? 2 : 4, maxWidth: isMobile ? '100%' : 1200, mb: isMobile ? 2 : 4, border: '1px solid #f0f0f0' }}>
         <Typography variant="h2" sx={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#001242', mb: isMobile ? 2 : 3 }}>
           Edit Users
         </Typography>
@@ -391,7 +391,7 @@ const SettingsPage = () => {
           sx={{
             bgcolor: '#fff',
             borderRadius: 2,
-            boxShadow: 1,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             p: isMobile ? 2 : 4,
             maxWidth: isMobile ? '100%' : 1200,
             maxHeight: 400,

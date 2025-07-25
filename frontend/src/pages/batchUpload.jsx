@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, Alert } from '@mui/material';
+import { Box, Typography, Button, Alert, Tooltip, IconButton } from '@mui/material';
 import ResultsTableClassification from '../components/display/table_classification';
 import LoadingSpinner from '../components/shared/loading_spinner';
 import ResultsTableTimeSeries from '../components/display/table_timeseries';
@@ -10,6 +10,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { API_BASE_URL } from '../api';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 const modelOptions = [
   {
@@ -42,6 +44,7 @@ const BatchUpload = () => {
   const [showModelChangeHint, setShowModelChangeHint] = useState(false);
   const [resultsModelType, setResultsModelType] = useState('');
   const [dragActive, setDragActive] = useState(false);
+  const [showModelInfo, setShowModelInfo] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const resultsRef = useRef(null);
@@ -535,9 +538,27 @@ const BatchUpload = () => {
         </Button>
       </Box>
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px', p: '32px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
-        <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242', mb: 0.8 }}>
-          Select AI model
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242' }}>
+            Select AI model
+          </Typography>
+          <Tooltip 
+            title="Click to learn more about each model"
+            placement="top"
+            arrow
+          >
+            <IconButton 
+              size="small"
+              onClick={() => setShowModelInfo(true)}
+              sx={{ 
+                color: '#001242',
+                '&:hover': { bgcolor: '#f5f5f5' }
+              }}
+            >
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Typography sx={{ color: '#888', mb: 3.2, fontSize: '0.86rem' }}>
           Select the appropriate model for a precise prediction.
         </Typography>
@@ -629,6 +650,101 @@ const BatchUpload = () => {
           )}
         </Box>
       )}
+           <Dialog
+        open={showModelInfo}
+        onClose={() => setShowModelInfo(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxWidth: { xs: '95vw', sm: 600, md: 800 },
+            maxHeight: { xs: '95vh', sm: '95vh', md: '95vh' },
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.5rem' },
+            fontWeight: 700,
+            color: '#001242',
+            letterSpacing: 0.5,
+            pb: { xs: 1, sm: 1.5, md: 2 },
+          }}
+        >
+          AI Model Explanation
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            p: { xs: 1.2, sm: 2, md: 3 },
+            maxHeight: { xs: '60vh', sm: '65vh', md: '70vh' },
+            overflowY: 'auto',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.2, sm: 2, md: 3 } }}>
+            {[
+              {
+                "name": "Gated Recurrent Unit (GRU)",
+                "description": "A model that looks at someone's career step by step, in the order it happened. It helps recognize patterns over time and can predict when someone might be open to a new job based on their career history.",
+                "useCase": "Ideal for: Understanding career progress and making time-based predictions"
+              },
+              {
+                "name": "Extreme Gradient Boosting (XGBoost)",
+                "description": "A model that combines many small decision trees to make strong predictions. It’s great at answering yes/no questions, like whether someone is likely to change jobs, and showing which factors matter most.",
+                "useCase": "Ideal for: Predicting job changes and understanding key influencing factors"
+              },
+              {
+                "name": "Temporal Fusion Transformer (TFT)",
+                "description": "A very advanced model that can handle complex career data from different sources over time. It’s good at recognizing patterns even when there are many variables involved.",
+                "useCase": "Ideal for: Analyzing complex career paths with multiple data points over time"
+              }
+            ].map((model, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: 2,
+                  p: { xs: 1.2, sm: 2, md: 2.5 },
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, color: '#001242', mb: 0.5, fontSize: { xs: '1rem', sm: '1.08rem', md: '1.15rem' } }}>
+                  {model.name}
+                </Typography>
+                <Typography sx={{ color: '#666', mb: 0.5, fontSize: { xs: '0.88rem', sm: '0.95rem', md: '1rem' } }}>
+                  {model.description}
+                </Typography>
+                <Typography sx={{ color: '#EB7836', fontSize: { xs: '0.85rem', sm: '0.92rem', md: '0.98rem' }, fontWeight: 600 }}>
+                  {model.useCase}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: { xs: 1, sm: 1.5, md: 2 } }}>
+          <Button
+            onClick={() => setShowModelInfo(false)}
+            variant="contained"
+            sx={{
+              bgcolor: '#EB7836',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: { xs: '0.92rem', sm: '1rem', md: '1.08rem' },
+              letterSpacing: 0.5,
+              textTransform: 'none',
+              borderRadius: 2,
+              boxShadow: '0 2px 8px #eb783664',
+              px: { xs: 2, sm: 2.8, md: 3.4 },
+              py: { xs: 1, sm: 1.2, md: 1.4 },
+              '&:hover': { bgcolor: '#d97706' }
+            }}
+          >
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -102,7 +102,7 @@ const FeedbackPage = () => {
         Please share your experience with the dashboard and rate the predictions and user experience. Your feedback helps me to improve the system!
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1.5, color: '#001242' }}>General feedback</Typography>
           <TextField
             placeholder="Your feedback, suggestions, experience..."
@@ -114,7 +114,7 @@ const FeedbackPage = () => {
             sx={{ mb: 1.5, bgcolor: '#fff', borderRadius: 2, fontSize: '0.8rem' }}
           />
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Candidate input & prediction evaluation</Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
             Please use this section to document individual prediction cases. Select the model you used, enter the prediction it produced, and compare it with your own assessment or ground truth. Feel free to add any comments regarding the accuracy, surprising results, or potential reasons for discrepancies.
@@ -253,7 +253,7 @@ const FeedbackPage = () => {
             + Add row
           </Button>
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Evaluation Criteria</Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
             Please evaluate each criterion on a scale from 1 to 5, where 1 means very poor or not helpful, and 5 means excellent and extremely useful.
@@ -293,7 +293,7 @@ const FeedbackPage = () => {
             </Table>
           </TableContainer>
         </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: 2 }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)'   }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 2, color: '#001242' }}>
             Explainability Feedback
           </Typography>
@@ -328,7 +328,7 @@ const FeedbackPage = () => {
             </Box>
           ))}
         </Box>
-        <Button type="submit" disabled={loading} variant="contained" sx={{ bgcolor: '#EB7836', color: '#fff', fontWeight: 700, px: 4, py: 1.2, borderRadius: 2, fontSize: '1.08rem', mb: 2, boxShadow: 2, textTransform: 'none', letterSpacing: 0.2 }}>Submit feedback</Button>
+        <Button type="submit" disabled={loading} variant="contained" sx={{ bgcolor: '#EB7836', color: '#fff', fontWeight: 700, px: 4, py: 1.2, borderRadius: 2, fontSize: '1.08rem', mb: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', textTransform: 'none', letterSpacing: 0.2 }}>Submit feedback</Button>
         {success && <Typography sx={{ color: 'green', mt: 2, fontWeight: 600 }}>Feedback submitted successfully!</Typography>}
         {error && <Typography sx={{ color: 'red', mt: 2 }}>{error}</Typography>}
       </form>

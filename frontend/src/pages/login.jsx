@@ -66,7 +66,7 @@ const Login = ({ onLogin }) => {
         minWidth: 340,
         maxWidth: 400,
         width: '100%',
-        boxShadow: '0 2px 16px #8a888860',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

@@ -198,7 +198,7 @@ const Index = () => {
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-8px)',
-                    boxShadow: `0 24px 48px rgba(0,0,0,0.1)`
+                    boxShadow: `0 2px 8px rgba(0,0,0,0.05)`
                   },
                   display: 'flex',
                   flexDirection: 'column'
@@ -305,7 +305,7 @@ const Index = () => {
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'translateY(-8px)',
-                      boxShadow: '0 24px 48px rgba(0,0,0,0.1)'
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                     }
                   }}
                 >
