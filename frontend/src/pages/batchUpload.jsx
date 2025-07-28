@@ -302,7 +302,7 @@ const BatchUpload = () => {
          </Box>
       </Box>
 
-      <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 3.2 }}>
+      <Box sx={{ bgcolor: '#fff', borderRadius: '12.8px', p: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', mb: 3.2 }}>
         <Typography sx={{ fontWeight: 700, color: '#001242', fontSize: '1.1rem', mb: 1.2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <WarningAmberOutlinedIcon sx={{ color: '#FFB300', fontSize: 22, mr: 1 }} />
           CSV Format & Requirements

@@ -104,13 +104,21 @@ const Index = () => {
     <Box>
       {/* Hero Section */}
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h1" sx={{
+      <Typography variant="h1" sx={{
           fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
           fontWeight: 800,
           color: '#002442',
-          letterSpacing: '-1px'
+          letterSpacing: '-1px',
         }}>
-          Job Change Prediction AI
+          Master Thesis
+        </Typography>
+        <Typography variant="h2" sx={{
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+          fontWeight: 400,
+          color: '#002442',
+          letterSpacing: '-1px',
+        }}>
+          "A Machine Learning Approach to Anticipate the Timing of Carrer Progressions"
         </Typography>
         <Typography sx={{
           fontSize: { xs: '1rem', md: '1.25rem' },
@@ -323,4 +331,4 @@ const Index = () => {
   );
 };
 
-export default Index; 
+export default Index;

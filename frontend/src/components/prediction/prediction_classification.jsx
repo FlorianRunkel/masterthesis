@@ -94,7 +94,7 @@ const PredictionResult = ({ prediction }) => {
   }
   return (
     <Box>
-      <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: { xs: 4, md: 8 }, bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
+      <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
         <Box sx={{ mb: isMobile ? 2 : 3 }}>
           <Typography variant="h1" color="primary" gutterBottom sx={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, color: '#001B41' }}>Career Change Prediction</Typography>
           <Typography sx={{ color: '#444', fontSize: '0.95rem', mb: isMobile ? 2 : 4 }}>

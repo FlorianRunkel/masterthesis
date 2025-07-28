@@ -150,11 +150,11 @@ const CandidatesPage = () => {
                   transition: 'all 0.3s ease'
                 },
                 '&:hover fieldset': {
-                  borderColor: '#EB7836',
+                  borderColor: '#001B41',
                   borderWidth: 1.6
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#EB7836',
+                  borderColor: '#001B41',
                   borderWidth: 1.6
                 }
               }

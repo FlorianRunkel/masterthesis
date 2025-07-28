@@ -33,8 +33,13 @@ const Timeline = ({ prediction, profile }) => {
   const daysUntilChange = prediction.predicted_time_to_change || Math.round(confidenceValue);
   const today = new Date();
   const changeDate = new Date(today.getTime() + daysUntilChange * 24 * 60 * 60 * 1000);
-  const daysUntilFirstSearch = Math.round(daysUntilChange * 0.3);
-  const daysUntilIntensiveSearch = Math.round(daysUntilChange * 0.7);
+
+  const maxFirstSearchLead = 180; // 6 Months
+  const maxIntensiveLead = 90;    // 3 Months
+
+  const daysUntilFirstSearch = Math.max(daysUntilChange - maxFirstSearchLead, 0);
+  const daysUntilIntensiveSearch = Math.max(daysUntilChange - maxIntensiveLead, 0);
+
   const firstSearchDate = new Date(today.getTime() + daysUntilFirstSearch * 24 * 60 * 60 * 1000);
   const intensiveSearchDate = new Date(today.getTime() + daysUntilIntensiveSearch * 24 * 60 * 60 * 1000);
 

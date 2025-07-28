@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ class CareerRules:
     Check if the last position is too new
     '''
     @staticmethod
-    def is_last_position_too_new(career_history, min_months=6):
+    def is_last_position_too_new(career_history, min_months=6, model="gru"):
         try:
             if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
                 return False, None
@@ -122,7 +123,140 @@ class CareerRules:
                 if not end_dt:
                     end_dt = now
             months = months_between_dates(start_dt, end_dt)
-            return months < min_months, months 
+            if months < min_months:
+                info = {
+                    "confidence": [0] if model == "xgboost" else [random.randint(370, 500)],  # oder [0] oder [400] je nach Modell
+                    "recommendations": [
+                        "The current position is too new for a change.",
+                        f"Months in current position: {months:.1f}"
+                    ],
+                    "status": "Very unlikely",
+                    "shap_explanations": [{
+                        "feature": "duration current position",
+                        "impact_percentage": 100.0,
+                        "method": "SHAP",
+                        "description": "The current position is too new for a change."
+                    }],
+                    "shap_summary": "",
+                    "lime_explanations": [{
+                        "feature": "duration current position",
+                        "impact_percentage": 100.0,
+                        "method": "LIME",
+                        "description": "The current position is too new for a change."
+                    }],
+                    "lime_summary": "",
+                    "llm_explanation": f"Candidate is too new in the current position. Months in current position: {months:.1f}"
+                }
+                return True, info
+            return False, None
         except Exception:
             logger.error(f"Error checking if last position is too new: {career_history}")
             return False, None
+
+    '''
+    Check if the last position is a C-Level or Founder position
+    '''
+    @staticmethod
+    def is_c_level_or_founder(career_history, model="gru"):
+        try:
+            if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
+                return False, None
+            last_pos = career_history[0]
+            title = (last_pos.get('position') or last_pos.get('title') or '').lower()
+            keywords = [
+                "founder", "co-founder", "cofounder", "owner", "partner",
+                "ceo", "cfo", "coo", "cto", "cmo", "cio", "cso", "cdo", "cro",
+                "chief executive officer", "chief financial officer", "chief operations officer",
+                "chief technology officer", "chief marketing officer", "chief information officer",
+                "chief strategy officer", "chief revenue officer", "chief digital officer",
+                "president", "vice president", "vp", "chairman", "board member", "managing director",
+                "geschäftsführer", "geschaeftsführer", "inhaber", "mitgründer", "mitgruender", "mit-inhaber",
+                "vorstand", "direktor", "geschäftsleitung", "unternehmensleitung"
+            ]
+            for kw in keywords:
+                if kw in title:
+                    info = {
+                        "confidence": [0] if model == "xgboost" else [random.randint(1800, 2190)],
+                        "recommendations": [
+                            "C-Level/Founder-Position: Ein Wechsel ist sehr unwahrscheinlich."
+                        ],
+                        "status": "Very unlikely",
+                        "shap_explanations": [{
+                            "feature": "current position title",
+                            "impact_percentage": 100.0,
+                            "method": "SHAP",
+                        }],
+                        "shap_summary": "",
+                        "lime_explanations": [{
+                            "feature": "current position title",
+                            "impact_percentage": 100.0,
+                            "method": "LIME",
+                        }],
+                        "lime_summary": "",
+                        "llm_explanation": ""
+                    }
+                    return True, info
+            return False, None
+        except Exception:
+            logger.error(f"Error checking C-Level/Founder rule: {career_history}")
+            return False, None
+
+    '''
+    Check if the last position is a sabbatical or gap year
+    '''
+    @staticmethod
+    def is_on_sabbatical_or_gap_year(career_history, model="gru"):
+        try:
+            if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
+                return False, None
+            last_pos = career_history[0]
+            title = (last_pos.get('position') or last_pos.get('title') or '').lower()
+            keywords = [
+                'sabbatical', 'gap year', 'auszeit', 'pause', 'career break',
+                'sabbatjahr', 'sabbatical leave', 'berufliche pause', 'sabbaticaljahr'
+            ]
+            print("DEBUG SABBATICAL TITLE:", title)
+            for kw in keywords:
+                if kw in title:
+                    info = {
+                        "confidence": [0] if model == "xgboost" else [random.randint(200, 400)],
+                        "recommendations": [
+                            "Candidate is currently in a sabbatical or gap year."
+                        ],
+                        "status": "Special case",
+                        "shap_explanations": [{
+                            "feature": "current position title",
+                            "impact_percentage": 100.0,
+                            "method": "SHAP",
+                        }],
+                        "shap_summary": "",
+                        "lime_explanations": [{
+                            "feature": "current position title",
+                            "impact_percentage": 100.0,
+                            "method": "LIME",
+                        }],
+                        "lime_summary": "",
+                        "llm_explanation": ""
+                    }
+                    return True, info
+            return False, None
+        except Exception:
+            logger.error(f"Error checking sabbatical/gap year rule: {career_history}")
+            return False, None
+
+    '''
+    Check all rules
+    '''
+    @staticmethod
+    def check_all_rules(career_history, **kwargs):
+        rules = [
+            lambda ch, **kw: CareerRules.is_on_sabbatical_or_gap_year(ch, model=kw.get('model', 'gru')),
+            lambda ch, **kw: CareerRules.is_c_level_or_founder(ch, model=kw.get('model', 'gru')),
+            lambda ch, **kw: CareerRules.is_last_position_too_new(ch, min_months=kw.get('min_months', 6), model=kw.get('model', 'gru')),
+            # add rules
+        ]
+        for rule in rules:
+            result, info = rule(career_history, **kwargs)
+            if result:
+                return True, info
+        return False, None

@@ -250,36 +250,9 @@ def predict(linkedin_data, model_path=None):
 
         career_history = linkedin_data.get('workExperience', [])
         print(f"Career history: {career_history}")
-        too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=8)
-        print(f"Too new: {too_new}, Months: {months}")
-        if too_new:
-            feature_names = get_feature_names()
-
-            shap_explanations = [{
-                "feature": "duration current position",
-                "impact_percentage": 100.0,
-                "method": "SHAP",
-                "description": "The current position is too new for a change."
-            }]
-
-            lime_explanations = [{
-                "feature": "duration current position", 
-                "impact_percentage": 100.0,
-                "method": "LIME",
-                "description": "The current position is too new for a change."
-            }]
-
-            return {
-                "confidence": [400],
-                "recommendations": [
-                    "The current position is too new for a change.",
-                    f"Months in current position: {months:.1f}"
-                ],
-                "status": "Very unlikely",
-                "shap_explanations": shap_explanations,
-                "lime_explanations": lime_explanations,
-                "llm_explanation": "Candidate is too new in the current position."
-            }
+        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=8, model="tft")
+        if rule_applies:
+            return info
 
         print(f"Sequences shape: {sequences.shape}")
         print(f"Labels shape: {labels.shape}")
