@@ -135,23 +135,61 @@ const Timeline = ({ prediction, profile }) => {
     setSelectedMethod(availableMethods[0]);
   }
 
-  function formatMonthsRange(start, end) {
-    if (end < 12) {
-      return `${start}-${end} months`;
+  function formatTimeRange(days) {
+    const months = days / 30.44;
+    const years = Math.floor(months / 12);
+    const remainingMonths = Math.floor(months % 12);
+    
+    if (years === 0) {
+      return `${remainingMonths} months`;
+    } else if (remainingMonths === 0) {
+      return `${years} year${years === 1 ? '' : 's'}`;
     } else {
-      const years = Math.floor(start / 12);
-      const remStart = start % 12;
-      const remEnd = end % 12;
-      const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
-      return `${yearLabel} ${remStart}-${remEnd} months`;
+      return `${years} year${years === 1 ? '' : 's'} ${remainingMonths} months`;
     }
   }
 
-  const daysPerMonth = 30.44;
-  const months = daysUntilChange / daysPerMonth;
-  const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
-  const rangeEnd = rangeStart + 2;
-  const rangeLabel = formatMonthsRange(rangeStart, rangeEnd);
+  function formatRangeLabel(days) {
+    const months = days / 30.44;
+    const years = Math.floor(months / 12);
+    const remainingMonths = Math.floor(months % 12);
+    
+    // Flexible Range: 3-4 Monate je nach Position
+    let startMonth, endMonth;
+    
+    if (remainingMonths <= 1) {
+      // Am Anfang: 0-3 Monate
+      startMonth = 0;
+      endMonth = 3;
+    } else if (remainingMonths >= 10) {
+      // Am Ende: 9-11 Monate
+      startMonth = 9;
+      endMonth = 11;
+    } else {
+      // In der Mitte: ±1.5 Monate (3-4 Monate Range)
+      startMonth = Math.max(0, Math.floor(remainingMonths - 1.5));
+      endMonth = Math.min(11, Math.ceil(remainingMonths + 1.5));
+    }
+    
+    if (years === 0) {
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${endMonth} months`;
+      } else {
+        return `${startMonth}-${endMonth} months`;
+      }
+    } else {
+      const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${yearLabel} ${endMonth} months`;
+      } else {
+        return `${yearLabel} ${startMonth}-${endMonth} months`;
+      }
+    }
+  }
+
+  const rangeLabel = formatRangeLabel(daysUntilChange);
 
   return (
     <Box

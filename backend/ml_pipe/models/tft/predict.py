@@ -30,7 +30,7 @@ position_map = {
 all_positions = list(position_map.keys())
 
 '''
-Load new FeatureEngineering
+Load FeatureEngineering
 '''
 sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
 from backend.ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
