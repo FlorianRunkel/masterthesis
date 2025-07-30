@@ -269,46 +269,48 @@ class CareerRules:
             if len(positions_at_current_company) < 2:
                 return False, None
 
-            start_date = current_position.get('start_date') or current_position.get('startDate')
-            end_date = current_position.get('end_date') or current_position.get('endDate', 'Present')
+            total_months_at_company = 0
 
-            if not start_date:
-                return False, None
+            for position in positions_at_current_company:
+                start_date = position.get('start_date') or position.get('startDate')
+                end_date = position.get('end_date') or position.get('endDate', 'Present')
 
-            start_dt = parse_flexible_date(start_date)
-            if not start_dt:
-                return False, None
+                if not start_date:
+                    continue
 
-            if end_date == 'Present':
-                end_dt = datetime.now()
-            else:
-                end_dt = parse_flexible_date(end_date)
-                if not end_dt:
+                start_dt = parse_flexible_date(start_date)
+                if not start_dt:
+                    continue
+
+                if end_date == 'Present':
                     end_dt = datetime.now()
+                else:
+                    end_dt = parse_flexible_date(end_date)
+                    if not end_dt:
+                        end_dt = datetime.now()
 
-            months_in_current_position = months_between_dates(start_dt, end_dt)
-            years_in_current_position = months_in_current_position / 12
+                months = months_between_dates(start_dt, end_dt)
+                total_months_at_company += months
 
-            if years_in_current_position < min_years:
+            total_years_at_company = total_months_at_company / 12
+
+            if total_years_at_company >= min_years:
                 confidence_value = 0 if model == "xgboost" else random.randint(400, 600)
+
                 info = {
                     "confidence": [confidence_value],
-                    "recommendations": [
-                        f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
-                    ],
+                    "recommendations": [],
                     "status": "Unlikely",
                     "shap_explanations": [{
                         "feature": "company loyalty",
                         "impact_percentage": 100.0,
                         "method": "SHAP",
-                        "description": f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
                     }],
                     "shap_summary": "",
                     "lime_explanations": [{
                         "feature": "company loyalty",
                         "impact_percentage": 100.0,
                         "method": "LIME",
-                        "description": f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
                     }],
                     "lime_summary": "",
                     "llm_explanation": ""
