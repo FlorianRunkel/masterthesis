@@ -49,17 +49,83 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   const formatJobChangePeriod = (confidence) => {
     if (!confidence) return 'N/A';
     const months = confidence / 30.44;
-    const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
-    const rangeEnd = rangeStart + 2;
-    return `${rangeStart}-${rangeEnd} months`;
+    const years = Math.floor(months / 12);
+    const remainingMonths = Math.floor(months % 12);
+    
+    // Flexible Range: 3-4 Monate je nach Position
+    let startMonth, endMonth;
+    
+    if (remainingMonths <= 1) {
+      // Am Anfang: 0-3 Monate
+      startMonth = 0;
+      endMonth = 3;
+    } else if (remainingMonths >= 10) {
+      // Am Ende: 9-11 Monate
+      startMonth = 9;
+      endMonth = 11;
+    } else {
+      // In der Mitte: ±1.5 Monate (3-4 Monate Range)
+      startMonth = Math.max(0, Math.floor(remainingMonths - 1.5));
+      endMonth = Math.min(11, Math.ceil(remainingMonths + 1.5));
+    }
+    
+    if (years === 0) {
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${endMonth} months`;
+      } else {
+        return `${startMonth}-${endMonth} months`;
+      }
+    } else {
+      const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${yearLabel} ${endMonth} months`;
+      } else {
+        return `${yearLabel} ${startMonth}-${endMonth} months`;
+      }
+    }
   };
 
   const formatJobChangePeriodDE = (confidence) => {
     if (!confidence) return 'N/A';
     const months = confidence / 30.44;
-    const rangeStart = Math.floor((months - 1) / 3) * 3 + 1;
-    const rangeEnd = rangeStart + 2;
-    return `${rangeStart}-${rangeEnd} Monate`;
+    const years = Math.floor(months / 12);
+    const remainingMonths = Math.floor(months % 12);
+    
+    // Flexible Range: 3-4 Monate je nach Position
+    let startMonth, endMonth;
+    
+    if (remainingMonths <= 1) {
+      // Am Anfang: 0-3 Monate
+      startMonth = 0;
+      endMonth = 3;
+    } else if (remainingMonths >= 10) {
+      // Am Ende: 9-11 Monate
+      startMonth = 9;
+      endMonth = 11;
+    } else {
+      // In der Mitte: ±1.5 Monate (3-4 Monate Range)
+      startMonth = Math.max(0, Math.floor(remainingMonths - 1.5));
+      endMonth = Math.min(11, Math.ceil(remainingMonths + 1.5));
+    }
+    
+    if (years === 0) {
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${endMonth} Months`;
+      } else {
+        return `${startMonth}-${endMonth} Months`;
+      }
+    } else {
+      const yearLabel = `${years} Year${years === 1 ? '' : 's'}`;
+      // Wenn startMonth 0 ist, zeige nur endMonth
+      if (startMonth === 0) {
+        return `${yearLabel} ${endMonth} Months`;
+      } else {
+        return `${yearLabel} ${startMonth}-${endMonth} Months`;
+      }
+    }
   };
 
   if (results.error) {
