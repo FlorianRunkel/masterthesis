@@ -245,6 +245,81 @@ class CareerRules:
             return False, None
 
     '''
+    Check if the candidate has been in the current position for more than 1 year AND has multiple positions at the same company (career progression indicator)
+    '''
+    @staticmethod
+    def is_long_term_current_position(career_history, min_years=1, model="gru"):
+        try:
+            if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
+                return False, None
+
+            current_position = career_history[0]
+            current_company = (current_position.get('company') or '').strip()
+            current_title = (current_position.get('position') or '').strip()
+
+            if not current_company or not current_title:
+                return False, None
+
+            positions_at_current_company = []
+            for position in career_history:
+                company = (position.get('company') or '').strip()
+                if company == current_company:
+                    positions_at_current_company.append(position)
+
+            if len(positions_at_current_company) < 2:
+                return False, None
+
+            start_date = current_position.get('start_date') or current_position.get('startDate')
+            end_date = current_position.get('end_date') or current_position.get('endDate', 'Present')
+
+            if not start_date:
+                return False, None
+
+            start_dt = parse_flexible_date(start_date)
+            if not start_dt:
+                return False, None
+
+            if end_date == 'Present':
+                end_dt = datetime.now()
+            else:
+                end_dt = parse_flexible_date(end_date)
+                if not end_dt:
+                    end_dt = datetime.now()
+
+            months_in_current_position = months_between_dates(start_dt, end_dt)
+            years_in_current_position = months_in_current_position / 12
+
+            if years_in_current_position < min_years:
+                confidence_value = 0 if model == "xgboost" else random.randint(400, 600)
+                info = {
+                    "confidence": [confidence_value],
+                    "recommendations": [
+                        f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
+                    ],
+                    "status": "Unlikely",
+                    "shap_explanations": [{
+                        "feature": "company loyalty",
+                        "impact_percentage": 100.0,
+                        "method": "SHAP",
+                        "description": f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
+                    }],
+                    "shap_summary": "",
+                    "lime_explanations": [{
+                        "feature": "company loyalty",
+                        "impact_percentage": 100.0,
+                        "method": "LIME",
+                        "description": f"Candidate has been {current_title} at {current_company} for {years_in_current_position:.1f} years after career progression"
+                    }],
+                    "lime_summary": "",
+                    "llm_explanation": ""
+                }
+                return True, info
+            return False, None
+        except Exception:
+            logger.error(f"Error checking long-term current position: {career_history}")
+            return False, None
+
+    '''
     Check all rules
     '''
     @staticmethod
@@ -252,6 +327,7 @@ class CareerRules:
         rules = [
             lambda ch, **kw: CareerRules.is_on_sabbatical_or_gap_year(ch, model=kw.get('model', 'gru')),
             lambda ch, **kw: CareerRules.is_c_level_or_founder(ch, model=kw.get('model', 'gru')),
+            lambda ch, **kw: CareerRules.is_long_term_current_position(ch, min_years=kw.get('min_years', 1), model=kw.get('model', 'gru')),
             lambda ch, **kw: CareerRules.is_last_position_too_new(ch, min_months=kw.get('min_months', 6), model=kw.get('model', 'gru')),
             # add rules
         ]

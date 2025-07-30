@@ -77,7 +77,6 @@ const ManualInput = () => {
   const predictionRef = useRef(null);
   const [showModelInfo, setShowModelInfo] = useState(false);
 
-  // Prüfe, ob alle Felder in Position 1 ausgefüllt sind
   const firstExperience = experiences[0];
   const secondExperience = experiences[1];
   
@@ -87,7 +86,6 @@ const ManualInput = () => {
     firstExperience.startDate && 
     (firstExperience.endDate || firstExperience.endDate === 'Present');
 
-  // Für TFT: Prüfe, ob beide Positionen (Career Start und Following Role) ausgefüllt sind
   const hasValidTFTExperiences = selectedModel === 'tft' ? 
     (hasValidExperiences && secondExperience && 
      secondExperience.company && 
@@ -102,17 +100,14 @@ const ManualInput = () => {
     }
   }, [prediction]);
 
-  // Speichere experiences im localStorage
   useEffect(() => {
     localStorage.setItem('manualInputExperiences', JSON.stringify(experiences));
   }, [experiences]);
 
-  // Speichere education im localStorage
   useEffect(() => {
     localStorage.setItem('manualInputEducation', JSON.stringify(education));
   }, [education]);
 
-  // Speichere selectedModel im localStorage
   useEffect(() => {
     localStorage.setItem('manualInputSelectedModel', selectedModel);
   }, [selectedModel]);
@@ -143,7 +138,6 @@ const ManualInput = () => {
   };
 
   const handleRemoveExperience = (index) => {
-    // Wenn TFT ausgewählt ist, darf die zweite Position nicht gelöscht werden
     if (selectedModel === 'tft' && index === 1) {
       return;
     }
@@ -272,7 +266,6 @@ const ManualInput = () => {
     setSelectedModel(value);
     setShowModelChangeHint(true);
     
-    // Automatisch eine zweite Position hinzufügen, wenn TFT ausgewählt wird
     if (value === 'tft' && experiences.length < 2) {
       const additionalExperiences = 2 - experiences.length;
       for (let i = 0; i < additionalExperiences; i++) {
@@ -285,13 +278,11 @@ const ManualInput = () => {
       }
     }
     
-    // Wenn ein anderes Modell ausgewählt wird, prüfe ob die letzte Position leer ist
     if (value !== 'tft' && experiences.length > 1) {
       const lastExperience = experiences[experiences.length - 1];
       const isLastExperienceEmpty = !lastExperience.company && !lastExperience.position && 
                                   !lastExperience.startDate && !lastExperience.endDate;
       
-      // Nur die letzte Position löschen, wenn sie leer ist
       if (isLastExperienceEmpty) {
         setExperiences(prev => prev.slice(0, -1));
       }
@@ -317,12 +308,9 @@ const ManualInput = () => {
         Analyze the job change probability of a single candidate based on their current work experience and educational background.
       </Typography>
 
-      {/* Oberer Bereich: Formulare + Vorschau */}
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-          {/* Linke Spalte: Formulare */}
           <Box sx={{ flex: 1 }}>
-          {/* --- Education Formular --- */}
           <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: education.length > 0 ? 3 : 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -453,8 +441,7 @@ const ManualInput = () => {
                 </Box>
               </Box>
             ))}
-          </Paper>
-          {/* --- Work Experience Formular --- */}
+          </Paper> 
           <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}> 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: experiences.length > 0 ? 3 : 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -559,7 +546,6 @@ const ManualInput = () => {
               ))}
           </Paper>
         </Box>
-        {/* Rechte Spalte: Vorschau/Timeline - nur auf Desktop */}
         {isDesktop && (
 
         <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', minWidth: 300, maxWidth: 550, height: 'fit-content', position: 'sticky', top: 20 }}>  
@@ -592,9 +578,7 @@ const ManualInput = () => {
               </Box>
             </Box>
             <Divider sx={{ my: 2, borderColor: '#e0e0e0', borderWidth: '1px', borderStyle: 'solid' }} />
-            {/* Timeline mit verbindenden Linien */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Education Einträge */}
               {education.filter(edu => edu.school || edu.degree || edu.fieldOfStudy).map((edu, idx) => (
                 <Box key={"edu-"+idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
                   <Box sx={{ 
@@ -647,7 +631,6 @@ const ManualInput = () => {
                 </Box>
               ))}
               
-              {/* Work Experience Einträge */}
               {experiences.filter(exp => exp.company || exp.position).map((exp, idx) => (
                 <Box key={"exp-"+idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
                   <Box sx={{ 
@@ -710,7 +693,6 @@ const ManualInput = () => {
                 </Box>
               ))}
               
-              {/* Falls keine Einträge vorhanden */}
               {education.filter(edu => edu.school || edu.degree || edu.fieldOfStudy).length === 0 && experiences.filter(exp => exp.company || exp.position).length === 0 && (
                 <Box sx={{ 
                   textAlign: 'center', 
@@ -719,7 +701,7 @@ const ManualInput = () => {
                 }}>
                   <SchoolIcon sx={{ fontSize: 48, mb: 2, opacity: 0.3 }} />
                   <Typography sx={{ fontStyle: 'italic', fontSize: '0.9rem', fontWeight: 500 }}>
-                    Add work experience and education to see your timeline
+                      Add work experience and education to see the timeline.
                   </Typography>
                 </Box>
               )}
@@ -727,7 +709,6 @@ const ManualInput = () => {
           </Paper>
         )}
       </Box>
-      {/* Unterer Bereich: AI Model Auswahl (volle Breite) */}
       <Box sx={{ mt: 4, bgcolor: '#fff', borderRadius: '16px', p: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.08)'}}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
           <Typography variant="h2" sx={{ fontSize: '1.36rem', fontWeight: 700, color: '#001242' }}>

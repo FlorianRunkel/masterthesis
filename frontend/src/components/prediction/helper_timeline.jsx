@@ -135,44 +135,25 @@ const Timeline = ({ prediction, profile }) => {
     setSelectedMethod(availableMethods[0]);
   }
 
-  function formatTimeRange(days) {
-    const months = days / 30.44;
-    const years = Math.floor(months / 12);
-    const remainingMonths = Math.floor(months % 12);
-    
-    if (years === 0) {
-      return `${remainingMonths} months`;
-    } else if (remainingMonths === 0) {
-      return `${years} year${years === 1 ? '' : 's'}`;
-    } else {
-      return `${years} year${years === 1 ? '' : 's'} ${remainingMonths} months`;
-    }
-  }
-
   function formatRangeLabel(days) {
     const months = days / 30.44;
     const years = Math.floor(months / 12);
     const remainingMonths = Math.floor(months % 12);
     
-    // Flexible Range: 3-4 Monate je nach Position
     let startMonth, endMonth;
     
     if (remainingMonths <= 1) {
-      // Am Anfang: 0-3 Monate
       startMonth = 0;
-      endMonth = 3;
+      endMonth = 2;
     } else if (remainingMonths >= 10) {
-      // Am Ende: 9-11 Monate
       startMonth = 9;
       endMonth = 11;
     } else {
-      // In der Mitte: ±1.5 Monate (3-4 Monate Range)
-      startMonth = Math.max(0, Math.floor(remainingMonths - 1.5));
-      endMonth = Math.min(11, Math.ceil(remainingMonths + 1.5));
+      startMonth = Math.max(0, remainingMonths - 1);
+      endMonth = Math.min(11, remainingMonths + 1);
     }
     
     if (years === 0) {
-      // Wenn startMonth 0 ist, zeige nur endMonth
       if (startMonth === 0) {
         return `${endMonth} months`;
       } else {
@@ -180,7 +161,6 @@ const Timeline = ({ prediction, profile }) => {
       }
     } else {
       const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
-      // Wenn startMonth 0 ist, zeige nur endMonth
       if (startMonth === 0) {
         return `${yearLabel} ${endMonth} months`;
       } else {
