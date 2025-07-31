@@ -51,44 +51,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     const months = confidence / 30.44;
     const years = Math.floor(months / 12);
     const remainingMonths = Math.floor(months % 12);
-    
-    let startMonth, endMonth;
-    
-    if (remainingMonths <= 1) {
-      startMonth = 0;
-      endMonth = 2;
-    } else if (remainingMonths >= 10) {
-      startMonth = 9;
-      endMonth = 11;
-    } else {
-      startMonth = Math.max(0, remainingMonths - 1);
-      endMonth = Math.min(11, remainingMonths + 1);
-    }
-    
-    if (years === 0) {
-      if (startMonth === 0) {
-        return `${endMonth} months`;
-      } else {
-        return `${startMonth}-${endMonth} months`;
-      }
-    } else {
-      const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
-      if (startMonth === 0) {
-        return `${yearLabel} ${endMonth} months`;
-      } else {
-        return `${yearLabel} ${startMonth}-${endMonth} months`;
-      }
-    }
-  }
 
-  const formatJobChangePeriodDE = (confidence) => {
-    if (!confidence) return 'N/A';
-    const months = confidence / 30.44;
-    const years = Math.floor(months / 12);
-    const remainingMonths = Math.floor(months % 12);
-    
     let startMonth, endMonth;
-    
+
     if (remainingMonths <= 1) {
       startMonth = 0;
       endMonth = 2;
@@ -99,7 +64,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
       startMonth = Math.max(0, remainingMonths - 1);
       endMonth = Math.min(11, remainingMonths + 1);
     }
-    
+
     if (years === 0) {
       if (startMonth === 0) {
         return `${endMonth} months`;
@@ -202,7 +167,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}><Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#EB7836' }, width: '10px', height: '10px' }} /></td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', fontWeight: 500, fontSize: '0.88rem' }}>{name}</td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}><Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#001242', fontWeight: 500, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1, '&:hover': { color: '#EB7836', textDecoration: 'underline' } }}>{linkedin.replace(/^https?:\/\/|^www\./, '')}</Link></td>
-                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}><Chip label={formatJobChangePeriodDE(result.confidence)} sx={{ color: '#000', fontWeight: 700, fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent' }} /></td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}><Chip label={formatJobChangePeriod(result.confidence)} sx={{ color: '#000', fontWeight: 700, fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent' }} /></td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}><Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#001242', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '6.4px', fontSize: '0.88rem', fontWeight: 600, minWidth: 0, '&:hover': { bgcolor: '#EB7836' }, display: 'flex', alignItems: 'center', gap: 1 }} endIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}>{isExpanded ? 'Collapse' : 'Expand'}</Button></td>
                       </tr>
                       {isExpanded && (<tr><td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}><Box sx={{ borderRadius: '13px', p: '16px', margin: '16px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', maxWidth: '95%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Timeline prediction={result} />{result.llm_explanation && (<Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}><Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9 }}>{result.llm_explanation}</Typography></Box>)}</Box></td></tr>)}

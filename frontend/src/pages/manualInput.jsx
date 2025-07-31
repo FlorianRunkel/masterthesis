@@ -548,7 +548,7 @@ const ManualInput = () => {
         </Box>
         {isDesktop && (
 
-        <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', minWidth: 300, maxWidth: 550, height: 'fit-content', position: 'sticky', top: 20 }}>  
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', minWidth: 200, maxWidth: 600, height: 'fit-content', position: 'sticky', top: 20 }}>  
             <Box sx={{ 
               display: 'flex',
               alignItems: 'center',
