@@ -36,7 +36,7 @@ def get_feature_names():
         "job changes total", 
         "job positions total",
         "job average duration",
-        "education highest degree",
+        #"education highest degree",
         "age category",
         "position level",
         "industry",
@@ -159,7 +159,7 @@ def prepare_prediction_sample(profile_data):
             "aktuelle_position": current_exp.get("position", ""),
             "berufserfahrung_bis_zeitpunkt": berufserfahrung_bis_zeitpunkt,
             "anzahl_wechsel_bisher": anzahl_wechsel_bisher,
-            "anzahl_jobs_bisher": anzahl_jobs_bisher,
+            #"anzahl_jobs_bisher": anzahl_jobs_bisher,
             "durchschnittsdauer_bisheriger_jobs": durchschnittsdauer_bisheriger_jobs
         }
 
@@ -251,7 +251,7 @@ def prepare_features(profile_dict):
             float(latest_sample.get("anzahl_wechsel_bisher", 0) or 0),
             float(latest_sample.get("anzahl_jobs_bisher", 0) or 0),
             float(latest_sample.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-            float(extract_highest_degree(education_data) or 0),
+            #float(extract_highest_degree(education_data) or 0),
             float(estimate_age_category(profile_info) or 0),
             #float(extract_anzahl_standortwechsel(experiences) or 0),
             #float(fe.get_study_field_num(extract_study_field(education_data)) or 0)
@@ -338,7 +338,7 @@ Load model
 '''
 def load_model(model_path):
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    model = GRUModel(seq_input_size=16, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
+    model = GRUModel(seq_input_size=15, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
     model.load_state_dict(checkpoint)
     model.eval()
 
@@ -353,7 +353,7 @@ def load_model(model_path):
 Create background data
 '''
 def create_background_data(seq_tensor):
-    background_seq = torch.zeros((10, seq_tensor.shape[1], 16))  # 12 Features
+    background_seq = torch.zeros((10, seq_tensor.shape[1], 15))  # 12 Features
     return background_seq
 
 '''
@@ -392,7 +392,7 @@ def predict(profile_dict, model_path=None):
         print(f"Career history: {career_history}")
         too_new, months = CareerRules.is_last_position_too_new(career_history, min_months=8)
         print(f"Too new: {too_new}, Months: {months}")
-        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=8, model="gru")
+        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=6, model="gru")
         if rule_applies:
             return info
 

@@ -71,7 +71,7 @@ def get_feature_names():
         "Number of Changes",
         "Number of Jobs",
         "Average Job Duration",
-        "Highest Degree",
+        #"Highest Degree",
         "Age Category",
         "Position Level",
         "Industry",
@@ -97,7 +97,7 @@ def map_tft_feature_names(feature_name):
         'anzahl_wechsel_bisher': 'Number of Changes',
         'anzahl_jobs_bisher': 'Number of Jobs',
         'durchschnittsdauer_jobs': 'Average Job Duration',
-        'highest_degree': 'Highest Degree',
+        #'highest_degree': 'Highest Degree',
         'age_category': 'Age Category',
         'position_level': 'Position Level',
         'position_branche': 'Industry',
@@ -130,7 +130,7 @@ def get_feature_description(name):
         "Number of Changes": "Total number of job transitions across the candidate's career path",
         "Number of Jobs": "Total count of distinct positions held throughout the career",
         "Average Job Duration": "Average duration (in days) spent in each previous position",
-        "Highest Degree": "Highest level of formal education attained",
+        #"Highest Degree": "Highest level of formal education attained",
         "Age Category": "Categorical representation of the candidate's age group ",
         "Position Level": "Level of the current role",
         "Industry": "Economic sector or industry in which the candidate is currently employed",
@@ -250,7 +250,7 @@ def predict(linkedin_data, model_path=None):
 
         career_history = linkedin_data.get('workExperience', [])
         print(f"Career history: {career_history}")
-        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=8, model="tft")
+        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=6, model="tft")
         if rule_applies:
             return info
 
@@ -282,7 +282,7 @@ def predict(linkedin_data, model_path=None):
             'feature_1': 'anzahl_wechsel_bisher',
             'feature_2': 'anzahl_jobs_bisher',
             'feature_3': 'durchschnittsdauer_jobs',
-            'feature_4': 'highest_degree',
+            'feature_4': 'highest_degree',  # Hinzugefügt für Kompatibilität
             'feature_5': 'age_category',
             'feature_6': 'position_level',
             'feature_7': 'position_branche',
@@ -318,7 +318,7 @@ def predict(linkedin_data, model_path=None):
         print(f"Load trained model: {model_path}")
         tft = TemporalFusionTransformer.load_from_checkpoint(model_path)
 
-        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24)]
+        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24) if f'feature_{i}' in feature_names]
 
         unique_positions = df_prediction_renamed['position'].unique()
         position_to_id = {pos: i for i, pos in enumerate(unique_positions)}

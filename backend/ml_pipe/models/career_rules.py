@@ -123,7 +123,8 @@ class CareerRules:
                 if not end_dt:
                     end_dt = now
             months = months_between_dates(start_dt, end_dt)
-            if months < min_months:
+            # Regel nur für direkt nach der Probezeit (6-9 Monate)
+            if 6 <= months < 9:
                 info = {
                     "confidence": [0] if model == "xgboost" else [random.randint(370, 500)],  # oder [0] oder [400] je nach Modell
                     "recommendations": [
