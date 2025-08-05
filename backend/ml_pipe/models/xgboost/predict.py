@@ -204,7 +204,7 @@ def get_feature_names():
 
 def get_feature_description(name):
     descriptions = {
-        "Number of Employer Changes": "Number of company changes in the career.",  
+        "Number of Employer Changes": "Number of company changes in the career.",
         "Total Work Experience": "Total professional experience in days.",
         "Number of Relocations": "Number of location changes in the career.",
         "Highest Educational Qualification": "Highest educational degree achieved.",

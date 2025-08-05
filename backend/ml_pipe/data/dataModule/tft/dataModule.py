@@ -119,38 +119,38 @@ class DataModule(pl.LightningDataModule):
             'feature_1': 'anzahl_wechsel_bisher',
             'feature_2': 'anzahl_jobs_bisher',
             'feature_3': 'durchschnittsdauer_jobs',
-            'feature_4': 'highest_degree',
-            'feature_5': 'age_category',
+            #'feature_4': 'highest_degree',
+            'feature_4': 'age_category',
 
             # Position-Features
-            'feature_6': 'position_level',
-            'feature_7': 'position_branche',
-            'feature_8': 'position_durchschnittszeit',
+            'feature_5': 'position_level',
+            'feature_6': 'position_branche',
+            'feature_7': 'position_durchschnittszeit',
 
             # Position-ID
-            'feature_9': 'position_id_numeric',
+            'feature_8': 'position_id_numeric',
 
             # Time-Features
-            'feature_10': 'weekday',
-            'feature_11': 'weekday_sin',
-            'feature_12': 'weekday_cos',
-            'feature_13': 'month',
-            'feature_14': 'month_sin',
-            'feature_15': 'month_cos',
+            'feature_9': 'weekday',
+            'feature_10': 'weekday_sin',
+            'feature_11': 'weekday_cos',
+            'feature_12': 'month',
+            'feature_13': 'month_sin',
+            'feature_14': 'month_cos',
 
             # Career path features - last 2 positions
-            'feature_16': 'prev_position_1_level',
-            'feature_17': 'prev_position_1_branche',
-            'feature_18': 'prev_position_1_dauer',
-            'feature_19': 'prev_position_2_level',
-            'feature_20': 'prev_position_2_branche',
-            'feature_21': 'prev_position_2_dauer',
+            'feature_15': 'prev_position_1_level',
+            'feature_16': 'prev_position_1_branche',
+            'feature_17': 'prev_position_1_dauer',
+            'feature_18': 'prev_position_2_level',
+            'feature_19': 'prev_position_2_branche',
+            'feature_20': 'prev_position_2_dauer',
 
             # Company Size Feature
-            'feature_22': 'company_size',
+            'feature_21': 'company_size',
 
             # Study Field Feature
-            'feature_23': 'study_field'
+            'feature_22': 'study_field'
         }
 
         if len(df) > 0:
@@ -161,7 +161,7 @@ class DataModule(pl.LightningDataModule):
                 values = df[col].values
                 print(f"  {feature_name} ({col}): min={values.min():.2f}, max={values.max():.2f}, mean={values.mean():.2f}")
 
-        position_id_values = df['feature_9'].values
+        position_id_values = df['feature_8'].values
         unique_position_ids = set(position_id_values)
         print(f"  Position-ID values: {sorted(unique_position_ids)}")
         print(f"  Number of unique position IDs: {len(unique_position_ids)}")
@@ -172,7 +172,7 @@ class DataModule(pl.LightningDataModule):
         position_id_mapping = {}
         for _, row in df.head(10).iterrows():
             position = row['position']
-            position_id = row['feature_9']
+            position_id = row['feature_8']
             if position not in position_id_mapping:
                 position_id_mapping[position] = position_id
                 print(f"  '{position}' -> ID: {position_id}")
@@ -183,7 +183,7 @@ class DataModule(pl.LightningDataModule):
             logging.warning("  - position_to_idx.json file is missing or empty")
             logging.warning("  - Positions are not correctly mapped")
 
-        for i in range(min(10, 24)):
+        for i in range(min(10, 23)):
             feature_key = f'feature_{i}'
             feature_name = feature_names[feature_key]
             values = df[feature_key].values
@@ -216,7 +216,7 @@ class DataModule(pl.LightningDataModule):
         self.training['position_id'] = self.training['position_id'].astype(str)
         self.validation['position_id'] = self.validation['position_id'].astype(str)
 
-        time_varying_unknown_reals = [f'feature_{i}' for i in range(24)]
+        time_varying_unknown_reals = [f'feature_{i}' for i in range(23)]
         time_varying_known_reals = ['time_idx']
         static_categoricals = ['position_id']
 
@@ -228,7 +228,7 @@ class DataModule(pl.LightningDataModule):
         print(f"Anzahl eindeutige Positionen: {len(unique_positions)}")
 
         print(f"\nFeature-Übersicht:")
-        for i in range(24):
+        for i in range(23):
             feature_key = f'feature_{i}'
             feature_name = feature_names[feature_key]
             print(f"  {feature_key} -> {feature_name}")
@@ -236,7 +236,7 @@ class DataModule(pl.LightningDataModule):
         self.training_renamed = self.training.rename(columns=feature_names)
         self.validation_renamed = self.validation.rename(columns=feature_names)
 
-        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24)]
+        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(23)]
 
         '''
         Create TimeSeriesDataSet for training

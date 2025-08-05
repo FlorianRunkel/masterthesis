@@ -170,7 +170,7 @@ class FeatureEngineering:
             float(doc.get("anzahl_wechsel_bisher", 0) or 0),
             float(doc.get("anzahl_jobs_bisher", 0) or 0),
             float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-            float(doc.get("highest_degree", 0) or 0),
+            #float(doc.get("highest_degree", 0) or 0),
             float(doc.get("age_category", 0) or 0),
         ])
         pos = doc.get("aktuelle_position", "")
@@ -231,7 +231,7 @@ class FeatureEngineering:
     '''
     Pad sequences
     '''
-    def pad_sequences(self, sequences, target_length, feature_dim=24):
+    def pad_sequences(self, sequences, target_length, feature_dim=23):
         padded_sequences = []
         for sequence in sequences:
             padded_seq = sequence.copy()
@@ -289,7 +289,7 @@ class FeatureEngineering:
         all_sequences, all_labels, all_positions = self.build_sequences_and_labels(profile_groups, min_seq_len)
         if not all_sequences:
             raise ValueError("No valid sequences found.")
-        padded_sequences = self.pad_sequences(all_sequences, max_seq_len, feature_dim=24)
+        padded_sequences = self.pad_sequences(all_sequences, max_seq_len, feature_dim=23)
         return (
             torch.tensor(padded_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32),

@@ -219,7 +219,7 @@ def extract_features_from_linkedin_new(data):
             "anzahl_wechsel_bisher": i,
             "anzahl_jobs_bisher": i + 1,
             "durchschnittsdauer_bisheriger_jobs": float(avg_duration),
-            "highest_degree": degree,
+            #"highest_degree": degree,
             "age_category": age_category,
             "anzahl_standortwechsel": 0,  # Schätzung
             "study_field": "Informatics",  # Standard
@@ -282,26 +282,26 @@ def predict(linkedin_data, model_path=None):
             'feature_1': 'anzahl_wechsel_bisher',
             'feature_2': 'anzahl_jobs_bisher',
             'feature_3': 'durchschnittsdauer_jobs',
-            'feature_4': 'highest_degree',  # Hinzugefügt für Kompatibilität
-            'feature_5': 'age_category',
-            'feature_6': 'position_level',
-            'feature_7': 'position_branche',
-            'feature_8': 'position_durchschnittszeit',
-            'feature_9': 'position_id_numeric',
-            'feature_10': 'weekday',
-            'feature_11': 'weekday_sin',
-            'feature_12': 'weekday_cos',
-            'feature_13': 'month',
-            'feature_14': 'month_sin',
-            'feature_15': 'month_cos',
-            'feature_16': 'prev_position_1_level',
-            'feature_17': 'prev_position_1_branche',
-            'feature_18': 'prev_position_1_dauer',
-            'feature_19': 'prev_position_2_level',
-            'feature_20': 'prev_position_2_branche',
-            'feature_21': 'prev_position_2_dauer',
-            'feature_22': 'company_size',
-            'feature_23': 'study_field'
+            #'feature_4': 'highest_degree',  # Hinzugefügt für Kompatibilität
+            'feature_4': 'age_category',
+            'feature_5': 'position_level',
+            'feature_6': 'position_branche',
+            'feature_7': 'position_durchschnittszeit',
+            'feature_8': 'position_id_numeric',
+            'feature_9': 'weekday',
+            'feature_10': 'weekday_sin',
+            'feature_11': 'weekday_cos',
+            'feature_12': 'month',
+            'feature_13': 'month_sin',
+            'feature_14': 'month_cos',
+            'feature_15': 'prev_position_1_level',
+            'feature_16': 'prev_position_1_branche',
+            'feature_17': 'prev_position_1_dauer',
+            'feature_18': 'prev_position_2_level',
+            'feature_19': 'prev_position_2_branche',
+            'feature_20': 'prev_position_2_dauer',
+            'feature_21': 'company_size',
+            'feature_22': 'study_field'
         }
 
         df_prediction_renamed = df_prediction.rename(columns=feature_names)
@@ -313,12 +313,12 @@ def predict(linkedin_data, model_path=None):
             print(f"Added {missing} dummy timepoints. New length: {len(df_prediction_renamed)}")
 
         if model_path is None:
-            model_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250627_133624.ckpt"
+            model_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250805_164438.ckpt"
 
         print(f"Load trained model: {model_path}")
         tft = TemporalFusionTransformer.load_from_checkpoint(model_path)
 
-        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(24) if f'feature_{i}' in feature_names]
+        time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(23) if f'feature_{i}' in feature_names]
 
         unique_positions = df_prediction_renamed['position'].unique()
         position_to_id = {pos: i for i, pos in enumerate(unique_positions)}

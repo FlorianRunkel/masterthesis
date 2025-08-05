@@ -167,7 +167,7 @@ class FeatureEngineering:
                     float(doc.get("anzahl_wechsel_bisher", 0) or 0),
                     float(doc.get("anzahl_jobs_bisher", 0) or 0),
                     float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-                    float(doc.get("highest_degree", 0) or 0),
+                    #float(doc.get("highest_degree", 0) or 0),
                     float(doc.get("age_category", 0) or 0),
                     #float(doc.get("anzahl_standortwechsel", 0) or 0),
                     #float(self.get_study_field_num(doc.get("study_field", "")) or 0),
@@ -240,7 +240,7 @@ class FeatureEngineering:
                         float(doc.get("anzahl_wechsel_bisher", 0) or 0),
                         float(doc.get("anzahl_jobs_bisher", 0) or 0),
                         float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-                        float(doc.get("highest_degree", 0) or 0),
+                        #float(doc.get("highest_degree", 0) or 0),
                         float(doc.get("age_category", 0) or 0),
                     ]
 
