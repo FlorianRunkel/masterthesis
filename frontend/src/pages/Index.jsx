@@ -9,12 +9,12 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
-import StorageIcon from '@mui/icons-material/Storage';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -66,37 +66,37 @@ const Index = () => {
         description: 'Modern Machine-Learning-Algorithms.'
     },
     {
-        icon: <TrackChangesIcon fontSize="large" sx={{color: '#002442'}} />,
-        title: 'Precise Predictions',
-        description: '91% accuracy in job change predictions.'
-    },
-    {
-        icon: <StorageIcon fontSize="large" sx={{color: '#002442'}} />,
-        title: 'Comprehensive Database',
-        description: 'Over 120,000 analyzed profiles.'
+      icon: <InsightsIcon fontSize="large" sx={{color: '#002442'}} />,
+      title: 'Explainable AI',
+      description: 'SHAP/LIME explanations for transparent predictions.'
     },
     {
         icon: <AccountBoxIcon fontSize="large" sx={{color: '#001242'}} />,
         title: 'Candidate Management',
         description: 'Save promising candidates to contact them at the right time.'
+    },
+    {
+        icon: <PsychologyIcon fontSize="large" sx={{color: '#002442'}} />,
+        title: 'Talent Management',
+        description: 'Proactive talent management.'
     }
   ];
 
   const stats = [
-    { 
-      value: '120K+', 
+    {
+      value: '8400+', 
       label: 'Analyzed Profiles', 
       icon: <PeopleAltIcon sx={{ fontSize: 38, color: '#002442' }} /> 
     },
-    { 
-      value: '91%', 
-      label: 'Accuracy', 
+    {
+      value: '90.5%',
+      label: 'F1-Score',
       icon: <VerifiedIcon sx={{ fontSize: 38, color: '#002442' }} /> 
     },
-    { 
-      value: '24', 
-      label: 'Industries', 
-      icon: <BusinessCenterIcon sx={{ fontSize: 38, color: '#002442' }} /> 
+        { 
+      value: '50 Days',
+      label: 'Average Deviation', 
+      icon: <ScheduleIcon sx={{ fontSize: 38, color: '#002442' }} /> 
     },
   ]
 

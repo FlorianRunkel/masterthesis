@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip, IconButton, useMediaQuery, useTheme, FormControl, Select, MenuItem, InputLabel, Menu } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import Timeline from '../prediction/helper_timeline';
 
 const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles }) => {
 
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -16,6 +19,30 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
 
   const successCount = results.filter(r => !r.error && r.status !== 'error').length;
   const errorCount = results.filter(r => r.error || r.status === 'error').length;
+
+  // Filter results based on time filter
+  const getFilteredResults = () => {
+    if (timeFilter === 'all') return results;
+    
+    return results.filter(result => {
+      if (result.error || result.status === 'error') return true; // Always show errors
+      
+      const months = result.confidence / 30.44;
+
+      switch (timeFilter) {
+        case 'short':
+          return months < 12; // Under 12 months
+        case 'medium':
+          return months >= 12 && months < 24; // 12 months to 2 years
+        case 'long':
+          return months >= 24; // Over 2 years
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredResults = getFilteredResults();
 
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
@@ -36,6 +63,19 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     onSave(candidatesToSave);
   };
 
+  const handleFilterClick = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const handleFilterSelect = (filterValue) => {
+    setTimeFilter(filterValue);
+    setFilterAnchorEl(null);
+  };
+
   const toggleDetails = (index) => {
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
@@ -47,7 +87,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   };
 
   const formatJobChangePeriod = (confidence) => {
-    if (!confidence) return 'N/A';
+    if (!confidence) return { text: 'N/A', color: '#666' };
     const months = confidence / 30.44;
     const years = Math.floor(months / 12);
     const remainingMonths = Math.floor(months % 12);
@@ -65,20 +105,31 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
       endMonth = Math.min(11, remainingMonths + 1);
     }
 
+    let text;
     if (years === 0) {
       if (startMonth === 0) {
-        return `${endMonth} months`;
+        text = `${endMonth} months`;
       } else {
-        return `${startMonth}-${endMonth} months`;
+        text = `${startMonth}-${endMonth} months`;
       }
     } else {
       const yearLabel = `${years} year${years === 1 ? '' : 's'}`;
       if (startMonth === 0) {
-        return `${yearLabel} ${endMonth} months`;
+        text = `${yearLabel} ${endMonth} months`;
       } else {
-        return `${yearLabel} ${startMonth}-${endMonth} months`;
+        text = `${yearLabel} ${startMonth}-${endMonth} months`;
       }
     }
+
+    let color;
+    if (months < 12) {
+      color = '#2e6f40';
+    } else if (months < 24) {
+      color = '#FFC03D';
+    } else {
+      color = '#d81b3b';
+    }
+    return { text, color };
   }
 
   if (results.error) {
@@ -112,7 +163,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
         </Box>
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
           {isMobile ? (
-            results.map((result, index) => {
+            filteredResults.map((result, index) => {
               const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
               const linkedin = result.linkedinProfile || 'Not specified';
               const jobChangePeriod = formatJobChangePeriod(result.confidence);
@@ -123,7 +174,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#001242' }}>{name}</Typography>
                       <Typography sx={{ fontSize: '0.85rem', color: '#888', mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#888', textDecoration: 'none', '&:hover': { color: '#EB7836' } }}>{linkedin}</Link></Typography>
-                      <Typography sx={{ fontSize: '0.95rem', color: '#001242', mt: 0.5, fontWeight: 600 }}>Job Change Period: {jobChangePeriod}</Typography>
+                      <Typography sx={{ fontSize: '0.95rem', color: jobChangePeriod.color, mt: 0.5, fontWeight: 600, textAlign: 'center' }}>Job Change Period: {jobChangePeriod.text}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                       <Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#EB7836' }, p: 0.5 }} />
@@ -141,12 +192,17 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>LinkedIn</th>
-                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Job change period</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'center', fontWeight: 900, fontSize: '0.88rem', position: 'relative' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'}} onClick={handleFilterClick}>
+                      <span>Job change period</span>
+                      <FilterListIcon sx={{ fontSize: '1rem', ml: 1, color: 'white' }} />
+                    </Box>
+                  </th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((result, index) => {
+                {filteredResults.map((result, index) => {
                   const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
                   const linkedin = result.linkedinProfile || 'Not specified';
                   const isExpanded = expandedRows.has(index);
@@ -167,7 +223,7 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}><Checkbox checked={selectedCandidates.has(index)} onChange={() => handleSelectCandidate(index)} sx={{ color: '#666', '&.Mui-checked': { color: '#EB7836' }, width: '10px', height: '10px' }} /></td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', fontWeight: 500, fontSize: '0.88rem' }}>{name}</td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}><Link href={linkedin} target="_blank" rel="noopener noreferrer" sx={{ color: '#001242', fontWeight: 500, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1, '&:hover': { color: '#EB7836', textDecoration: 'underline' } }}>{linkedin.replace(/^https?:\/\/|^www\./, '')}</Link></td>
-                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee' }}><Chip label={formatJobChangePeriod(result.confidence)} sx={{ color: '#000', fontWeight: 700, fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent' }} /></td>
+                        <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}><Chip label={formatJobChangePeriod(result.confidence).text} sx={{ color: formatJobChangePeriod(result.confidence).color, fontWeight: 700, fontSize: '0.88rem', px: 2, py: 0.5, borderRadius: 2, background: 'transparent' }} /></td>
                         <td style={{ padding: '10px 22px', borderBottom: '1px solid #eee', textAlign: 'center' }}><Button onClick={() => toggleDetails(index)} sx={{ bgcolor: '#001242', color: 'white', textTransform: 'none', px: 2, py: 1, borderRadius: '6.4px', fontSize: '0.88rem', fontWeight: 600, minWidth: 0, '&:hover': { bgcolor: '#EB7836' }, display: 'flex', alignItems: 'center', gap: 1 }} endIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}>{isExpanded ? 'Collapse' : 'Expand'}</Button></td>
                       </tr>
                       {isExpanded && (<tr><td colSpan="5" style={{ background: 'rgba(0, 27, 65, 0.02)' }}><Box sx={{ borderRadius: '13px', p: '16px', margin: '16px auto', bgcolor: '#fff', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', maxWidth: '95%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Timeline prediction={result} />{result.llm_explanation && (<Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}><Typography sx={{ color: '#444', fontSize: '0.88rem', lineHeight: 1.9 }}>{result.llm_explanation}</Typography></Box>)}</Box></td></tr>)}
@@ -179,6 +235,62 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
           )}
         </Box>
       </Box>
+      
+      {/* Filter Menu */}
+      <Menu
+        anchorEl={filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            borderRadius: '4px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            width: 'auto',
+            minWidth: '180px',
+            maxWidth: '250px',
+            mt: 0.5,
+            border: '1px solid #e0e0e0'
+          }
+        }}
+      >
+        <Box sx={{ p: 1.5, borderBottom: '1px solid #e0e0e0' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.8rem' }}>
+            Filter Options
+          </Typography>
+        </Box>
+        <MenuItem onClick={() => handleFilterSelect('all')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>All</span>
+            {timeFilter === 'all' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('short')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>Short (&lt; 6 months)</span>
+            {timeFilter === 'short' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('medium')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>Medium (6-24 months)</span>
+            {timeFilter === 'medium' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('long')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>Long (&gt; 24 months)</span>
+            {timeFilter === 'long' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };

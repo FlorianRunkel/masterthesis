@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Checkbox, CircularProgress, Link, useMediaQuery, useTheme, IconButton } from '@mui/material';
+import { Box, Typography, Button, Checkbox, CircularProgress, Link, useMediaQuery, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import PredictionResultClassification from '../prediction/prediction_classification';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 const ResultsTableClassification = ({ results, onSave, isSaving, originalProfiles }) => {
 
   const [selectedCandidates, setSelectedCandidates] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [probabilityFilter, setProbabilityFilter] = useState('all');
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -18,6 +21,30 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
 
   const successCount = results.filter(r => !r.error).length;
   const errorCount = results.filter(r => r.error).length;
+
+  // Filter results based on probability filter
+  const getFilteredResults = () => {
+    if (probabilityFilter === 'all') return results;
+    
+    return results.filter(result => {
+      if (result.error) return true; // Always show errors
+      
+      const confidence = result.confidence ? result.confidence[0] * 100 : 0;
+      
+      switch (probabilityFilter) {
+        case 'low':
+          return confidence < 40; // Low probability
+        case 'medium':
+          return confidence >= 40 && confidence < 70; // Medium probability
+        case 'high':
+          return confidence >= 70; // High probability
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredResults = getFilteredResults();
 
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
@@ -36,6 +63,19 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
       savedAt: new Date().toISOString()
     }));
     onSave(candidatesToSave);
+  };
+
+  const handleFilterClick = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const handleFilterSelect = (filterValue) => {
+    setProbabilityFilter(filterValue);
+    setFilterAnchorEl(null);
   };
 
   const toggleDetails = (index) => {
@@ -107,7 +147,7 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
         </Box>
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
           {isMobile ? (
-            results.map((result, index) => {
+            filteredResults.map((result, index) => {
               const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
               const linkedin = result.linkedinProfile || 'Not specified';
               const confidence = result.confidence ? result.confidence[0] * 100 : 0;
@@ -134,12 +174,17 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem', width: '32px' }}></th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Name</th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 600, fontSize: '0.88rem' }}>LinkedIn</th>
-                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'center', fontWeight: 900, fontSize: '0.88rem' }}>Propensity to Change</th>
+                  <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'center', fontWeight: 900, fontSize: '0.88rem', position: 'relative' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleFilterClick}>
+                      <span>Propensity to Change</span>
+                      <FilterListIcon sx={{ fontSize: '1rem', ml: 1, color: 'white' }} />
+                    </Box>
+                  </th>
                   <th style={{ background: '#001242', color: 'white', padding: '12px 24px', textAlign: 'left', fontWeight: 900, fontSize: '0.88rem' }}>Explanation</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((result, index) => {
+                {filteredResults.map((result, index) => {
                   const name = `${result.firstName || ''} ${result.lastName || ''}`.trim() || 'Not specified';
                   const linkedin = result.linkedinProfile || 'Not specified';
                   const confidence = result.confidence ? result.confidence[0] * 100 : 0;
@@ -200,6 +245,62 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
           )}
         </Box>
       </Box>
+      
+      {/* Filter Menu */}
+      <Menu
+        anchorEl={filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            borderRadius: '4px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            width: 'auto',
+            minWidth: '200px',
+            maxWidth: '300px',
+            mt: 0.5,
+            border: '1px solid #e0e0e0'
+          }
+        }}
+      >
+        <Box sx={{ p: 1.5, borderBottom: '1px solid #e0e0e0' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#333', fontSize: '0.8rem' }}>
+            Filter Options
+          </Typography>
+        </Box>
+        <MenuItem onClick={() => handleFilterSelect('all')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>All</span>
+            {probabilityFilter === 'all' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('low')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>Low (&lt; 40%)</span>
+            {probabilityFilter === 'low' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('medium')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>Medium (40-70%)</span>
+            {probabilityFilter === 'medium' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={() => handleFilterSelect('high')} sx={{ fontSize: '0.8rem', py: 1, px: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span>High (&gt; 70%)</span>
+            {probabilityFilter === 'high' && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#001242' }} />}
+          </Box>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };
