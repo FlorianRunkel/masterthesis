@@ -317,7 +317,70 @@ def predict(profile_dict, model_path=None):
         age_category = estimate_age_category(profile_dict)
 
         if not career_history:
-            raise ValueError("No career history found")
+            # Fallback: Versuche Position aus Headline zu extrahieren
+            headline = profile_dict.get('headline', '')
+            print(f"🔍 No career history found, trying headline: {headline}")
+            
+            if headline:
+                # Extrahiere Position aus Headline (z.B. "Founders Associate Tech & AI @aurio")
+                import re
+                
+                # Versuche verschiedene Extraktionsmethoden
+                position = None
+                
+                # Methode 1: Nach dem letzten |
+                if '|' in headline:
+                    parts = headline.split('|')
+                    if len(parts) > 1:
+                        position = parts[-1].strip()
+                        print(f"✅ Extracted after |: {position}")
+                
+                # Methode 2: Vor dem letzten @
+                if not position and '@' in headline:
+                    parts = headline.split('@')
+                    if len(parts) > 1:
+                        position = parts[-2].strip()
+                        print(f"✅ Extracted before @: {position}")
+                
+                # Methode 3: Regex als Fallback
+                if not position:
+                    position_match = re.search(r'([^@]+?)(?:\s*@\s*\w+)?$', headline.strip())
+                    if position_match:
+                        position = position_match.group(1).strip()
+                        print(f"✅ Extracted with regex: {position}")
+                
+                if position:
+                    fe = FeatureEngineering()
+                    try:
+                        level, branche, durchschnittszeit_tage = fe.find_best_match(position)
+                        print(f"✅ Mapped position: {position} -> Level {level}, {branche}")
+                        
+                        career_history = [{
+                            'position': position,
+                            'company': 'Unknown',
+                            'location': profile_dict.get('location', ''),
+                            'start_date': '1/1/2024',
+                            'end_date': 'Present',
+                            'duration_months': 12,
+                            'time_since_start': 12,
+                            'time_until_end': 0,
+                            'is_current': True,
+                            'level': level,
+                            'branche': branche,
+                            'durchschnittszeit_tage': durchschnittszeit_tage
+                        }]
+                        print(f"✅ Created synthetic career history with {len(career_history)} positions")
+                    except Exception as e:
+                        print(f"❌ Could not map position '{position}': {e}")
+                        raise ValueError(f"No career history found - could not map position '{position}'")
+                else:
+                    print(f"❌ Could not extract position from headline: {headline}")
+                    raise ValueError("No career history found - could not extract position from headline")
+            else:
+                print(f"❌ No headline available")
+                raise ValueError("No career history found - no work experience or headline available")
+        else:
+            print(f"✅ Found {len(career_history)} career positions")
 
         last_position = career_history[0]
 

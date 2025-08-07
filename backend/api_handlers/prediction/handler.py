@@ -71,9 +71,15 @@ def predict_career():
         prediction = module.predict(profile_data)
 
         if model_type == 'xgboost':
+            confidence_list = prediction.get('confidence', [])
+            confidence_value = max(0.0, confidence_list[0] if confidence_list else 0.0)
+            
+            recommendations_list = prediction.get('recommendations', [])
+            recommendations_value = recommendations_list[0] if recommendations_list else "No recommendation available"
+            
             formatted_prediction = {
-                'confidence': max(0.0, prediction['confidence'][0]),
-                'recommendations': prediction['recommendations'][0],
+                'confidence': confidence_value,
+                'recommendations': recommendations_value,
                 'status': prediction.get('status', ''),
                 'explanations': prediction.get('explanations', []),
                 'shap_explanations': prediction.get('shap_explanations', []),

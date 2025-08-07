@@ -14,14 +14,15 @@ const CandidateCard = ({ candidate, onDelete }) => {
   const getConfidenceColor = (value, isTimeSeries) => {
     if (isTimeSeries) {
       const days = getDaysFromConfidence(value);
-      if (days <= 180) return '#8AD265';
-      if (days <= 365) return '#FFC03D';
-      return '#FF2525';
+      const months = days / 30.44;
+      if (months < 12) return '#2e6f40';
+      if (months < 24) return '#FFC03D';
+      return '#d81b3b';
     } else {
       const percentage = value * 100;
-      if (percentage < 40) return '#FF2525';
-      if (percentage < 70) return '#FFC03D';
-      return '#8AD265';
+      if (percentage < 40) return '#d81b3b';
+      if (percentage >= 40 && percentage < 70) return '#FFC03D';
+      return '#2e6f40';
     }
   };
 

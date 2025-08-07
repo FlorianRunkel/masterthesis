@@ -117,9 +117,10 @@ def extract_career_data(profile_info, fe):
         position = normalize_position(exp.get('position', ''))
         try:
             level, branche, durchschnittszeit_tage = fe.find_best_match(position)
-        except Exception:
-            print(f"Position {position} kann nicht gemappt werden")
-            continue  # Position kann nicht gemappt werden, überspringen
+        except Exception as e:
+            print(f"Position {position} kann nicht gemappt werden: {e}")
+            # Verwende Fallback-Werte statt zu überspringen
+            level, branche, durchschnittszeit_tage = 3, 'engineering', 730
         career_entry = {
             'position': position,
             'company': exp.get('company', ''),

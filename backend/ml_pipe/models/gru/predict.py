@@ -338,7 +338,7 @@ Load model
 '''
 def load_model(model_path):
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    model = GRUModel(seq_input_size=15, hidden_size=128, num_layers=4, dropout=0.2, lr=0.0003)
+    model = GRUModel(seq_input_size=15, hidden_size=512, num_layers=2, dropout=0.0, lr=0.001)
     model.load_state_dict(checkpoint)
     model.eval()
 
