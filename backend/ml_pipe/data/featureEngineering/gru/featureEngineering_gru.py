@@ -155,54 +155,6 @@ class FeatureEngineering:
         return self.company_size_map.get(size.lower(), 0)
 
     '''
-    Extract features and labels for training
-    '''
-    def extract_features_and_labels_for_training(self, documents):
-        all_sequences = []
-        all_labels = []
-        for doc in documents:
-            try:
-                features = [
-                    float(doc.get("berufserfahrung_bis_zeitpunkt", 0) or 0),
-                    float(doc.get("anzahl_wechsel_bisher", 0) or 0),
-                    float(doc.get("anzahl_jobs_bisher", 0) or 0),
-                    float(doc.get("durchschnittsdauer_bisheriger_jobs", 0) or 0),
-                    #float(doc.get("highest_degree", 0) or 0),
-                    float(doc.get("age_category", 0) or 0),
-                    #float(doc.get("anzahl_standortwechsel", 0) or 0),
-                    #float(self.get_study_field_num(doc.get("study_field", "")) or 0),
-                    #float(self.get_company_size_num(doc.get("company_size_category", "")) or 0),
-                ]
-
-                level, branche, durchschnittszeit = self.map_position(doc.get("aktuelle_position", ""))
-                features.extend([
-                    float(level or 0),
-                    float(branche or 0),
-                    float(durchschnittszeit or 0)
-                ])
-
-                position_idx = self.get_position_idx(doc.get("aktuelle_position", ""))
-                features.append(float(position_idx or 0))
-
-                label = float(doc.get("label", 0) or 0)
-
-                all_sequences.append([features])
-                all_labels.append([label])
-
-            except Exception as e:
-                print(f"Error processing document: {str(e)}")
-                print(f"Problem document: {doc}")
-                continue
-
-        if not all_sequences:
-            raise ValueError("No valid sequences could be extracted")
-
-        return (
-            torch.tensor(all_sequences, dtype=torch.float32),
-            torch.tensor(all_labels, dtype=torch.float32)
-        )
-
-    '''
     Extract sequences by profile
     '''
     def extract_sequences_by_profile(self, documents, min_seq_len=2):
