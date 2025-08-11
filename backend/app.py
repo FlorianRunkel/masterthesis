@@ -20,39 +20,76 @@ OPTIMIZED GUNICORN COMMAND FOR RENDER:
 gunicorn app:app --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --worker-class gevent --worker-connections 1000 --preload --max-requests 1000 --max-requests-jitter 100
 '''
 
-# Global model cache for faster predictions
+# Global model cache for lazy loading
+"""
+This is a global model cache for lazy loading.
+It is used to load the models only when needed.
+It is also used to keep the models in memory for faster predictions.
+"""
 loaded_models = {}
-
-def load_models_on_startup():
-    """Load all ML models at startup to avoid reloading on each prediction"""
+def load_model_lazy(model_type):
     global loaded_models
+    if model_type in loaded_models:
+        app.logger.info(f"Using cached {model_type.upper()} model")
+        return loaded_models[model_type]
+
+    if len(loaded_models) >= 2:
+        models_to_remove = [k for k in loaded_models.keys() if k != 'xgboost']
+        if models_to_remove:
+            oldest_model = models_to_remove[0]
+            del loaded_models[oldest_model]
+            app.logger.info(f"Removed {oldest_model.upper()} from cache to save RAM (keeping XGBoost)")
+
     try:
-        app.logger.info("Loading ML models at startup...")
+        app.logger.info(f"Loading {model_type.upper()} model on demand...")
 
-        # Import prediction modules
-        from ml_pipe.models.tft.predict import predict as load_tft_model
-        from ml_pipe.models.gru.predict import load_model as load_gru_model
-        from ml_pipe.models.xgboost.predict import load_xgb_model
+        if model_type == 'tft':
+            from pytorch_forecasting import TemporalFusionTransformer
+            model_path = "backend/ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
+            model = TemporalFusionTransformer.load_from_checkpoint(model_path)
 
-        # Load models into memory
-        # For TFT, we need to load the actual model, not the predict function
-        from pytorch_forecasting import TemporalFusionTransformer
-        tft_model_path = "ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
-        loaded_models['tft'] = TemporalFusionTransformer.load_from_checkpoint(tft_model_path)
+        elif model_type == 'gru':
+            from ml_pipe.models.gru.predict import load_model
+            model_path = "ml_pipe/models/gru/saved_models/gru_model_20250807_184702.pt"
+            model = load_model(model_path)
 
-        # For GRU and XGBoost, use the load functions
-        gru_model_path = "ml_pipe/models/gru/saved_models/gru_model_20250807_184702.pt"
-        loaded_models['gru'] = load_gru_model(gru_model_path)
+        elif model_type == 'xgboost':
+            from ml_pipe.models.xgboost.predict import load_xgb_model
+            model_path = "ml_pipe/models/xgboost/saved_models/xgboost_model_20250806_151510.joblib"
+            model = load_xgb_model(model_path)
 
-        xgb_model_path = "ml_pipe/models/xgboost/saved_models/xgboost_model_20250806_151510.joblib"
-        loaded_models['xgboost'] = load_xgb_model(xgb_model_path)
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
 
-        app.logger.info("All ML models loaded successfully!")
+        loaded_models[model_type] = model
+        app.logger.info(f"{model_type.upper()} model loaded successfully! Cache size: {len(loaded_models)}")
+        return model
 
     except Exception as e:
-        app.logger.error(f"Error loading models at startup: {str(e)}")
-        # Continue without preloaded models
+        app.logger.error(f"Error loading {model_type} model: {str(e)}")
+        if model_type != 'xgboost' and 'xgboost' in loaded_models:
+            app.logger.warning(f"Falling back to XGBoost model due to {model_type} loading error")
+            return loaded_models['xgboost']
 
+        raise
+
+"""
+Preload XGBoost model at startup for fastest predictions
+"""
+def preload_xgboost_on_startup():
+    try:
+        app.logger.info("Preloading XGBoost model for fastest predictions...")
+        xgb_model = load_model_lazy('xgboost')
+        app.logger.info("XGBoost model preloaded successfully!")
+        return True
+    except Exception as e:
+        app.logger.error(f"Failed to preload XGBoost: {str(e)}")
+        app.logger.warning("XGBoost will be loaded on first request (slower)")
+        return False
+
+"""
+Create the Flask app
+"""
 def create_app():
 
     app = Flask(__name__,
@@ -87,9 +124,9 @@ def create_app():
 # Create app
 app = create_app()
 
-# Load models after app creation
+# Preload XGBoost for fastest predictions (safest model)
 with app.app_context():
-    load_models_on_startup()
+    preload_xgboost_on_startup()
 
 if __name__ == '__main__':
     # Start app

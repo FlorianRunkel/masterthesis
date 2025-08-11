@@ -52,15 +52,15 @@ def predict_career():
         model_type = data.get('modelType', 'tft').lower()
         logging.info(f"Use model: {model_type}")
 
-        # Get preloaded models from global cache
-        from app import loaded_models
+        # Get preloaded models from global cache using lazy loading
+        from app import load_model_lazy
         
-        if model_type not in loaded_models:
-            logging.error(f"Model {model_type} not found in preloaded models")
-            return jsonify({'error': f"Model {model_type} not available"}), 400
-
-        preloaded_model = loaded_models[model_type]
-        logging.info(f"Using preloaded {model_type} model")
+        try:
+            preloaded_model = load_model_lazy(model_type)
+            logging.info(f"Using {model_type} model (loaded on demand)")
+        except Exception as model_error:
+            logging.error(f"Error loading {model_type} model: {str(model_error)}")
+            return jsonify({'error': f"Failed to load {model_type} model: {str(model_error)}"}), 500
 
         # Import prediction modules
         model_predictors = {
@@ -137,15 +137,15 @@ def predict_batch():
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
             
-            # Get preloaded models from global cache
-            from app import loaded_models
+            # Get preloaded models from global cache using lazy loading
+            from app import load_model_lazy
             
-            if model_type not in loaded_models:
-                logging.error(f"Model {model_type} not found in preloaded models")
-                return jsonify({'error': f"Model {model_type} not available"}), 400
-
-            preloaded_model = loaded_models[model_type]
-            logging.info(f"Using preloaded {model_type} model for batch prediction")
+            try:
+                preloaded_model = load_model_lazy(model_type)
+                logging.info(f"Using {model_type} model (loaded on demand) for batch prediction")
+            except Exception as model_error:
+                logging.error(f"Error loading {model_type} model for batch prediction: {str(model_error)}")
+                return jsonify({'error': f"Failed to load {model_type} model for batch prediction: {str(model_error)}"}), 500
 
             model_predictors = {
                 "gru": "ml_pipe.models.gru.predict",
