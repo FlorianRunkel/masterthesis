@@ -15,6 +15,7 @@ class Config:
         r"/*": {
             "origins": [
                 "https://masterthesis-igbq.onrender.com",
+                "https://masterthesis-backend.onrender.com",
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
             ],

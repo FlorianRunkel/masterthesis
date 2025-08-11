@@ -1,4 +1,8 @@
-export const API_BASE_URL = "http://localhost:5100";
+// Nach dem Deploy: Neue Backend-URL von Render
+export const API_BASE_URL = "https://masterthesis-backend.onrender.com";
 
-//cloudflared tunnel --url http://localhost:5100 copy url and push on github
-//export const API_BASE_URL = "https://lot-realtors-tribune-shapes.trycloudflare.com"; 
+// Lokale Entwicklung (auskommentiert)
+// export const API_BASE_URL = "http://localhost:8080";
+
+// Cloudflare Tunnel (für lokales Testen)
+// export const API_BASE_URL = "https://lot-realtors-tribune-shapes.trycloudflare.com"; 

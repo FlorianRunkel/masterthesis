@@ -4,16 +4,14 @@ import logging
 from flask import Flask
 from flask_cors import CORS
 
-backend_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(backend_dir)
-sys.path.insert(0, parent_dir)
+# Im Render-Verzeichnis sind wir bereits im backend/ Ordner
 
-from backend.config import Config
-from backend.api_handlers.candidates.handler import candidates_bp
-from backend.api_handlers.linkedin.handler import linkedin_bp
-from backend.api_handlers.prediction.handler import prediction_bp
-from backend.api_handlers.user_management.handler import user_management_bp
-from backend.api_handlers.feedback.handler import feedback_bp
+from config import Config
+from api_handlers.candidates.handler import candidates_bp
+from api_handlers.linkedin.handler import linkedin_bp
+from api_handlers.prediction.handler import prediction_bp
+from api_handlers.user_management.handler import user_management_bp
+from api_handlers.feedback.handler import feedback_bp
 
 '''
 Create and configure the backend application
@@ -28,8 +26,9 @@ def create_app():
 
     origins = [
         "https://masterthesis-igbq.onrender.com",
+        "https://masterthesis-backend.onrender.com",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
     ]
 
     CORS(app, 
@@ -53,4 +52,4 @@ app = create_app()
 
 if __name__ == '__main__':
     # Start app
-    app.run(host='0.0.0.0', port=5100, debug=True)
+    app.run(host='0.0.0.0', port=5100, debug=False)
