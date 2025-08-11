@@ -250,7 +250,7 @@ def predict(linkedin_data, model_path=None):
 
         career_history = linkedin_data.get('workExperience', [])
         print(f"Career history: {career_history}")
-        rule_applies, info = CareerRules.check_all_rules(career_history, min_months=6, model="tft")
+        rule_applies, info = CareerRules.check_all_rules(career_history, min_years=6, model="tft")
         if rule_applies:
             return info
 
@@ -313,7 +313,7 @@ def predict(linkedin_data, model_path=None):
             print(f"Added {missing} dummy timepoints. New length: {len(df_prediction_renamed)}")
 
         if model_path is None:
-            model_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_20250805_164438.ckpt"
+            model_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
 
         print(f"Load trained model: {model_path}")
         tft = TemporalFusionTransformer.load_from_checkpoint(model_path)

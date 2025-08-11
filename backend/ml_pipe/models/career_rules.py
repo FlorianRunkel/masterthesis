@@ -246,10 +246,10 @@ class CareerRules:
             return False, None
 
     '''
-    Check if the candidate has been in the current position for more than 1 year AND has multiple positions at the same company (career progression indicator)
+    Check if the candidate has been in the current position for more than 6 year AND has multiple positions at the same company (career progression indicator)
     '''
     @staticmethod
-    def is_long_term_current_position(career_history, min_years=1, model="gru"):
+    def is_long_term_current_position(career_history, min_years=6, model="gru"):
         try:
             if not career_history or not isinstance(career_history, list) or len(career_history) == 0:
                 return False, None
@@ -330,7 +330,7 @@ class CareerRules:
         rules = [
             lambda ch, **kw: CareerRules.is_on_sabbatical_or_gap_year(ch, model=kw.get('model', 'gru')),
             lambda ch, **kw: CareerRules.is_c_level_or_founder(ch, model=kw.get('model', 'gru')),
-            lambda ch, **kw: CareerRules.is_long_term_current_position(ch, min_years=kw.get('min_years', 1), model=kw.get('model', 'gru')),
+            lambda ch, **kw: CareerRules.is_long_term_current_position(ch, min_years=kw.get('min_years', 6), model=kw.get('model', 'gru')),
             lambda ch, **kw: CareerRules.is_last_position_too_new(ch, min_months=kw.get('min_months', 6), model=kw.get('model', 'gru')),
             # add rules
         ]

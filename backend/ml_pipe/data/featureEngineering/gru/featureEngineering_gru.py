@@ -239,22 +239,3 @@ class FeatureEngineering:
             torch.tensor(all_sequences, dtype=torch.float32),
             torch.tensor(all_labels, dtype=torch.float32)
         )
-
-    '''
-    Map position fuzzy
-    '''
-    def map_position_fuzzy(self, pos, threshold=80):
-        if not pos:
-            return 0, 0, 0
-
-        pos_clean = pos.lower().strip()
-
-        match, score, _ = process.extractOne(pos_clean, self.position_list, scorer=fuzz.ratio)
-
-        if score >= threshold:
-            level, branche, durchschnittszeit = self.position_map[match]
-
-            return float(level), float(self.get_branche_num(branche)), float(durchschnittszeit)
-
-        logger.warning(f"No match found for position: {pos}")
-        return 0, 0, 0
