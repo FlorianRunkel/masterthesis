@@ -45,17 +45,17 @@ def load_model_lazy(model_type):
 
         if model_type == 'tft':
             from pytorch_forecasting import TemporalFusionTransformer
-            model_path = "/app/backend/ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
+            model_path = "ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
             model = TemporalFusionTransformer.load_from_checkpoint(model_path)
 
         elif model_type == 'gru':
             from ml_pipe.models.gru.predict import load_model
-            model_path = "/app/backend/ml_pipe/models/gru/saved_models/gru_model_20250807_184702.pt"
+            model_path = "ml_pipe/models/gru/saved_models/gru_model_20250807_184702.pt"
             model = load_model(model_path)
 
         elif model_type == 'xgboost':
             from ml_pipe.models.xgboost.predict import load_xgb_model
-            model_path = "/app/backend/ml_pipe/models/xgboost/saved_models/xgboost_model_20250806_151510.joblib"
+            model_path = "ml_pipe/models/xgboost/saved_models/xgboost_model_20250806_151510.joblib"
             model = load_xgb_model(model_path)
 
         else:
