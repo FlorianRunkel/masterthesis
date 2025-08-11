@@ -1,7 +1,6 @@
 Flask
 Flask-Cors
 gunicorn
-gevent
 python-dotenv
 pandas
 scikit-learn

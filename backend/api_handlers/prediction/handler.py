@@ -52,22 +52,15 @@ def predict_career():
         model_type = data.get('modelType', 'tft').lower()
         logging.info(f"Use model: {model_type}")
 
-        # Get preloaded models from global cache using lazy loading
-        from app import load_model_lazy
-        
-        try:
-            preloaded_model = load_model_lazy(model_type)
-            logging.info(f"Using {model_type} model (loaded on demand)")
-        except Exception as model_error:
-            logging.error(f"Error loading {model_type} model: {str(model_error)}")
-            return jsonify({'error': f"Failed to load {model_type} model: {str(model_error)}"}), 500
-
-        # Import prediction modules
         model_predictors = {
             "gru": "ml_pipe.models.gru.predict",
             "xgboost": "ml_pipe.models.xgboost.predict",
             "tft": "ml_pipe.models.tft.predict"
         }
+
+        if model_type not in model_predictors:
+            logging.error(f"Unknown model type: {model_type}")
+            return jsonify({'error': f"Unknown model type: {model_type}"}), 400
 
         module = __import__(model_predictors[model_type], fromlist=['predict'])
         logging.info(f"Module loaded successfully: {model_predictors[model_type]}")
@@ -75,8 +68,7 @@ def predict_career():
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
-        # Pass preloaded model to predict function
-        prediction = module.predict(profile_data, preloaded_model=preloaded_model)
+        prediction = module.predict(profile_data)
 
         if model_type == 'xgboost':
             confidence_list = prediction.get('confidence', [])
@@ -136,17 +128,6 @@ def predict_batch():
 
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
-            
-            # Get preloaded models from global cache using lazy loading
-            from app import load_model_lazy
-            
-            try:
-                preloaded_model = load_model_lazy(model_type)
-                logging.info(f"Using {model_type} model (loaded on demand) for batch prediction")
-            except Exception as model_error:
-                logging.error(f"Error loading {model_type} model for batch prediction: {str(model_error)}")
-                return jsonify({'error': f"Failed to load {model_type} model for batch prediction: {str(model_error)}"}), 500
-
             model_predictors = {
                 "gru": "ml_pipe.models.gru.predict",
                 "xgboost": "ml_pipe.models.xgboost.predict",
@@ -181,8 +162,7 @@ def predict_batch():
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
-                # Pass preloaded model to predict function
-                prediction = module.predict(profile_data, preloaded_model=preloaded_model)
+                prediction = module.predict(profile_data)
 
                 if "error" in prediction:
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": prediction["error"]})
