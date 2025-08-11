@@ -236,7 +236,7 @@ def extract_features_from_linkedin_new(data):
 '''
 Predict
 '''
-def predict(linkedin_data, model_path=None):
+def predict(linkedin_data, model_path=None, preloaded_model=None):
     try:
         print("\n=== Start prediction ===")
 
@@ -312,11 +312,15 @@ def predict(linkedin_data, model_path=None):
             df_prediction_renamed = append_dummy_rows(df_prediction_renamed, missing)
             print(f"Added {missing} dummy timepoints. New length: {len(df_prediction_renamed)}")
 
-        if model_path is None:
-            model_path = "ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
-
-        print(f"Load trained model: {model_path}")
-        tft = TemporalFusionTransformer.load_from_checkpoint(model_path)
+        # Use preloaded model if available, otherwise load from file
+        if preloaded_model is not None:
+            print("Using preloaded TFT model from cache")
+            tft = preloaded_model
+        else:
+            if model_path is None:
+                model_path = "ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
+            print(f"Loading TFT model from file: {model_path}")
+            tft = TemporalFusionTransformer.load_from_checkpoint(model_path)
 
         time_varying_unknown_reals_named = [feature_names[f'feature_{i}'] for i in range(23) if f'feature_{i}' in feature_names]
 

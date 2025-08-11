@@ -1,6 +1,7 @@
 Flask
 Flask-Cors
 gunicorn
+gevent
 python-dotenv
 pandas
 scikit-learn
@@ -18,6 +19,7 @@ matplotlib
 seaborn
 xgboost
 shap
+lime
 rapidfuzz
 certifi
 linkedin-api

@@ -52,15 +52,22 @@ def predict_career():
         model_type = data.get('modelType', 'tft').lower()
         logging.info(f"Use model: {model_type}")
 
+        # Get preloaded models from global cache
+        from app import loaded_models
+        
+        if model_type not in loaded_models:
+            logging.error(f"Model {model_type} not found in preloaded models")
+            return jsonify({'error': f"Model {model_type} not available"}), 400
+
+        preloaded_model = loaded_models[model_type]
+        logging.info(f"Using preloaded {model_type} model")
+
+        # Import prediction modules
         model_predictors = {
             "gru": "ml_pipe.models.gru.predict",
             "xgboost": "ml_pipe.models.xgboost.predict",
             "tft": "ml_pipe.models.tft.predict"
         }
-
-        if model_type not in model_predictors:
-            logging.error(f"Unknown model type: {model_type}")
-            return jsonify({'error': f"Unknown model type: {model_type}"}), 400
 
         module = __import__(model_predictors[model_type], fromlist=['predict'])
         logging.info(f"Module loaded successfully: {model_predictors[model_type]}")
@@ -68,7 +75,8 @@ def predict_career():
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
-        prediction = module.predict(profile_data)
+        # Pass preloaded model to predict function
+        prediction = module.predict(profile_data, preloaded_model=preloaded_model)
 
         if model_type == 'xgboost':
             confidence_list = prediction.get('confidence', [])
@@ -128,6 +136,17 @@ def predict_batch():
 
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
+            
+            # Get preloaded models from global cache
+            from app import loaded_models
+            
+            if model_type not in loaded_models:
+                logging.error(f"Model {model_type} not found in preloaded models")
+                return jsonify({'error': f"Model {model_type} not available"}), 400
+
+            preloaded_model = loaded_models[model_type]
+            logging.info(f"Using preloaded {model_type} model for batch prediction")
+
             model_predictors = {
                 "gru": "ml_pipe.models.gru.predict",
                 "xgboost": "ml_pipe.models.xgboost.predict",
@@ -162,7 +181,8 @@ def predict_batch():
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
-                prediction = module.predict(profile_data)
+                # Pass preloaded model to predict function
+                prediction = module.predict(profile_data, preloaded_model=preloaded_model)
 
                 if "error" in prediction:
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": prediction["error"]})

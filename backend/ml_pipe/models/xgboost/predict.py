@@ -298,12 +298,18 @@ def get_explanations(model, feature_names):
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None):
+def predict(profile_dict, model_path=None, preloaded_model=None):
     try:
-        if model_path is None:
-            model_path = get_latest_model_path()
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"No model found at {model_path}")
+        # Use preloaded model if available, otherwise load from file
+        if preloaded_model is not None:
+            print("Using preloaded XGBoost model from cache")
+            model = preloaded_model
+        else:
+            if model_path is None:
+                model_path = get_latest_model_path()
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"No model found at {model_path}")
+            model = load_xgb_model(model_path)
 
         profile_dict = parse_profile_data(profile_dict)
 
@@ -426,7 +432,6 @@ def predict(profile_dict, model_path=None):
 
         X = np.array([feature_vector], dtype=np.float32)
 
-        model = load_xgb_model(model_path)
         prob = model.predict_proba(X)[0]
         status = get_status(prob[1])
         recommendations = [

@@ -370,13 +370,19 @@ def transform_features_for_gru(profile_data, scaler_path="ml_pipe/models/gru/sca
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None):
+def predict(profile_dict, model_path=None, preloaded_model=None):
     try:
-        if model_path is None:
-            model_path = get_latest_model_path()
-            print(f"\nLoad latest model: {model_path}")
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"No model found under {model_path}")
+        # Use preloaded model if available, otherwise load from file
+        if preloaded_model is not None:
+            print("Using preloaded GRU model from cache")
+            model = preloaded_model
+        else:
+            if model_path is None:
+                model_path = get_latest_model_path()
+                print(f"\nLoad latest model: {model_path}")
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"No model found under {model_path}")
+            model = load_model(model_path)
 
         print("\n=== Start prediction ===")
 
@@ -398,7 +404,6 @@ def predict(profile_dict, model_path=None):
 
         features_tensor = transform_features_for_gru(profile_data)
 
-        model = load_model(model_path)
         model.eval()
 
         with torch.no_grad():
