@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from backend.api_handlers.linkedin.unipilelayer import UnipileLayer
+from api_handlers.linkedin.unipilelayer import UnipileLayer
 import logging  
 import json
 # Blueprint für LinkedIn-Routen

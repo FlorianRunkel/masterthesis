@@ -4,7 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from pytorch_lightning import LightningDataModule
 import logging
-from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
+from ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
 import joblib
 
 '''

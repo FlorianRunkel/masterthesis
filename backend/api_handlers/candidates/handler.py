@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from backend.ml_pipe.data.database.mongodb import MongoDb
+from ml_pipe.data.database.mongodb import MongoDb
 import logging
 from bson import ObjectId
 

@@ -3,7 +3,7 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_forecasting import TimeSeriesDataSet, GroupNormalizer
 import torch
-from backend.ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
+from ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
 from pytorch_forecasting.data.encoders import NaNLabelEncoder
 import json
 from rapidfuzz import process, fuzz

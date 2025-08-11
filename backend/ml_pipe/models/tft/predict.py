@@ -8,8 +8,8 @@ import pandas as pd
 import torch
 import os
 import numpy as np
-from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
-from backend.ml_pipe.models.career_rules import CareerRules
+from ml_pipe.explainable_ai.explainer import ModelExplainer
+from ml_pipe.models.career_rules import CareerRules
 
 '''
 Load configuration files relative to script path
@@ -32,8 +32,8 @@ all_positions = list(position_map.keys())
 '''
 Load FeatureEngineering
 '''
-sys.path.insert(0, '/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
-from backend.ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
+# Removed hardcoded path for Render compatibility
+from ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
 
 '''
 Helper Functions
@@ -313,7 +313,7 @@ def predict(linkedin_data, model_path=None):
             print(f"Added {missing} dummy timepoints. New length: {len(df_prediction_renamed)}")
 
         if model_path is None:
-            model_path = "/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
+            model_path = "ml_pipe/models/tft/saved_models/tft_optimized_20250808_122135.ckpt"
 
         print(f"Load trained model: {model_path}")
         tft = TemporalFusionTransformer.load_from_checkpoint(model_path)

@@ -3,15 +3,15 @@ import os
 import glob
 import json
 from datetime import datetime
-from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import parse_date
-from backend.ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
-from backend.ml_pipe.models.gru.model import GRUModel
+from ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import parse_date
+from ml_pipe.data.featureEngineering.gru.featureEngineering_gru import FeatureEngineering
+from ml_pipe.models.gru.model import GRUModel
 import numpy as np
-from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
+from ml_pipe.explainable_ai.explainer import ModelExplainer
 import numpy as np
 import torch
 import joblib
-from backend.ml_pipe.models.career_rules import CareerRules
+from ml_pipe.models.career_rules import CareerRules
 
 '''
 Helper Functions
@@ -181,7 +181,7 @@ def prepare_features(profile_dict):
         latest_sample = samples[0]
         fe = FeatureEngineering()
 
-        from backend.ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import estimate_age_category, categorize_company_size
+        from ml_pipe.data.linkedInData.timeSeries.profileFeaturizer import estimate_age_category, categorize_company_size
 
         '''
         Extract highest degree
@@ -359,7 +359,7 @@ def create_background_data(seq_tensor):
 '''
 Transform features for GRU
 '''
-def transform_features_for_gru(profile_data, scaler_path="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/gru/scaler_gru.joblib"):
+def transform_features_for_gru(profile_data, scaler_path="ml_pipe/models/gru/scaler_gru.joblib"):
     raw_features = prepare_features(profile_data)
     flat = np.array(raw_features).flatten().reshape(1, -1)
     scaler = joblib.load(scaler_path)

@@ -9,8 +9,8 @@ from random import randint
 import sys
 sys.path.append('/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
 '''
-from backend.ml_pipe.data.database.mongodb import MongoDb
-from backend.ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb import FeatureEngineering
+from ml_pipe.data.database.mongodb import MongoDb
+from ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb import FeatureEngineering
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO)

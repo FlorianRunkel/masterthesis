@@ -1,11 +1,11 @@
-from backend.ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb import FeatureEngineering
-from backend.ml_pipe.data.linkedInData.classification.profileFeaturizer import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
+from ml_pipe.data.featureEngineering.xgboost.feature_engineering_xgb import FeatureEngineering
+from ml_pipe.data.linkedInData.classification.profileFeaturizer import extract_career_data, extract_education_data, extract_additional_features, estimate_age_category
 from collections import defaultdict
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import joblib
-from backend.ml_pipe.explainable_ai.explainer import ModelExplainer
-from backend.ml_pipe.models.career_rules import CareerRules
+from ml_pipe.explainable_ai.explainer import ModelExplainer
+from ml_pipe.models.career_rules import CareerRules
 import numpy as np
 import joblib
 import os
@@ -13,7 +13,7 @@ import glob
 import json
 import pickle
 
-with open("/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
+with open("ml_pipe/models/xgboost/saved_models/position_categories.pkl", "rb") as f:
     position_categories = pickle.load(f)
 position_mapping = {name: idx for idx, name in enumerate(position_categories, 1)}
 
@@ -161,7 +161,7 @@ def extract_career_history_features(career_history, branche_levels, position_map
 '''
 Model Functions
 '''
-def get_latest_model_path(model_dir="/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/backend/ml_pipe/models/xgboost/saved_models"):
+def get_latest_model_path(model_dir="ml_pipe/models/xgboost/saved_models"):
     model_files = glob.glob(os.path.join(model_dir, "xgboost_model_*.joblib"))
     if not model_files:
         raise FileNotFoundError(f"No model found in directory {model_dir}")
