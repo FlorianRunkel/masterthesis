@@ -165,7 +165,6 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 
 | Method | Path                | Description                        | Status |
 |---------|---------------------|-------------------------------------|---------|
-| GET     | /health             | Health Check (Render)               | ✅ Live |
 | POST    | /scrape-linkedin    | Analyze LinkedIn profile            | ✅ Live |
 | POST    | /predict            | Prediction for one profile          | ✅ Live |
 | POST    | /predict-batch      | Batch prediction for multiple profiles | ✅ Live |
