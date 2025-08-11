@@ -53,9 +53,9 @@ def predict_career():
         logging.info(f"Use model: {model_type}")
 
         model_predictors = {
-            "gru": "backend.ml_pipe.models.gru.predict",
-            "xgboost": "backend.ml_pipe.models.xgboost.predict",
-            "tft": "backend.ml_pipe.models.tft.predict"
+            "gru": "ml_pipe.models.gru.predict",
+            "xgboost": "ml_pipe.models.xgboost.predict",
+            "tft": "ml_pipe.models.tft.predict"
         }
 
         if model_type not in model_predictors:
@@ -129,9 +129,9 @@ def predict_batch():
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
             model_predictors = {
-                "gru": "backend.ml_pipe.models.gru.predict",
-                "xgboost": "backend.ml_pipe.models.xgboost.predict",
-                "tft": "backend.ml_pipe.models.tft.predict"
+                "gru": "ml_pipe.models.gru.predict",
+                "xgboost": "ml_pipe.models.xgboost.predict",
+                "tft": "ml_pipe.models.tft.predict"
             }
 
             if model_type not in model_predictors:

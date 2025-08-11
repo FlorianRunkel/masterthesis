@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.append('/Users/florianrunkel/Documents/02_Uni/04_Masterarbeit/masterthesis/')
 
-from backend.ml_pipe.data.database.mongodb import MongoDb
+from ml_pipe.data.database.mongodb import MongoDb
 '''
 '''
 Classify change
