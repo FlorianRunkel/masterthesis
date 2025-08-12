@@ -243,7 +243,12 @@ const ManualInput = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type'
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify(profile_data),
       });
 

@@ -36,7 +36,14 @@ const SettingsPage = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/create-user`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify(form)
       });
       const data = await response.json();
@@ -55,7 +62,15 @@ const SettingsPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users`);
+      const res = await fetch(`${API_BASE_URL}/api/users`, {
+        method: 'GET',
+        headers: {
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'GET'
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
       const data = await res.json();
       console.log('User-API Antwort:', data);
       if (res.ok) {
@@ -90,7 +105,15 @@ const SettingsPage = () => {
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users/${userToDelete._id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/users/${userToDelete._id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'DELETE'
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
       const data = await res.json();
       if (res.ok) {
         setDeleteSuccess('User erfolgreich gelöscht!');
@@ -122,7 +145,14 @@ const SettingsPage = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/users/${user._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'PUT',
+          'Access-Control-Request-Headers': 'Content-Type'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           firstName: user.firstName,
           lastName: user.lastName,

@@ -68,7 +68,15 @@ const FeedbackPage = () => {
       const uid = user?.uid;
       const res = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-User-Uid': uid },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-User-Uid': uid,
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({ freeText, prognoseBewertung, bewertungsskala, explanationFeedback })
       });
       if (!res.ok) throw new Error('Failed to save feedback');

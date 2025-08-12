@@ -118,6 +118,12 @@ const BatchUpload = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/predict-batch`, {
         method: 'POST',
+        headers: {
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: formData
       });
       if (!response.ok) {
@@ -165,7 +171,14 @@ const BatchUpload = () => {
             try {
               const response = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Origin': 'https://masterthesis-igbq.onrender.com',
+                  'Access-Control-Request-Method': 'POST',
+                  'Access-Control-Request-Headers': 'Content-Type'
+                },
+                mode: 'cors',
+                credentials: 'omit',
                 body: JSON.stringify({ url: candidate.linkedinProfile }),
               });
               const data = await response.json();
@@ -205,7 +218,12 @@ const BatchUpload = () => {
         headers: {
           'Content-Type': 'application/json',
           'X-User-Uid': uid,
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify(candidatesWithModel),
       });
       const data = await response.json();

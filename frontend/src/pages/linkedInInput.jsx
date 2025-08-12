@@ -68,7 +68,14 @@ const LinkedInInput = () => {
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({ url: linkedinUrl })
       });
 
@@ -114,7 +121,14 @@ const LinkedInInput = () => {
       };
       const predictionResponse = await fetch(`${API_BASE_URL}/predict`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type'
+        },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify(profile_data)
       });
 
@@ -163,7 +177,12 @@ const LinkedInInput = () => {
         headers: {
           'Content-Type': 'application/json',
           'X-User-Uid': uid,
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify([candidateData])
       });
 

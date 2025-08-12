@@ -15,7 +15,7 @@
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.3.3"
   },
-  "proxy": "https://masterthesis-backend.onrender.com",
+  "proxy": "https://masterthesis-api-proxy.onrender.com",
   "scripts": {
     "start": "DANGEROUSLY_DISABLE_HOST_CHECK=true BROWSER=none WDS_SOCKET_HOST=localhost react-scripts start",
     "build": "react-scripts build",

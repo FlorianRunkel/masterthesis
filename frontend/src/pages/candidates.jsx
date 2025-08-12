@@ -22,7 +22,15 @@ const CandidatesPage = () => {
     const fetchCandidates = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/candidates`);
+        const response = await fetch(`${API_BASE_URL}/api/candidates`, {
+          method: 'GET',
+          headers: {
+            'Origin': 'https://masterthesis-igbq.onrender.com',
+            'Access-Control-Request-Method': 'GET'
+          },
+          mode: 'cors',
+          credentials: 'omit'
+        });
         if (!response.ok) {
           throw new Error('Error loading candidates');
         }
@@ -72,7 +80,12 @@ const CandidatesPage = () => {
         method: 'DELETE',
         headers: {
           'X-User-Uid': uid,
+          'Origin': 'https://masterthesis-igbq.onrender.com',
+          'Access-Control-Request-Method': 'DELETE',
+          'Access-Control-Request-Headers': 'X-User-Uid'
         },
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       if (!response.ok) {
