@@ -1,5 +1,5 @@
-// Nach dem Deploy: Neue Backend-URL von AWS
-export const API_BASE_URL = "http://masterthesis-backend-lb-1641888944.eu-central-1.elb.amazonaws.com";
+// Nach dem Deploy: Relative URL - Render macht den Proxy zu AWS
+export const API_BASE_URL = "/api";
 
 // Lokale Entwicklung (auskommentiert)
 // export const API_BASE_URL = "http://localhost:8080";
