@@ -1,5 +1,5 @@
 // Nach dem Deploy: Relative URL - Render macht den Proxy zu AWS
-export const API_BASE_URL = "";
+export const API_BASE_URL = "https://masterthesis-api-proxy.onrender.com/api";
 
 // Lokale Entwicklung (auskommentiert)
 // export const API_BASE_URL = "http://localhost:8080";
