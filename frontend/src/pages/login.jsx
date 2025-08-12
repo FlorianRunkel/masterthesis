@@ -22,16 +22,25 @@ const Login = ({ onLogin }) => {
       setError('Please enter email and password.');
       return;
     }
+    
+    console.log('Login attempt:', { email, password });
+    
     try {
       const response = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
+      console.log('Login response:', response);
+      
       if (response.status === 200 && response.data.user) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('user', JSON.stringify(response.data.user));
         onLogin();
       } else {
+        console.log('Login failed - wrong response:', response);
         setError('Wrong email or password.');
       }
     } catch (err) {
+      console.log('Login error:', err);
+      console.log('Error response:', err.response);
+      
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
