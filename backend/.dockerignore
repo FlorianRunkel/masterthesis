@@ -45,7 +45,7 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Logs
+# Logs (aber behalte ML-Modelle)
 *.log
 logs/
 lightning_logs/
@@ -66,3 +66,11 @@ tests/
 # Temporary files
 *.tmp
 *.temp
+
+# AWS specific
+.aws/
+aws-credentials
+
+# Development files
+*.ipynb
+*.pyc

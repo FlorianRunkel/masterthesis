@@ -15,9 +15,6 @@ from api_handlers.feedback.handler import feedback_bp
 
 '''
 Create and configure the backend application
-
-OPTIMIZED GUNICORN COMMAND FOR RENDER:
-gunicorn app:app --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --worker-class gevent --worker-connections 1000 --preload --max-requests 1000 --max-requests-jitter 100
 '''
 def create_app():
 
@@ -31,7 +28,11 @@ def create_app():
         "https://masterthesis-igbq.onrender.com",
         "https://masterthesis-backend.onrender.com",
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "http://127.0.0.1:0",
+        # AWS Backend URLs (werden später hinzugefügt)
+        "https://*.amazonaws.com",
+        "https://*.elasticbeanstalk.com",
+        "https://*.ecs.amazonaws.com",
     ]
 
     CORS(app,
@@ -46,6 +47,11 @@ def create_app():
     app.register_blueprint(user_management_bp)
     app.register_blueprint(feedback_bp)
 
+    # Root endpoint for AWS Load Balancer health check
+    @app.route('/')
+    def root():
+        return {'status': 'ok', 'service': 'masterthesis-backend'}, 200
+
     app.logger.info("Flask application successfully created and configured.")
 
     return app
@@ -55,4 +61,4 @@ app = create_app()
 
 if __name__ == '__main__':
     # Start app
-    app.run(host='0.0.0.0', port=5100, debug=False)
+    app.run(host='0.0.0.0', port=8080, debug=False)

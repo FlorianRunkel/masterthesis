@@ -20,9 +20,14 @@ COPY . .
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PORT=8080
+ENV FLASK_ENV=production
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 # Expose port
 EXPOSE 8080
 
-# Start command with simple gunicorn
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "300"]
+# Start command optimized for AWS
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300"]
