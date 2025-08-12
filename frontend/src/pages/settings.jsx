@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { API_BASE_URL } from '../api';
+import axios from 'axios';
 
 const SettingsPage = () => {
   const theme = useTheme();
@@ -34,25 +35,10 @@ const SettingsPage = () => {
     setError(null);
     setDeleteSuccess(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/create-user`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(form)
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setSuccess('User erfolgreich angelegt!');
-        setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
-      } else {
-        setError(data.error || 'Fehler beim Anlegen des Users.');
-      }
+      const response = await axios.post(`${API_BASE_URL}/api/create-user`, form);
+      const data = response.data;
+      setSuccess('User erfolgreich angelegt!');
+      setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
     } catch (err) {
       setError('Serverfehler: ' + err.message);
     } finally {
@@ -62,20 +48,10 @@ const SettingsPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users`, {
-        method: 'GET',
-        headers: {
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'GET'
-        },
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      const data = await res.json();
+      const res = await axios.get(`${API_BASE_URL}/api/users`);
+      const data = res.data;
       console.log('User-API Antwort:', data);
-      if (res.ok) {
-        setUsers(Array.isArray(data) ? data : data.users || data.data || []);
-      }
+      setUsers(Array.isArray(data) ? data : data.users || data.data || []);
     } catch (e) {
       console.error(e);
     }
@@ -105,24 +81,11 @@ const SettingsPage = () => {
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users/${userToDelete._id}`, { 
-        method: 'DELETE',
-        headers: {
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'DELETE'
-        },
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setDeleteSuccess('User erfolgreich gelöscht!');
-        setDeleteDialogOpen(false);
-        setUserToDelete(null);
-        fetchUsers();
-      } else {
-        setDeleteError(data.error || 'Fehler beim Löschen.');
-      }
+      const res = await axios.delete(`${API_BASE_URL}/api/users/${userToDelete._id}`);
+      setDeleteSuccess('User erfolgreich gelöscht!');
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      fetchUsers();
     } catch (e) {
       setDeleteError('Serverfehler: ' + e.message);
     }
@@ -143,31 +106,15 @@ const SettingsPage = () => {
     setUpdateSuccess(null);
     setUpdateError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users/${user._id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'PUT',
-          'Access-Control-Request-Headers': 'Content-Type'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          password: user.password || undefined,
-          canViewExplanations: user.canViewExplanations || false
-        })
+      const res = await axios.put(`${API_BASE_URL}/api/users/${user._id}`, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password: user.password || undefined,
+        canViewExplanations: user.canViewExplanations || false
       });
-      const data = await res.json();
-      if (res.ok) {
-        fetchUsers();
-        setUpdateSuccess('User erfolgreich aktualisiert!');
-      } else {
-        setUpdateError(data.error || 'Fehler beim Aktualisieren des Users.');
-      }
+      fetchUsers();
+      setUpdateSuccess('User erfolgreich aktualisiert!');
     } catch (e) {
       setUpdateError('Serverfehler: ' + e.message);
     }

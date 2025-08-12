@@ -17,13 +17,14 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  if (!results) return null;
+  if (!results || !Array.isArray(results)) return null;
 
   const successCount = results.filter(r => !r.error).length;
   const errorCount = results.filter(r => r.error).length;
 
   // Filter results based on probability filter
   const getFilteredResults = () => {
+    if (!results || !Array.isArray(results)) return [];
     if (probabilityFilter === 'all') return results;
     
     return results.filter(result => {
@@ -57,6 +58,8 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
   };
 
   const handleSaveSelected = () => {
+    if (!results || !Array.isArray(results)) return;
+    
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
       ...(originalProfiles && originalProfiles[index] ? originalProfiles[index] : {}),
       ...results[index],

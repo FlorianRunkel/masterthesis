@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/shared/loading_spinner';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
 import { API_BASE_URL } from '../api';
+import axios from 'axios';
 
 const CandidatesPage = () => {
   const [candidates, setCandidates] = useState([]);
@@ -22,19 +23,8 @@ const CandidatesPage = () => {
     const fetchCandidates = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/candidates`, {
-          method: 'GET',
-          headers: {
-            'Origin': 'https://masterthesis-igbq.onrender.com',
-            'Access-Control-Request-Method': 'GET'
-          },
-          mode: 'cors',
-          credentials: 'omit'
-        });
-        if (!response.ok) {
-          throw new Error('Error loading candidates');
-        }
-        const data = await response.json();
+        const response = await axios.get(`${API_BASE_URL}/api/candidates`);
+        const data = response.data;
 
         // UID des eingeloggten Users holen
         const user = JSON.parse(localStorage.getItem('user'));
@@ -76,21 +66,11 @@ const CandidatesPage = () => {
         throw new Error("User not authenticated");
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/candidates/${candidateId}`, {
-        method: 'DELETE',
+      const response = await axios.delete(`${API_BASE_URL}/api/candidates/${candidateId}`, {
         headers: {
           'X-User-Uid': uid,
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'DELETE',
-          'Access-Control-Request-Headers': 'X-User-Uid'
         },
-        mode: 'cors',
-        credentials: 'omit'
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete candidate');
-      }
       setCandidates(prevCandidates => prevCandidates.filter(c => c._id !== candidateId));
     } catch (err) {
       setError(err.message);

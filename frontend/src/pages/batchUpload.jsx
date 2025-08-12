@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Button, Alert, Tooltip, IconButton } from '@mui/material';
+import axios from 'axios';
 import ResultsTableClassification from '../components/display/table_classification';
 import LoadingSpinner from '../components/shared/loading_spinner';
 import ResultsTableTimeSeries from '../components/display/table_timeseries';
@@ -116,32 +117,20 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      const response = await fetch(`${API_BASE_URL}/predict-batch`, {
-        method: 'POST',
-        headers: {
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: formData
-      });
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      const data = await response.json();
+      const response = await axios.post(`${API_BASE_URL}/predict-batch`, formData);
+      const data = response.data;
       if (data.error) {
-        setResults({
+        setResults([{
           error: data.error,
           message: "Please check the format of your CSV file."
-        });
+        }]);
         return;
       }
-      setResults(data.results);
+      setResults(data.results || []);
       if (data.originalProfiles) setOriginalProfiles(data.originalProfiles);
     } catch (error) {
       setError(error.message);
-      setResults({
+      setResults([{
         error: error.message,
         message: "Please make sure your CSV file contains the following columns:",
         requirements: [
@@ -150,7 +139,7 @@ const BatchUpload = () => {
           "linkedinProfile (LinkedIn-URL)",
           "positions (experience in JSON format)"
         ]
-      });
+      }]);
     } finally {
       setLoading(false);
     }
@@ -169,19 +158,8 @@ const BatchUpload = () => {
         candidates.map(async (candidate) => {
           if (candidate.linkedinProfile) {
             try {
-              const response = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Origin': 'https://masterthesis-igbq.onrender.com',
-                  'Access-Control-Request-Method': 'POST',
-                  'Access-Control-Request-Headers': 'Content-Type'
-                },
-                mode: 'cors',
-                credentials: 'omit',
-                body: JSON.stringify({ url: candidate.linkedinProfile }),
-              });
-              const data = await response.json();
+              const response = await axios.post(`${API_BASE_URL}/scrape-linkedin`, { url: candidate.linkedinProfile });
+              const data = response.data;
               if (data && !data.error) {
                 const [firstName, ...rest] = (data.name || '').split(' ');
                 const lastName = rest.join(' ');
@@ -213,21 +191,13 @@ const BatchUpload = () => {
         modelType: modelType
       }));
 
-      const response = await fetch(`${API_BASE_URL}/api/candidates`, {
-        method: 'POST',
+      const response = await axios.post(`${API_BASE_URL}/api/candidates`, candidatesWithModel, {
         headers: {
-          'Content-Type': 'application/json',
           'X-User-Uid': uid,
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(candidatesWithModel),
+        }
       });
-      const data = await response.json();
-      if (!response.ok) {
+      const data = response.data;
+      if (response.status !== 200) {
         throw new Error(data.error || 'Error saving candidates');
       }
       setSaveSuccess(true);

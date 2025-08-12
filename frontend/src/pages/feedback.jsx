@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, Table, TableBody, TableCell, TableC
 import { useTheme } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { API_BASE_URL } from '../api';
+import axios from 'axios';
 
 const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment'];
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
@@ -66,20 +67,9 @@ const FeedbackPage = () => {
     setError('');
     try {
       const uid = user?.uid;
-      const res = await fetch(`${API_BASE_URL}/api/feedback`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          'X-User-Uid': uid,
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({ freeText, prognoseBewertung, bewertungsskala, explanationFeedback })
+      const res = await axios.post(`${API_BASE_URL}/api/feedback`, { freeText, prognoseBewertung, bewertungsskala, explanationFeedback }, {
+        headers: { 'X-User-Uid': uid }
       });
-      if (!res.ok) throw new Error('Failed to save feedback');
       setSuccess(true);
       setFreeText('');
       setPrognoseBewertung([{ modell: '', prognose: '', echt: '', bemerkung: '' }]);

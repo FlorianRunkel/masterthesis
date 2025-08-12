@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, CircularProgress, Button, FormControl, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent } from '@mui/material';
+import axios from 'axios';
 import ProfileDisplay from '../components/display/profile_display';
 import PredictionResultClassification from '../components/prediction/prediction_classification';
 import PredictionResultTime from '../components/prediction/prediction_time';
@@ -66,25 +67,8 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      const profileResponse = await fetch(`${API_BASE_URL}/scrape-linkedin`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify({ url: linkedinUrl })
-      });
-
-      if (!profileResponse.ok) {
-        const errorData = await profileResponse.json();
-        throw new Error(errorData.error || 'Fehler beim Laden des LinkedIn-Profils');
-      }
-
-      const profile = await profileResponse.json();
+      const profileResponse = await axios.post(`${API_BASE_URL}/scrape-linkedin`, { url: linkedinUrl });
+      const profile = profileResponse.data;
       setProfileData(profile);
       localStorage.setItem('linkedinProfileData', JSON.stringify(profile));
       const [firstName, ...rest] = profile.name.split(' ');
@@ -119,25 +103,8 @@ const LinkedInInput = () => {
           languageSkills: {}
         })
       };
-      const predictionResponse = await fetch(`${API_BASE_URL}/predict`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify(profile_data)
-      });
-
-      if (!predictionResponse.ok) {
-        const errorData = await predictionResponse.json();
-        throw new Error(errorData.error || 'Fehler bei der Karriere-Analyse');
-      }
-
-      const prediction = await predictionResponse.json();
+      const predictionResponse = await axios.post(`${API_BASE_URL}/predict`, profile_data);
+      const prediction = predictionResponse.data;
       setPredictionData(prediction);
 
     } catch (error) {
@@ -172,23 +139,15 @@ const LinkedInInput = () => {
         modelType: selectedModel
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/candidates`, {
-        method: 'POST',
+      const response = await axios.post(`${API_BASE_URL}/api/candidates`, [candidateData], {
         headers: {
-          'Content-Type': 'application/json',
           'X-User-Uid': uid,
-          'Origin': 'https://masterthesis-igbq.onrender.com',
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type,X-User-Uid'
-        },
-        mode: 'cors',
-        credentials: 'omit',
-        body: JSON.stringify([candidateData])
+        }
       });
 
-      const result = await response.json();
+      const result = response.data;
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(result.error || 'Fehler beim Speichern des Kandidaten');
       }
 
