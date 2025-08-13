@@ -5,20 +5,22 @@
 ---
 
 **Frontend**: https://masterthesis-igbq.onrender.com
-**Backend**: https://masterthesis-backend.onrender.com
+**API Proxy**: https://masterthesis-api-proxy.onrender.com
+**Backend**: AWS ECS (Elastic Container Service)
 
 ---
 
 ## Overview
 
-This application analyzes LinkedIn profiles and predicts with the help of AI models when a career step is likely to occur. It consists of a **Backend** (Python/Flask, AI models) and a **Frontend** (React, Material-UI), both deployed on Render.
+This application analyzes LinkedIn profiles and predicts with the help of AI models when a career step is likely to occur. It consists of a **Backend** (Python/Flask, AI models) deployed on AWS, a **Frontend** (React, Material-UI) deployed on Render, and an **API Proxy** (Node.js/Express) also deployed on Render to handle CORS and routing.
 
 ---
 
 ## Deployment Status
 
 - **Frontend**: Live on Render (https://masterthesis-igbq.onrender.com)
-- **Backend**: Live on Render (https://masterthesis-backend.onrender.com)
+- **API Proxy**: Live on Render (https://masterthesis-api-proxy.onrender.com)
+- **Backend**: Live on AWS ECS (Elastic Container Service)
 - **ML Models**: All 3 models (TFT, GRU, XGBoost) are integrated in the backend
 
 ---
@@ -28,9 +30,10 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 ```
 .
 ├── backend/                 # Backend server (Python, Flask, AI models)
-│   ├── app.py               # Main API server (Flask) - Render optimized
+│   ├── app.py               # Main API server (Flask) - AWS optimized
 │   ├── config.py            # Configuration (CORS, database, model paths)
 │   ├── requirements.txt     # Python dependencies
+│   ├── Dockerfile           # Docker configuration for AWS deployment
 │   ├── ml_pipe/             # Machine Learning Pipeline
 │   │   ├── data/            # Data processing & Feature Engineering
 │   │   │   ├── featureEngineering/   # Feature engineering scripts
@@ -45,19 +48,25 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 ├── frontend/                # React Frontend (User interface)
 │   ├── src/                 # React components & logic
 │   │   ├── pages/           # Pages (e.g., Analysis, Admin, Candidates)
-│   │   ├── api.js           # API URL configuration (Render backend)
+│   │   ├── api.js           # API URL configuration (API Proxy)
 │   │   └── ...
 │   ├── public/              # Static files (HTML, Icons, ...)
 │   ├── package.json         # Frontend dependencies
 │   └── tailwind.config.js   # Tailwind CSS configuration
+│
+├── masterthesis-api-proxy/  # API Proxy server (Node.js, Express)
+│   ├── server.js            # Proxy server configuration
+│   ├── package.json         # Proxy dependencies
+│   └── ...
 │
 ├── README.md                # This guide
 └── ...
 ```
 
 **Important notes:**
-- **Backend**: All ML models, data processing, API logic - deployed on Render
-- **Frontend**: User interface, communicates with Render backend
+- **Backend**: All ML models, data processing, API logic - deployed on AWS ECS
+- **Frontend**: User interface, communicates with API Proxy
+- **API Proxy**: Handles CORS, routing, and forwards requests to AWS backend
 
 ---
 
@@ -69,22 +78,28 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **Explanations**: SHAP-based feature importance for each prediction
 
 ### Backend
-- **API Server**: REST API for all frontend functions (deployed on Render)
+- **API Server**: REST API for all frontend functions (deployed on AWS ECS)
 - **AI Models**: Temporal Fusion Transformer (TFT), GRU, XGBoost (all integrated)
 - **Feature Engineering**: Automatic preparation and transformation of LinkedIn data
 - **Database**: Storage of candidates and analyses in MongoDB
 - **Explainability**: SHAP & Lime integration for comprehensible predictions
+
+### API Proxy
+- **CORS Handling**: Manages cross-origin requests from frontend
+- **Request Routing**: Forwards all requests to AWS backend
+- **Load Balancing**: Acts as intermediary between frontend and backend
 
 ---
 
 ## Data Flow & Processed Data
 
 1. **Frontend** (Render): User enters LinkedIn profile URL or CSV
-2. **API Call**: Frontend sends data to backend (https://masterthesis-backend.onrender.com)
-3. **Backend** (Render): Prepares data, applies ML model
-4. **Explanation**: SHAP calculates the most important influencing factors
-5. **Response**: Backend sends prediction & explanations to frontend
-6. **Frontend**: Displays results, visualizations and explanations
+2. **API Call**: Frontend sends data to API Proxy (https://masterthesis-api-proxy.onrender.com)
+3. **API Proxy** (Render): Handles CORS and forwards request to AWS backend
+4. **Backend** (AWS ECS): Prepares data, applies ML model
+5. **Explanation**: SHAP calculates the most important influencing factors
+6. **Response**: Backend sends prediction & explanations back through proxy to frontend
+7. **Frontend**: Displays results, visualizations and explanations
 
 **Processed Data:**
 - LinkedIn profiles (manually or via CSV)
@@ -101,12 +116,17 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
   - PyTorch (TFT, GRU), XGBoost
   - SHAP & Lime (Explainable AI)
   - MongoDB (Database)
-  - **Deployment**: Render (Web Service)
+  - **Deployment**: AWS ECS (Elastic Container Service)
 - **Frontend:**
   - React, Material-UI, Tailwind CSS
   - React Router
   - **Deployment**: Render (Static Site)
+- **API Proxy:**
+  - Node.js, Express, http-proxy
+  - **Deployment**: Render (Web Service)
 - **DevOps:**
+  - AWS ECR (Elastic Container Registry)
+  - AWS ECS (Elastic Container Service)
   - Render
   - GitHub (code versioning)
 
@@ -134,30 +154,40 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
    npm install
    ```
 
-4. **Adjust API URL for local development**
+4. **Install API proxy dependencies**
    ```bash
-   # In frontend/src/api.js
-   export const API_BASE_URL = "http://localhost:8080";
+   cd ../masterthesis-api-proxy
+   npm install
    ```
 
-5. **Start application**
+5. **Adjust API URL for local development**
+   ```bash
+   # In frontend/src/api.js
+   export const API_BASE_URL = "http://localhost:10000";
+   ```
+
+6. **Start application**
    ```bash
    # Backend (Terminal 1)
    cd backend
    python app.py
    
-   # Frontend (Terminal 2)
+   # API Proxy (Terminal 2)
+   cd masterthesis-api-proxy
+   node server.js
+   
+   # Frontend (Terminal 3)
    cd frontend
    npm start
    ```
 
 ### Option 2: Render Deployment (Production)
 
-**Frontend & Backend are already deployed and running 24/7:**
+**Frontend & API Proxy are already deployed and running 24/7:**
 
 - **Frontend**: https://masterthesis-igbq.onrender.com
-- **Backend**: https://masterthesis-backend.onrender.com
-- **No local installation needed**
+- **API Proxy**: https://masterthesis-api-proxy.onrender.com
+- **Backend**: AWS ECS (Elastic Container Service)
 
 ### Option 3: AWS Deployment (Production)
 
@@ -166,7 +196,7 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 1. **Build Docker Image:**
    ```bash
    cd backend
-   docker build -t masterthesis-backend .
+   docker build --platform linux/amd64 --no-cache -t masterthesis-backend .
    ```
 
 2. **Tag Image for AWS ECR:**
@@ -195,12 +225,15 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 | POST    | /api/scrape-linkedin    | Analyze LinkedIn profile            | ✅ Live |
 | POST    | /api/predict            | Prediction for one profile          | ✅ Live |
 | POST    | /api/predict-batch      | Batch prediction for multiple profiles | ✅ Live |
+| POST    | /api/login              | User authentication                 | ✅ Live |
 | GET     | /api/candidates         | Get all saved candidates            | ✅ Live |
-| POST    | /api/candidates     | Save candidates                     | ✅ Live |
-| GET     | /api/users          | User list (Admin)                   | ✅ Live |
-| POST    | /api/create-user    | Create new user (Admin)             | ✅ Live |
-| PUT     | /api/users/:id      | Edit user (Admin)                   | ✅ Live |
-| DELETE  | /api/users/:id      | Delete user (Admin)                 | ✅ Live |
+| POST    | /api/candidates         | Save candidates                     | ✅ Live |
+| GET     | /api/users              | User list (Admin)                   | ✅ Live |
+| POST    | /api/create-user        | Create new user (Admin)             | ✅ Live |
+| PUT     | /api/users/:id          | Edit user (Admin)                   | ✅ Live |
+| DELETE  | /api/users/:id          | Delete user (Admin)                 | ✅ Live |
+
+**Note**: All API endpoints now use the `/api` prefix for consistency.
 
 ---
 
@@ -215,6 +248,11 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **First prediction**: 5-10 seconds (model loading)
 - **Subsequent predictions**: 1-3 seconds
 - **Batch processing**: Supports up to 100 profiles simultaneously
+
+**Dependencies:**
+- **XGBoost**: 3.0.0 (latest stable version)
+- **PyTorch**: 2.1.0 (stable version for production)
+- **PyTorch Lightning**: 2.1.0 (compatible with PyTorch 2.1.0)
 
 ---
 
@@ -235,7 +273,7 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **New models**: Add in `backend/ml_pipe/models/`
 - **Feature engineering**: In `backend/ml_pipe/data/featureEngineering/`
 - **API logic**: In `backend/app.py` and `backend/api_handlers/`
-- **Deployment**: Automatically via GitHub → Render
+- **Deployment**: Docker build → AWS ECR → AWS ECS
 
 ### Frontend Development
 - **New pages**: Add in `frontend/src/pages/`
@@ -243,26 +281,41 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **UI/UX**: Extend with Material-UI & Tailwind
 - **Deployment**: Automatically via GitHub → Render
 
-### Render Deployment
-- **Automatic deployments** on GitHub pushes
-- **Health checks** for backend monitoring
-- **Logs** available for debugging
-- **Scaling** possible when needed
+### API Proxy Development
+- **Routing logic**: Modify `masterthesis-api-proxy/server.js`
+- **CORS settings**: Adjust in proxy server
+- **Deployment**: Automatically via GitHub → Render
+
+### AWS Deployment
+- **Docker builds**: Use `--platform linux/amd64 --no-cache`
+- **ECR management**: Tag and push to correct repository
+- **ECS updates**: Automatic deployment from ECR
 
 ---
 
 ## Troubleshooting
 
 ### Common Issues
-1. **CORS errors**: Check CORS origins in `backend/app.py`
+1. **CORS errors**: Check CORS origins in API proxy server
 2. **Import errors**: All imports use relative paths
 3. **Model loading**: First prediction takes longer
-4. **Memory limits**: Render Free Plan has 512MB RAM
+4. **Docker build errors**: Ensure `--platform linux/amd64` for AWS compatibility
+5. **XGBoost errors**: Ensure `requirements.txt` has `xgboost==3.0.0`
 
 ### View Logs
-- **Render Dashboard**: Service → Logs
-- **Backend**: Automatic logs in Render
+- **Render Dashboard**: Service → Logs (Frontend & API Proxy)
+- **AWS ECS**: CloudWatch logs for backend
 - **Frontend**: Browser Developer Tools
+
+### Docker Cleanup
+If you encounter "No space left on device" errors:
+```bash
+# Clean up Docker system
+docker system prune -a --volumes
+
+# Rebuild with clean cache
+docker build --platform linux/amd64 --no-cache -t masterthesis-backend .
+```
 
 ---
 

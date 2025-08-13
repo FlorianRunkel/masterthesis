@@ -191,7 +191,7 @@ const BatchUpload = () => {
         modelType: modelType
       }));
 
-      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, candidatesWithModel, {
+      const response = await axios.post(`${API_BASE_URL}/api/candidates`, candidatesWithModel, {
         headers: {
           'X-User-Uid': uid,
         }
