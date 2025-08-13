@@ -30,7 +30,7 @@ const CandidatesPage = () => {
         const user = JSON.parse(localStorage.getItem('user'));
         const uid = user?.uid;
 
-        // Nur Kandidaten mit passender UID anzeigen
+        // Only show candidates with matching UID
         const myCandidates = data.filter(candidate => candidate.uid === uid);
 
         setCandidates(myCandidates);

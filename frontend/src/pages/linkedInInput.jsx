@@ -6,7 +6,7 @@ import PredictionResultClassification from '../components/prediction/prediction_
 import PredictionResultTime from '../components/prediction/prediction_time';
 import { useTheme } from '@mui/material/styles';
 import { useMediaQuery } from '@mui/material';
-import { API_BASE_URL } from '../api';
+import { API_BASE_URL, apiCall } from '../api';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 const LinkedInInput = () => {
@@ -57,6 +57,18 @@ const LinkedInInput = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      alert(`Error: ${error}\n\nPlease check:\n- The URL is correct\n- The profile is publicly accessible\n- Try again later`);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (profileData && predictionData && profileRef.current) {
+      profileRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [profileData, predictionData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPredictionData(null);
@@ -67,9 +79,11 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      // LinkedIn Scraping mit erhöhtem Timeout
-      const profileResponse = await axios.post(`${API_BASE_URL}/api/scrape-linkedin`, { url: linkedinUrl }, {
-        timeout: 180000 // 3 Minuten für LinkedIn Scraping
+      // LinkedIn Scraping with increased timeout
+      const profileResponse = await apiCall.ml({
+        method: 'POST',
+        url: `${API_BASE_URL}/api/scrape-linkedin`,
+        data: { url: linkedinUrl }
       });
       const profile = profileResponse.data;
       setProfileData(profile);
@@ -91,13 +105,13 @@ const LinkedInInput = () => {
       });
       const education = profile.education || [];
       const profile_data = {
-        firstName: firstName || "Unbekannt",
-        lastName: lastName || "Unbekannt",
+        firstName: firstName || "Unknown",
+        lastName: lastName || "Unknown",
         profileLink: linkedinUrl,
         modelType: selectedModel,
         linkedinProfileInformation: JSON.stringify({
-          firstName: firstName || "Unbekannt",
-          lastName: lastName || "Unbekannt",
+          firstName: firstName || "Unknown",
+          lastName: lastName || "Unknown",
           workExperience,
           education,
           skills: [],
@@ -107,9 +121,11 @@ const LinkedInInput = () => {
         })
       };
       
-      // Prediction mit erhöhtem Timeout
-      const predictionResponse = await axios.post(`${API_BASE_URL}/api/predict`, profile_data, {
-        timeout: 300000 // 5 Minuten für ML-Predictions
+      // Prediction with increased timeout
+      const predictionResponse = await apiCall.ml({
+        method: 'POST',
+        url: `${API_BASE_URL}/api/predict`,
+        data: profile_data
       });
       const prediction = predictionResponse.data;
       setPredictionData(prediction);
@@ -117,6 +133,8 @@ const LinkedInInput = () => {
     } catch (error) {
       if (error.code === 'ECONNABORTED') {
         setError('Request timed out. Please try again. The ML models might need more time to process.');
+      } else if (error.response?.status === 504) {
+        setError('Server timeout - calculation takes too long. Please try again or wait and try later.');
       } else {
         setError(error.message);
       }
@@ -159,11 +177,11 @@ const LinkedInInput = () => {
       const result = response.data;
 
       if (response.status !== 200 && response.status !== 201) {
-        throw new Error(result.error || 'Fehler beim Speichern des Kandidaten');
+        throw new Error(result.error || 'Error saving candidate');
       }
 
       if (result.skippedCount > 0) {
-        setError('Dieser Kandidat wurde bereits analysiert und ist in der Datenbank gespeichert.');
+        setError('This candidate has already been analyzed and is stored in the database.');
         return;
       }
 
@@ -354,7 +372,6 @@ const LinkedInInput = () => {
         </Button>
       </Box>
       {loading && (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}><CircularProgress size={40} thickness={4} sx={{ color: '#001B41' }} /></Box>)}
-      {error && (<Box sx={{ bgcolor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#FF2525', p: 3, borderRadius: 2, mb: 3 }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography><Box component="ul" sx={{ mt: 2, pl: 2 }}><li>Make sure the URL is correct</li><li>The profile must be publicly accessible</li><li>Try again later</li></Box></Box>)}
       {profileData && predictionData && (
         <div ref={profileRef}>
           <ProfileDisplay

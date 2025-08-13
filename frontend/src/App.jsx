@@ -82,10 +82,12 @@ const App = () => {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
+    alert('Successfully logged in!');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    alert('You have been logged out.');
   };
 
   return (

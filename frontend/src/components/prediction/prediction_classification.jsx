@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
 
-const getBarColors = [
-    '#8AD265', // grün
-    '#B6D94C', // gelb-grün
-    '#FFD700', // gelb
-    '#FFA500', // orange
-    '#FF8C00', // orange
-    '#FF6F00', // orange
-    '#FF4500', // orange
-    '#FF2525', // orange
-    '#FF2525', // rot
-    '#666'     // grau für "Other"
-  ];
+const SHAP_BAR_COLORS = [
+  '#FF2525', // red
+  '#FF6B35', // orange
+  '#FFB300', // yellow
+  '#8AD265', // green
+  '#B6D94C', // yellow-green
+  '#4CAF50', // green
+  '#2196F3', // blue
+  '#9C27B0', // purple
+  '#E91E63', // pink
+  '#666'     // gray for "Other"
+];
 
 const PredictionResult = ({ prediction }) => {
   const theme = useTheme();
@@ -47,14 +47,14 @@ const PredictionResult = ({ prediction }) => {
 
   const shapBarData = shapMainFeatures.map((f, i) => ({
     ...f,
-    color: getBarColors[i % getBarColors.length]
+    color: SHAP_BAR_COLORS[i % SHAP_BAR_COLORS.length]
   }));
   if (shapOtherImpact > 0) {
     shapBarData.push({
       feature: 'Other',
       impact_percentage: shapOtherImpact,
       description: 'All features with < 10% impact',
-      color: getBarColors[9]
+      color: SHAP_BAR_COLORS[9]
     });
   }
 
@@ -72,14 +72,14 @@ const PredictionResult = ({ prediction }) => {
 
   const limeBarData = limeMainFeatures.map((f, i) => ({
     ...f,
-    color: getBarColors[i % getBarColors.length]
+    color: SHAP_BAR_COLORS[i % SHAP_BAR_COLORS.length]
   }));
   if (limeOtherImpact > 0) {
     limeBarData.push({
       feature: 'Other',
       impact_percentage: limeOtherImpact,
       description: 'All features with < 10% impact',
-      color: getBarColors[9]
+      color: SHAP_BAR_COLORS[9]
     });
   }
 

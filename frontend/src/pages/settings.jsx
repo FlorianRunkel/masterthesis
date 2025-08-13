@@ -37,10 +37,10 @@ const SettingsPage = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/create-user`, form);
       const data = response.data;
-      setSuccess('User erfolgreich angelegt!');
+      setSuccess('User successfully created!');
       setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
     } catch (err) {
-      setError('Serverfehler: ' + err.message);
+      setError('Server error: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -82,12 +82,12 @@ const SettingsPage = () => {
     if (!userToDelete) return;
     try {
       const res = await axios.delete(`${API_BASE_URL}/api/users/${userToDelete._id}`);
-      setDeleteSuccess('User erfolgreich gelöscht!');
+      setDeleteSuccess('User successfully deleted!');
       setDeleteDialogOpen(false);
       setUserToDelete(null);
       fetchUsers();
     } catch (e) {
-      setDeleteError('Serverfehler: ' + e.message);
+      setDeleteError('Server error: ' + e.message);
     }
   };
 
@@ -114,9 +114,9 @@ const SettingsPage = () => {
         canViewExplanations: user.canViewExplanations || false
       });
       fetchUsers();
-      setUpdateSuccess('User erfolgreich aktualisiert!');
+      setUpdateSuccess('User successfully updated!');
     } catch (e) {
-      setUpdateError('Serverfehler: ' + e.message);
+      setUpdateError('Server error: ' + e.message);
     }
   };
 

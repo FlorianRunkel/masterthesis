@@ -95,7 +95,7 @@ const Timeline = ({ prediction, profile }) => {
       feature: 'Other',
       impact_percentage: shapOtherImpact,
       description: 'All features with < 5% impact',
-      color: SHAP_BAR_COLORS[9] // immer grau für Other
+      color: SHAP_BAR_COLORS[9] // always gray for Other
     });
   }
 

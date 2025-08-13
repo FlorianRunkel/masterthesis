@@ -10,7 +10,7 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { API_BASE_URL } from '../api';
+import { API_BASE_URL, apiCall } from '../api';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
@@ -72,6 +72,24 @@ const BatchUpload = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      alert(`Error: ${error}`);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (saveError) {
+      alert(`Save Error: ${saveError}`);
+    }
+  }, [saveError]);
+
+  useEffect(() => {
+    if (saveSuccess) {
+      alert('Candidates were successfully saved!');
+    }
+  }, [saveSuccess]);
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -117,9 +135,11 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      // Batch Prediction mit erhöhtem Timeout
-      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, formData, {
-        timeout: 600000, // 10 Minuten für Batch-Predictions
+      // Batch Prediction with increased timeout and retry logic
+      const response = await apiCall.batch({
+        method: 'POST',
+        url: `${API_BASE_URL}/api/predict-batch`,
+        data: formData,
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -137,19 +157,12 @@ const BatchUpload = () => {
     } catch (error) {
       if (error.code === 'ECONNABORTED') {
         setError('Batch prediction timed out. Please try again with fewer candidates or try individual predictions.');
+      } else if (error.response?.status === 504) {
+        setError('Server timeout - calculation takes too long. Try with fewer candidates or wait and try again.');
       } else {
         setError(error.message);
       }
-      setResults([{
-        error: error.message,
-        message: "Please make sure your CSV file contains the following columns:",
-        requirements: [
-          "firstName (first name)",
-          "lastName (last name)",
-          "linkedinProfile (LinkedIn-URL)",
-          "positions (experience in JSON format)"
-        ]
-      }]);
+      // Keine results setzen bei Fehlern - nur der alert wird angezeigt
     } finally {
       setLoading(false);
     }
@@ -512,7 +525,7 @@ const BatchUpload = () => {
       "duration": "17/06/2023 - Present",
       "endDate": "Present",
       "company": "aurio Technology GmbH",
-      "location": "Munich, Bayern, Deutschland",
+      "location": "Munich, Bavaria, Germany",
       "position": "Working Student",
       "type": "fullTime",
       "startDate": "17/06/2023"
@@ -521,7 +534,7 @@ const BatchUpload = () => {
   "location": "Munich, Bavaria, Germany",
   "headline": "M.Sc. Information Systems @UR | Founders Associate Tech & AI @aurio",
   "languageSkills": {
-    "Deutsch": "Native or bilingual proficiency",
+    "German": "Native or bilingual proficiency",
     "English": "Fluent"
   }
 }`}
@@ -613,23 +626,8 @@ const BatchUpload = () => {
         </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      )}
-      {saveError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {saveError}
-        </Alert>
-      )}
-      {saveSuccess && (
-        <Alert severity="success" sx={{ mt: 2 }}>
-          Candidates were successfully saved!
-        </Alert>
-      )}
       {loading && <LoadingSpinner />}
-      {results && !loading && (
+      {results && !loading && !error && (
         <Box ref={resultsRef} sx={{ bgcolor: '#fff', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 1.6 }}>
           {resultsModelType === 'tft' || resultsModelType === 'gru' ? (
             <ResultsTableTimeSeries

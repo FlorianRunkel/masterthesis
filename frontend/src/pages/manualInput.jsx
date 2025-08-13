@@ -9,7 +9,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import AddIcon from '@mui/icons-material/Add';
 import Paper from '@mui/material/Paper';
-import { API_BASE_URL } from '../api';
+import { API_BASE_URL, apiCall } from '../api';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
 import WorkIcon from '@mui/icons-material/Work';
@@ -129,6 +129,12 @@ const ManualInput = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      alert(`Error: ${error}`);
+    }
+  }, [error]);
+
   const handleAddExperience = () => {
     setExperiences([...experiences, {
       company: '',
@@ -209,11 +215,11 @@ const ManualInput = () => {
       };
 
       const profile_data = {
-        firstName: "Unbekannt",
-        lastName: "Unbekannt",
+        firstName: "Unknown",
+        lastName: "Unknown",
         linkedinProfileInformation: JSON.stringify({
-          firstName: "Unbekannt",
-          lastName: "Unbekannt",
+          firstName: "Unknown",
+          lastName: "Unknown",
           workExperience: filteredExperiences.map(exp => ({
             company: exp.company || "",
             position: exp.position || "",
@@ -240,12 +246,23 @@ const ManualInput = () => {
 
       console.log("Sende Daten:", profile_data);
 
-      const response = await axios.post(`${API_BASE_URL}/api/predict`, profile_data);
-      const data = response.data;
-      setPrediction(data);
-    } catch (err) {
-      console.error("Fehler:", err);
-      setError(err.message);
+      const response = await apiCall.ml({
+        method: 'POST',
+        url: `${API_BASE_URL}/api/predict`,
+        data: profile_data
+      });
+
+      const prediction = response.data;
+      setPrediction(prediction);
+
+    } catch (error) {
+      if (error.code === 'ECONNABORTED') {
+        setError('Request timed out. Please try again.');
+      } else if (error.response?.status === 504) {
+        setError('Server timeout - calculation takes too long. Please try again or wait and try later.');
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -879,7 +896,6 @@ const ManualInput = () => {
       </Box>
       {/* Loading, Error, Prediction Results wie gehabt */}
       {loading && <LoadingSpinner sx={{ bgcolor: '#EB7836' }}/>}
-      {error && (<Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: '30px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', mb: 4, color: '#FF2525', width: '100%' }}><Typography variant="h6" sx={{ mb: 1 }}>Error</Typography><Typography>{error}</Typography></Box>)}
       <div ref={predictionRef} />
       {prediction && (predictionModelType === 'tft' || predictionModelType === 'gru') && <PredictionResultTime prediction={prediction} />}
       {prediction && predictionModelType === 'xgboost' && <PredictionResultClassification prediction={prediction} />}
