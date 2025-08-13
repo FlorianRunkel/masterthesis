@@ -117,7 +117,13 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, formData);
+      // Batch Prediction mit erhöhtem Timeout
+      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, formData, {
+        timeout: 600000, // 10 Minuten für Batch-Predictions
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       const data = response.data;
       if (data.error) {
         setResults([{
@@ -129,7 +135,11 @@ const BatchUpload = () => {
       setResults(data.results || []);
       if (data.originalProfiles) setOriginalProfiles(data.originalProfiles);
     } catch (error) {
-      setError(error.message);
+      if (error.code === 'ECONNABORTED') {
+        setError('Batch prediction timed out. Please try again with fewer candidates or try individual predictions.');
+      } else {
+        setError(error.message);
+      }
       setResults([{
         error: error.message,
         message: "Please make sure your CSV file contains the following columns:",

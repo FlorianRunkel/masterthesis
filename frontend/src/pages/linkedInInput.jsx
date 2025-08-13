@@ -67,7 +67,10 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      const profileResponse = await axios.post(`${API_BASE_URL}/api/scrape-linkedin`, { url: linkedinUrl });
+      // LinkedIn Scraping mit erhöhtem Timeout
+      const profileResponse = await axios.post(`${API_BASE_URL}/api/scrape-linkedin`, { url: linkedinUrl }, {
+        timeout: 180000 // 3 Minuten für LinkedIn Scraping
+      });
       const profile = profileResponse.data;
       setProfileData(profile);
       localStorage.setItem('linkedinProfileData', JSON.stringify(profile));
@@ -103,12 +106,20 @@ const LinkedInInput = () => {
           languageSkills: {}
         })
       };
-      const predictionResponse = await axios.post(`${API_BASE_URL}/api/predict`, profile_data);
+      
+      // Prediction mit erhöhtem Timeout
+      const predictionResponse = await axios.post(`${API_BASE_URL}/api/predict`, profile_data, {
+        timeout: 300000 // 5 Minuten für ML-Predictions
+      });
       const prediction = predictionResponse.data;
       setPredictionData(prediction);
 
     } catch (error) {
-      setError(error.message);
+      if (error.code === 'ECONNABORTED') {
+        setError('Request timed out. Please try again. The ML models might need more time to process.');
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
