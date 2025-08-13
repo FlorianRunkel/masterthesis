@@ -207,7 +207,7 @@ const BatchUpload = () => {
         }
       });
       const data = response.data;
-      if (response.status !== 200) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error(data.error || 'Error saving candidates');
       }
       setSaveSuccess(true);

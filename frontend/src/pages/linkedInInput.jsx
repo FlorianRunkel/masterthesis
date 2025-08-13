@@ -158,7 +158,7 @@ const LinkedInInput = () => {
 
       const result = response.data;
 
-      if (response.status !== 200) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error(result.error || 'Fehler beim Speichern des Kandidaten');
       }
 
