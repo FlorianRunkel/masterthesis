@@ -34,7 +34,7 @@ def preprocess_dates_time(data):
 '''
 Predict career for a single profile
 '''
-@prediction_bp.route('/predict', methods=['POST'])
+@prediction_bp.route('/api/predict', methods=['POST'])
 def predict_career():
     try:
         data = request.get_json()
@@ -110,7 +110,7 @@ def predict_career():
 '''
 Predict career for a batch of profiles
 '''
-@prediction_bp.route('/predict-batch', methods=['POST'])
+@prediction_bp.route('/api/predict-batch', methods=['POST'])
 def predict_batch():
     try:
         if 'file' not in request.files:

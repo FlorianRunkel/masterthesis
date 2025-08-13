@@ -159,16 +159,43 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **Backend**: https://masterthesis-backend.onrender.com
 - **No local installation needed**
 
+### Option 3: AWS Deployment (Production)
+
+**Backend deployment to AWS ECS:**
+
+1. **Build Docker Image:**
+   ```bash
+   cd backend
+   docker build -t masterthesis-backend .
+   ```
+
+2. **Tag Image for AWS ECR:**
+   ```bash
+   docker tag masterthesis-backend:latest 736874312333.dkr.ecr.eu-central-1.amazonaws.com/masterthesis-backend:latest
+   ```
+
+3. **Login to AWS ECR:**
+   ```bash
+   aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 736874312333.dkr.ecr.eu-central-1.amazonaws.com
+   ```
+
+4. **Push to AWS ECR:**
+   ```bash
+   docker push 736874312333.dkr.ecr.eu-central-1.amazonaws.com/masterthesis-backend:latest
+   ```
+
+**Note**: The AWS ECR repository URL (`736874312333.dkr.ecr.eu-central-1.amazonaws.com`) is specific to this deployment. Update the URL in your configuration if using a different AWS account.
+
 ---
 
 ## API Overview (most important endpoints)
 
 | Method | Path                | Description                        | Status |
 |---------|---------------------|-------------------------------------|---------|
-| POST    | /scrape-linkedin    | Analyze LinkedIn profile            | ✅ Live |
-| POST    | /predict            | Prediction for one profile          | ✅ Live |
-| POST    | /predict-batch      | Batch prediction for multiple profiles | ✅ Live |
-| GET     | /candidates         | Get all saved candidates            | ✅ Live |
+| POST    | /api/scrape-linkedin    | Analyze LinkedIn profile            | ✅ Live |
+| POST    | /api/predict            | Prediction for one profile          | ✅ Live |
+| POST    | /api/predict-batch      | Batch prediction for multiple profiles | ✅ Live |
+| GET     | /api/candidates         | Get all saved candidates            | ✅ Live |
 | POST    | /api/candidates     | Save candidates                     | ✅ Live |
 | GET     | /api/users          | User list (Admin)                   | ✅ Live |
 | POST    | /api/create-user    | Create new user (Admin)             | ✅ Live |

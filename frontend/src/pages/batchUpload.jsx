@@ -117,7 +117,7 @@ const BatchUpload = () => {
     formData.append('file', file);
     formData.append('modelType', modelType);
     try {
-      const response = await axios.post(`${API_BASE_URL}/predict-batch`, formData);
+      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, formData);
       const data = response.data;
       if (data.error) {
         setResults([{
@@ -158,7 +158,7 @@ const BatchUpload = () => {
         candidates.map(async (candidate) => {
           if (candidate.linkedinProfile) {
             try {
-              const response = await axios.post(`${API_BASE_URL}/scrape-linkedin`, { url: candidate.linkedinProfile });
+              const response = await axios.post(`${API_BASE_URL}/api/scrape-linkedin`, { url: candidate.linkedinProfile });
               const data = response.data;
               if (data && !data.error) {
                 const [firstName, ...rest] = (data.name || '').split(' ');
@@ -191,7 +191,7 @@ const BatchUpload = () => {
         modelType: modelType
       }));
 
-      const response = await axios.post(`${API_BASE_URL}/api/candidates`, candidatesWithModel, {
+      const response = await axios.post(`${API_BASE_URL}/api/predict-batch`, candidatesWithModel, {
         headers: {
           'X-User-Uid': uid,
         }

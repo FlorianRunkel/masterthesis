@@ -17,7 +17,7 @@ logger = logging.getLogger()
 '''
 Scrape LinkedIn profile
 '''
-@linkedin_bp.route('/scrape-linkedin', methods=['POST'])
+@linkedin_bp.route('/api/scrape-linkedin', methods=['POST'])
 def scrape_linkedin():
     try:
         data = request.get_json()

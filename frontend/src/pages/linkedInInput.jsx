@@ -67,7 +67,7 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      const profileResponse = await axios.post(`${API_BASE_URL}/scrape-linkedin`, { url: linkedinUrl });
+      const profileResponse = await axios.post(`${API_BASE_URL}/api/scrape-linkedin`, { url: linkedinUrl });
       const profile = profileResponse.data;
       setProfileData(profile);
       localStorage.setItem('linkedinProfileData', JSON.stringify(profile));
@@ -103,7 +103,7 @@ const LinkedInInput = () => {
           languageSkills: {}
         })
       };
-      const predictionResponse = await axios.post(`${API_BASE_URL}/predict`, profile_data);
+      const predictionResponse = await axios.post(`${API_BASE_URL}/api/predict`, profile_data);
       const prediction = predictionResponse.data;
       setPredictionData(prediction);
 

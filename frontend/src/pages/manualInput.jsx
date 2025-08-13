@@ -240,7 +240,7 @@ const ManualInput = () => {
 
       console.log("Sende Daten:", profile_data);
 
-      const response = await axios.post(`${API_BASE_URL}/predict`, profile_data);
+      const response = await axios.post(`${API_BASE_URL}/api/predict`, profile_data);
       const data = response.data;
       setPrediction(data);
     } catch (err) {
