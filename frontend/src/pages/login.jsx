@@ -32,7 +32,9 @@ const Login = ({ onLogin }) => {
       if (response.status === 200 && response.data.user) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        onLogin();
+        if (onLogin) {
+          onLogin();
+        }
       } else {
         console.log('Login failed - wrong response:', response);
         setError('Wrong email or password.');

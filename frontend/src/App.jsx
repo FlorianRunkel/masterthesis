@@ -80,10 +80,8 @@ const App = () => {
     setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
   }, []);
 
-
   const handleLogout = () => {
     setIsLoggedIn(false);
-    alert('You have been logged out.');
   };
 
   return (
@@ -94,7 +92,7 @@ const App = () => {
           <AppContent onLogout={handleLogout}/>
         ) : (
           <Routes>
-            <Route path="*" element={<Login />} />
+            <Route path="*" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
           </Routes>
         )}
       </Router>
