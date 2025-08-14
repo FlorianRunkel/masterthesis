@@ -80,10 +80,6 @@ const App = () => {
     setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
   }, []);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    alert('Successfully logged in!');
-  };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
@@ -95,10 +91,10 @@ const App = () => {
       <CssBaseline />
       <Router>
         {isLoggedIn ? (
-          <AppContent onLogout={handleLogout} onLogin={handleLogin} />
+          <AppContent onLogout={handleLogout}/>
         ) : (
           <Routes>
-            <Route path="*" element={<Login onLogin={handleLogin} />} />
+            <Route path="*" element={<Login />} />
           </Routes>
         )}
       </Router>
