@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
 
 const SHAP_BAR_COLORS = [
-  '#FF2525', // red
-  '#FF6B35', // orange
-  '#FFB300', // yellow
-  '#8AD265', // green
-  '#B6D94C', // yellow-green
-  '#4CAF50', // green
-  '#2196F3', // blue
-  '#9C27B0', // purple
-  '#E91E63', // pink
+  '#8AD265',
+  '#B6D94C',
+  '#FFD700',
+  '#FFA500',
+  '#FF8C00',
+  '#FF6F00',
+  '#FF4500',
+  '#FF2525',
+  '#FF2525',
   '#666'     // gray for "Other"
 ];
 
