@@ -50,7 +50,8 @@ def predict_career():
             profile_data = data
 
         model_type = data.get('modelType', 'tft').lower()
-        logging.info(f"Use model: {model_type}")
+        include_explanations = data.get('includeExplanations', True)
+        logging.info(f"Use model: {model_type}, Include explanations: {include_explanations}")
 
         model_predictors = {
             "gru": "ml_pipe.models.gru.predict",
@@ -68,15 +69,16 @@ def predict_career():
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
-        prediction = module.predict(profile_data)
+        # Übergebe den Boolean an die predict-Funktion
+        prediction = module.predict(profile_data, include_explanations=include_explanations)
 
         if model_type == 'xgboost':
             confidence_list = prediction.get('confidence', [])
             confidence_value = max(0.0, confidence_list[0] if confidence_list else 0.0)
-            
+
             recommendations_list = prediction.get('recommendations', [])
             recommendations_value = recommendations_list[0] if recommendations_list else "No recommendation available"
-            
+
             formatted_prediction = {
                 'confidence': confidence_value,
                 'recommendations': recommendations_value,
@@ -128,6 +130,7 @@ def predict_batch():
 
         try:
             model_type = request.form.get('modelType', 'xgboost').lower()
+            include_explanations = request.form.get('includeExplanations', True) 
             model_predictors = {
                 "gru": "ml_pipe.models.gru.predict",
                 "xgboost": "ml_pipe.models.xgboost.predict",
@@ -162,7 +165,8 @@ def predict_batch():
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
-                prediction = module.predict(profile_data)
+                # Übergebe den Boolean an die predict-Funktion
+                prediction = module.predict(profile_data, include_explanations=include_explanations)
 
                 if "error" in prediction:
                     results.append({"firstName": row.get("firstName", ""),"lastName": row.get("lastName", ""),"linkedinProfile": row.get("profileLink", ""),"error": prediction["error"]})

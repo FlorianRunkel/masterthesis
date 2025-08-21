@@ -370,7 +370,7 @@ def transform_features_for_gru(profile_data, scaler_path="ml_pipe/models/gru/sca
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, preloaded_model=None):
+def predict(profile_dict, model_path=None, preloaded_model=None, include_explanations=True):
     try:
         # Use preloaded model if available, otherwise load from file
         if preloaded_model is not None:
@@ -422,22 +422,30 @@ def predict(profile_dict, model_path=None, preloaded_model=None):
 
         status, recommendation = get_status_and_recommendation(tage)
 
-        print("\n=== Explainable AI Analyse ===")
-        feature_names = get_feature_names()
-        explainer = ModelExplainer(model, feature_names, model_type="gru")
+        # Explainable AI nur berechnen wenn gewünscht
+        if include_explanations:
+            print("\n=== Explainable AI Analyse ===")
+            feature_names = get_feature_names()
+            explainer = ModelExplainer(model, feature_names, model_type="gru")
 
-        print("Calculate SHAP values...")
-        background_data = create_background_data(features_tensor)
-        shap_values = explainer.calculate_shap_values(features_tensor, background_data=background_data)
-        shap_explanations = explainer.extract_shap_results(shap_values)
-        shap_summary = explainer.create_summary(shap_explanations, "SHAP")
-        print(shap_summary)
+            print("Calculate SHAP values...")
+            background_data = create_background_data(features_tensor)
+            shap_values = explainer.calculate_shap_values(features_tensor, background_data=background_data)
+            shap_explanations = explainer.extract_shap_results(shap_values)
+            shap_summary = explainer.create_summary(shap_explanations, "SHAP")
+            print(shap_summary)
 
-        print("\nCalculate LIME explanations...")
-        lime_explanation = explainer.calculate_lime_explanations(features_tensor)
-        lime_explanations = explainer.extract_lime_results(lime_explanation)
-        lime_summary = explainer.create_summary(lime_explanations, "LIME")
-        print(lime_summary)
+            print("\nCalculate LIME explanations...")
+            lime_explanation = explainer.calculate_lime_explanations(features_tensor)
+            lime_explanations = explainer.extract_lime_results(lime_explanation)
+            lime_summary = explainer.create_summary(lime_explanations, "LIME")
+            print(lime_summary)
+        else:
+            print("\n=== Explainable AI übersprungen ===")
+            shap_explanations = []
+            lime_explanations = []
+            shap_summary = ""
+            lime_summary = ""
 
         print("\n=== Prediction completed ===")
 

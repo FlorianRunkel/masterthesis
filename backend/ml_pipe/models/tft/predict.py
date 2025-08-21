@@ -236,7 +236,7 @@ def extract_features_from_linkedin_new(data):
 '''
 Predict
 '''
-def predict(linkedin_data, model_path=None):
+def predict(linkedin_data, model_path=None, include_explanations=True):
     try:
         print("\n=== Start prediction ===")
 
@@ -397,62 +397,70 @@ def predict(linkedin_data, model_path=None):
             status = "long-term change"
             recommendation = "High probability of job change in the future (> 6 months)"
 
-        print("\n=== Explainable AI Analyse ===")
+        # Explainable AI nur berechnen wenn gewünscht
+        if include_explanations:
+            print("\n=== Explainable AI Analyse ===")
 
-        print("Calculate SHAP values...")
-        var_weights = output.output.encoder_variables[0, -1]
-        feature_names_list = prediction_dataset.time_varying_unknown_reals + [
-             "relative_time_idx", "encoder_length"
-        ]
+            print("Calculate SHAP values...")
+            var_weights = output.output.encoder_variables[0, -1]
+            feature_names_list = prediction_dataset.time_varying_unknown_reals + [
+                 "relative_time_idx", "encoder_length"
+            ]
 
-        weights = var_weights.tolist()
-        if isinstance(weights[0], list):
-            weights = weights[0]
+            weights = var_weights.tolist()
+            if isinstance(weights[0], list):
+                weights = weights[0]
 
-        if len(weights) != len(feature_names_list):
-            print("WARNING: Length of weights and feature_names_list does not match!")
-            print("weights:", weights)
-            print("feature_names_list:", feature_names_list)
+            if len(weights) != len(feature_names_list):
+                print("WARNING: Length of weights and feature_names_list does not match!")
+                print("weights:", weights)
+                print("feature_names_list:", feature_names_list)
 
-        total = sum(abs(w) for w in weights)
-        norm_weights = [(w / total * 100) if total > 0 else 0 for w in weights]
+            total = sum(abs(w) for w in weights)
+            norm_weights = [(w / total * 100) if total > 0 else 0 for w in weights]
 
-        shap_explanations = []
-        for name, val in zip(feature_names_list, norm_weights):
-            mapped_name = map_tft_feature_names(name)
-            shap_explanations.append({
-                "feature": mapped_name,
-                "impact_percentage": float(val),
-                "method": "SHAP",
-                "description": get_feature_description(mapped_name)
-            })
+            shap_explanations = []
+            for name, val in zip(feature_names_list, norm_weights):
+                mapped_name = map_tft_feature_names(name)
+                shap_explanations.append({
+                    "feature": mapped_name,
+                    "impact_percentage": float(val),
+                    "method": "SHAP",
+                    "description": get_feature_description(mapped_name)
+                })
 
-        shap_explanations = sorted(shap_explanations, key=lambda x: -x['impact_percentage'])
+            shap_explanations = sorted(shap_explanations, key=lambda x: -x['impact_percentage'])
 
-        technical_features = ["encoder_length", "relative_time_idx", "target_scale", "target_center", "Career Timeline Position", "Career Progression Stage", "Historical Data Points"]
+            technical_features = ["encoder_length", "relative_time_idx", "target_scale", "target_center", "Career Timeline Position", "Career Progression Stage", "Historical Data Points"]
 
-        shap_explanations = [
-            e for e in shap_explanations
-            if e["feature"] not in technical_features
-        ]
+            shap_explanations = [
+                e for e in shap_explanations
+                if e["feature"] not in technical_features
+            ]
 
-        total = sum(e["impact_percentage"] for e in shap_explanations)
-        for e in shap_explanations:
-            e["impact_percentage"] = e["impact_percentage"] / total * 100 if total > 0 else 0
+            total = sum(e["impact_percentage"] for e in shap_explanations)
+            for e in shap_explanations:
+                e["impact_percentage"] = e["impact_percentage"] / total * 100 if total > 0 else 0
 
-        if len(shap_explanations) >= 2:
-            shap_summary = f"Die Vorhersage wurde hauptsächlich beeinflusst durch {shap_explanations[0]['feature']} und {shap_explanations[1]['feature']}."
+            if len(shap_explanations) >= 2:
+                shap_summary = f"Die Vorhersage wurde hauptsächlich beeinflusst durch {shap_explanations[0]['feature']} und {shap_explanations[1]['feature']}."
+            else:
+                shap_summary = "Keine SHAP-Erklärung verfügbar."
+
+            print(shap_summary)
+
+            print("\nLIME-Analyse wird für TFT-Modelle nicht unterstützt.")
+            lime_explanations = []
+            lime_summary = "LIME wird für TFT-Modelle nicht unterstützt. Verwende nur SHAP-Erklärungen."
+
+            print(f"Available SHAP explanations: {len(shap_explanations)}")
+            print(f"Available LIME explanations: {len(lime_explanations)}")
         else:
-            shap_summary = "Keine SHAP-Erklärung verfügbar."
-
-        print(shap_summary)
-
-        print("\nLIME-Analyse wird für TFT-Modelle nicht unterstützt.")
-        lime_explanations = []
-        lime_summary = "LIME wird für TFT-Modelle nicht unterstützt. Verwende nur SHAP-Erklärungen."
-
-        print(f"Available SHAP explanations: {len(shap_explanations)}")
-        print(f"Available LIME explanations: {len(lime_explanations)}")
+            print("\n=== Explainable AI übersprungen ===")
+            shap_explanations = []
+            lime_explanations = []
+            shap_summary = ""
+            lime_summary = ""
 
         print("\n=== Prediction completed ===")
 

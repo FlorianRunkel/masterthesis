@@ -298,7 +298,7 @@ def get_explanations(model, feature_names):
 '''
 Main Prediction Function
 '''
-def predict(profile_dict, model_path=None, preloaded_model=None):
+def predict(profile_dict, model_path=None, preloaded_model=None, include_explanations=True):
     try:
         # Use preloaded model if available, otherwise load from file
         if preloaded_model is not None:
@@ -323,44 +323,37 @@ def predict(profile_dict, model_path=None, preloaded_model=None):
         age_category = estimate_age_category(profile_dict)
 
         if not career_history:
-            # Fallback: Versuche Position aus Headline zu extrahieren
             headline = profile_dict.get('headline', '')
-            print(f"🔍 No career history found, trying headline: {headline}")
-            
+            print(f"No career history found, trying headline: {headline}")
+
             if headline:
-                # Extrahiere Position aus Headline (z.B. "Founders Associate Tech & AI @aurio")
                 import re
-                
-                # Versuche verschiedene Extraktionsmethoden
                 position = None
-                
-                # Methode 1: Nach dem letzten |
                 if '|' in headline:
                     parts = headline.split('|')
                     if len(parts) > 1:
                         position = parts[-1].strip()
-                        print(f"✅ Extracted after |: {position}")
-                
-                # Methode 2: Vor dem letzten @
+                        print(f"Extracted after |: {position}")
+
                 if not position and '@' in headline:
                     parts = headline.split('@')
                     if len(parts) > 1:
                         position = parts[-2].strip()
-                        print(f"✅ Extracted before @: {position}")
-                
-                # Methode 3: Regex als Fallback
+                        print(f"Extracted before @: {position}")
+
+
                 if not position:
                     position_match = re.search(r'([^@]+?)(?:\s*@\s*\w+)?$', headline.strip())
                     if position_match:
                         position = position_match.group(1).strip()
-                        print(f"✅ Extracted with regex: {position}")
-                
+                        print(f"Extracted with regex: {position}")
+
                 if position:
                     fe = FeatureEngineering()
                     try:
                         level, branche, durchschnittszeit_tage = fe.find_best_match(position)
-                        print(f"✅ Mapped position: {position} -> Level {level}, {branche}")
-                        
+                        print(f"Mapped position: {position} -> Level {level}, {branche}")
+
                         career_history = [{
                             'position': position,
                             'company': 'Unknown',
@@ -375,18 +368,18 @@ def predict(profile_dict, model_path=None, preloaded_model=None):
                             'branche': branche,
                             'durchschnittszeit_tage': durchschnittszeit_tage
                         }]
-                        print(f"✅ Created synthetic career history with {len(career_history)} positions")
+                        print(f"Created synthetic career history with {len(career_history)} positions")
                     except Exception as e:
-                        print(f"❌ Could not map position '{position}': {e}")
+                        print(f"Could not map position '{position}': {e}")
                         raise ValueError(f"No career history found - could not map position '{position}'")
                 else:
-                    print(f"❌ Could not extract position from headline: {headline}")
+                    print(f"Could not extract position from headline: {headline}")
                     raise ValueError("No career history found - could not extract position from headline")
             else:
-                print(f"❌ No headline available")
+                print(f"No headline available")
                 raise ValueError("No career history found - no work experience or headline available")
         else:
-            print(f"✅ Found {len(career_history)} career positions")
+            print(f"Found {len(career_history)} career positions")
 
         last_position = career_history[0]
 
@@ -439,19 +432,27 @@ def predict(profile_dict, model_path=None, preloaded_model=None):
             f"Change probability: {prob[1]:.1%}"
         ]
 
-        feature_names = get_feature_names()
-        explainer = ModelExplainer(model, feature_names, model_type="xgboost")
-        shap_values = explainer.calculate_shap_values(X)
-        shap_explanations = explainer.extract_shap_results(shap_values)
-        shap_summary = explainer.create_summary(shap_explanations, "SHAP")
+        # Explainable AI nur berechnen wenn gewünscht
+        if include_explanations:
+            feature_names = get_feature_names()
+            explainer = ModelExplainer(model, feature_names, model_type="xgboost")
+            shap_values = explainer.calculate_shap_values(X)
+            shap_explanations = explainer.extract_shap_results(shap_values)
+            shap_summary = explainer.create_summary(shap_explanations, "SHAP")
 
-        os.environ["LIME_NO_TORCH"] = "1"
-        X_lime = X.astype(np.float64)
-        print("DEBUG: X shape for LIME:", X_lime.shape, X_lime.dtype, X_lime[:5])
-        lime_explanation = explainer.calculate_lime_explanations(X_lime)
-        lime_explanations = explainer.extract_lime_results(lime_explanation)
-        print("DEBUG: LIME explanations:", lime_explanations)
-        lime_summary = explainer.create_summary(lime_explanations, "LIME")
+            os.environ["LIME_NO_TORCH"] = "1"
+            X_lime = X.astype(np.float64)
+            print("DEBUG: X shape for LIME:", X_lime.shape, X_lime.dtype, X_lime[:5])
+            lime_explanation = explainer.calculate_lime_explanations(X_lime)
+            lime_explanations = explainer.extract_lime_results(lime_explanation)
+            print("DEBUG: LIME explanations:", lime_explanations)
+            lime_summary = explainer.create_summary(lime_explanations, "LIME")
+        else:
+            print("\n=== Explainable AI übersprungen ===")
+            shap_explanations = []
+            lime_explanations = []
+            shap_summary = ""
+            lime_summary = ""
 
         result = {
             "confidence": [float(prob[1])],
