@@ -272,7 +272,7 @@ const CandidatesPage = () => {
           width: '100%'
         }}>
           <Typography sx={{ color: '#666', fontSize: '0.8rem' }}>
-            {searchTerm ? 'Keine Kandidaten gefunden, die den Suchkriterien entsprechen.' : 'Keine Kandidaten gespeichert.'}
+          {searchTerm ? 'No candidates found matching the search criteria': 'No candidates saved'}
           </Typography>
         </Box>
       ) : (
