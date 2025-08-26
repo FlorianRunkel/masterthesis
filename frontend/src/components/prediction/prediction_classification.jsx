@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 
 const SHAP_BAR_COLORS = [
   '#8AD265',
@@ -108,13 +107,6 @@ const PredictionResult = ({ prediction }) => {
             boxShadow: '0 2px 8px rgba(255, 193, 7, 0.1)'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-              <InfoIcon sx={{ 
-                color: '#444', 
-                lineHeight: 1.5,
-                fontSize: '1.3rem',
-                display: 'flex',
-                alignItems: 'center'
-              }} />
               <Typography sx={{ 
                 color: '#444',
                 fontSize: '1.3rem',
