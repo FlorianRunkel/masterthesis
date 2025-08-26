@@ -36,11 +36,12 @@ const CandidateCard = ({ candidate, onDelete }) => {
         display: 'flex', 
         flexDirection: 'column', 
         gap: 0, 
-        overflow: 'hidden',
+        overflow: 'auto',
         position: 'relative',
         maxWidth: '100%',
         minWidth: 320,
         width: '100%',
+        maxHeight: isMobile ? '280px' : '320px',
         '&:hover .delete-icon': {
             opacity: 1
         }
@@ -68,18 +69,17 @@ const CandidateCard = ({ candidate, onDelete }) => {
         </IconButton>
       <Box sx={{ 
         display: 'flex', 
-        alignItems: 'center', 
+        alignItems: 'flex-start', 
         gap: isMobile ? 1 : 2, 
         mb: 0, 
         minWidth: 0,
-        height: isMobile ? 80 : 100, 
         flexShrink: 0
       }}>
         {candidate.imageUrl && candidate.imageUrl !== '' && (
           <img src={candidate.imageUrl} alt={name} style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee', flexShrink: 0 }} />
         )}
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h3" sx={{ fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 600, color: '#1a1a1a', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}>{name}</Typography>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="h3" sx={{ fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 600, color: '#1a1a1a', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal', mb: 0.5 }}>{name}</Typography>
           <Link href={candidate.linkedinProfile} target="_blank" rel="noopener noreferrer" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem', color: '#001B41', textDecoration: 'none', '&:hover': { color: '#EB7836' }, wordBreak: 'break-all', maxWidth: '100%', display: 'block' }}>LinkedIn Profile</Link>
         </Box>
       </Box>
@@ -88,16 +88,17 @@ const CandidateCard = ({ candidate, onDelete }) => {
         flexDirection: 'column', 
         flex: 1,
         justifyContent: 'space-between',
-        mt: isMobile ? 1 : 2
+        mt: isMobile ? 1 : 2,
+        minHeight: 0
       }}>
         <Box sx={{ 
-          height: isMobile ? 50 : 60, 
           display: 'flex', 
-          alignItems: 'center',
-          mb: isMobile ? 1 : 1.5
+          alignItems: 'flex-start',
+          mb: isMobile ? 1 : 1.5,
+          minHeight: 0
         }}>
           {candidate.currentPosition ? (
-            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal', lineHeight: 1.4 }}>
+            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               <b>Current Position:</b> {candidate.currentPosition}
             </Typography>
           ) : (
@@ -107,15 +108,15 @@ const CandidateCard = ({ candidate, onDelete }) => {
           )}
         </Box>
 
-        {/* Location - feste Position */}
+        {/* Location - flexible Höhe */}
         <Box sx={{ 
-          height: isMobile ? 50 : 60, 
           display: 'flex', 
-          alignItems: 'center',
-          mb: isMobile ? 1 : 1.5
+          alignItems: 'flex-start',
+          mb: isMobile ? 1 : 1.5,
+          minHeight: 0
         }}>
           {candidate.location ? (
-            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}>
+            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               <b>Location:</b> {candidate.location}
             </Typography>
           ) : (
@@ -126,10 +127,10 @@ const CandidateCard = ({ candidate, onDelete }) => {
         </Box>
 
         <Box sx={{ 
-          height: isMobile ? 80 : 100, 
           display: 'flex', 
           flexDirection: 'column', 
-          justifyContent: 'center'
+          justifyContent: 'center',
+          minHeight: 0
         }}>
           {isTimeSeriesModel ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 0.5 : 1 }}>
