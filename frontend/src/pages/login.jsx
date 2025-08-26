@@ -155,7 +155,7 @@ const Login = ({ onLogin }) => {
           </Button>
 
         </form>
-        <Typography textAlign="center" fontSize={15} mt={-1.5}>
+        <Typography textAlign="center" fontSize={15} mt={1}>
           Don't have an account yet?<br />
           Please <a href="mailto:florian.runkel@stud.uni-regensburg.de" style={{ color: '#0a1929', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>reach out</a> to us!
         </Typography>

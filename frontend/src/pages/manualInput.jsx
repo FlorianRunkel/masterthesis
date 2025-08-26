@@ -830,19 +830,18 @@ const ManualInput = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.2, sm: 2, md: 3 } }}>
               {[
                 {
-                  name: "Gated Recurrent Unit (GRU)",
-                  description: "A model that looks at someone's career step by step, in the order it happened. It helps recognize patterns over time and can predict when someone might be open to a new job based on their career history.",
-                  useCase: "Ideal for: Understanding career progress and making time-based predictions"
+                  "name": "Gated Recurrent Unit (GRU)",
+                  "description": "A model that looks at someone's career step by step, in the order it happened. It helps recognize patterns over time and can predict when someone might be open to a new job based on their career history.",
+                  "useCase": "Ideal for: Understanding career progress and making time-based predictions"
+                },              {
+                  "name": "Temporal Fusion Transformer (TFT)",
+                  "description": "A very advanced model that can handle complex career data from different sources over time. It’s good at recognizing patterns even when there are many variables involved.",
+                  "useCase": "Ideal for: Analyzing complex career paths with multiple data points over time"
                 },
                 {
-                  name: "Extreme Gradient Boosting (XGBoost)",
-                  description: "A model that combines many small decision trees to make strong predictions. It’s great at answering yes/no questions, like whether someone is likely to change jobs, and showing which factors matter most.",
-                  useCase: "Ideal for: Predicting job changes and understanding key influencing factors"
-                },
-                {
-                  name: "Temporal Fusion Transformer (TFT)",
-                  description: "A very advanced model that can handle complex career data from different sources over time. It’s good at recognizing patterns even when there are many variables involved.",
-                  useCase: "Ideal for: Analyzing complex career paths with multiple data points over time"
+                  "name": "Extreme Gradient Boosting (XGBoost)",
+                  "description": "A model that combines many small decision trees to make strong predictions. It’s great at answering yes/no questions, like whether someone is likely to change jobs, and showing which factors matter most.",
+                  "useCase": "Ideal for: Predicting job changes and understanding key influencing factors"
                 }
               ].map((model, idx) => (
                 <Box
