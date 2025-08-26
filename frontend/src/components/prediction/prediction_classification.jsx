@@ -107,7 +107,7 @@ const PredictionResult = ({ prediction }) => {
             border: '1px solid #FFE082',
             boxShadow: '0 2px 8px rgba(255, 193, 7, 0.1)'
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
               <InfoIcon sx={{ color: '#444', fontSize: '1.3rem' }} />
               <Typography sx={{ 
                 color: '#444', 
