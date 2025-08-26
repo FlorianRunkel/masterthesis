@@ -25,7 +25,7 @@ const AppContent = ({ onLogout, onLogin }) => {
       if (window.location.pathname === '/login') {
         navigate('/');
       }
-      if (window.location.pathname === '/settings' && user?.firstName !== 'admin') {
+      if (window.location.pathname === '/settings' && !user?.admin) {
         navigate('/');
       }
     }

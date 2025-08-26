@@ -19,7 +19,7 @@ const Sidebar = ({ onLogout, isCollapsed, onToggleCollapse }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
-  const isAdmin = user && user.uid === 'UID001';
+  const isAdmin = user && user.admin === true;
 
   const menuItems = [
     { path: '/', icon: <HomeIcon />, text: 'Home' },

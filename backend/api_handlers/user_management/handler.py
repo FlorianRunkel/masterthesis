@@ -8,16 +8,16 @@ user_management_bp = Blueprint('user_management_bp', __name__)
 '''
 Helper functions
 '''
-def create_user_helper(first_name, last_name, email, password, canViewExplanations=False):
+def create_user_helper(first_name, last_name, email, password, canViewExplanations=False, admin=False):
     try:
         mongo_db = MongoDb()
         if not all([first_name, last_name, email, password]):
             return {'statusCode': 400, 'error': 'All fields are required'}
 
         if mongo_db.get({'email': email}, 'users')['data']:
-            return {'statusCode': 409, 'error': 'U ser with this email already exists'}
+            return {'statusCode': 409, 'error': 'User with this email already exists'}
 
-        return mongo_db.create_user(first_name, last_name, email, password, canViewExplanations)
+        return mongo_db.create_user(first_name, last_name, email, password, canViewExplanations, admin)
     except Exception as e:
         logger.error(f"Error in update_user_api: {e}")
         return {'statusCode': 500, 'error': str(e)}
@@ -36,7 +36,7 @@ def update_user_helper(user_id, update_data):
         if not update_data:
             return {'statusCode': 400, 'error': 'No update data provided.'}
 
-        allowed_fields = ['firstName', 'lastName', 'email', 'password', 'canViewExplanations']
+        allowed_fields = ['firstName', 'lastName', 'email', 'password', 'canViewExplanations', 'admin']
         update_dict = {k: v for k, v in update_data.items() if k in allowed_fields}
 
         if 'password' in update_dict and not update_dict['password']:
@@ -95,7 +95,8 @@ def api_create_user():
             last_name=data.get('lastName'),
             email=data.get('email'),
             password=data.get('password'),
-            canViewExplanations=data.get('canViewExplanations', False)
+            canViewExplanations=data.get('canViewExplanations', False),
+            admin=data.get('admin', False)
         )
         if result['statusCode'] == 200:
             return jsonify({'message': 'User created successfully', 'data': result['data']}), 200

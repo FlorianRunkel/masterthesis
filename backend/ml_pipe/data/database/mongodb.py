@@ -185,7 +185,7 @@ class MongoDb:
     '''
     Create user in collection with uid
     '''
-    def create_user(self, first_name, last_name, email, password, canViewExplanations):
+    def create_user(self, first_name, last_name, email, password, canViewExplanations, admin=False):
         try:
             collection = self.get_collection('users')
             last_user = collection.find_one(sort=[('uid', -1)])
@@ -202,7 +202,8 @@ class MongoDb:
                 'lastName': last_name,
                 'email': email,
                 'password': password,
-                'canViewExplanations': canViewExplanations
+                'canViewExplanations': canViewExplanations,
+                'admin': admin
             }
             result = collection.insert_one(user_doc)
             if result.acknowledged:
@@ -226,6 +227,8 @@ class MongoDb:
                 user['_id'] = str(user['_id'])
                 if 'canViewExplanations' not in user:
                     user['canViewExplanations'] = False
+                if 'admin' not in user:
+                    user['admin'] = False
                 return {'statusCode': 200, 'data': user}
             else:
                 return {'statusCode': 401, 'error': 'Invalid credentials'}

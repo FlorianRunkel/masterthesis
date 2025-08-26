@@ -9,7 +9,7 @@ import axios from 'axios';
 const SettingsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false, admin: false });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
@@ -38,7 +38,7 @@ const SettingsPage = () => {
       const response = await axios.post(`${API_BASE_URL}/api/create-user`, form);
       const data = response.data;
       setSuccess('User successfully created!');
-      setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false });
+      setForm({ firstName: '', lastName: '', email: '', password: '', canViewExplanations: false, admin: false });
     } catch (err) {
       setError('Server error: ' + err.message);
     } finally {
@@ -111,7 +111,8 @@ const SettingsPage = () => {
         lastName: user.lastName,
         email: user.email,
         password: user.password || undefined,
-        canViewExplanations: user.canViewExplanations || false
+        canViewExplanations: user.canViewExplanations || false,
+        admin: user.admin || false
       });
       fetchUsers();
       setUpdateSuccess('User successfully updated!');
@@ -198,6 +199,17 @@ const SettingsPage = () => {
             labelPlacement="end"
             sx={{ mb: 2, color: '#222', '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
           />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.admin}
+                onChange={e => setForm(f => ({...f, admin: e.target.checked}))}
+              />
+            }
+            label="Admin privileges"
+            labelPlacement="end"
+            sx={{ mb: 2, color: '#222', '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
+          />
           <Box sx={{ display: 'flex', justifyContent: isMobile ? 'center' : 'left', mt: 2 }}>
             <Button type="submit" variant="contained" disabled={loading} sx={{ fontWeight: 800, py: 1, px: 4, borderRadius: '6px', fontSize: isMobile ? '0.95rem' : '1rem', letterSpacing: 0.5, background: '#EB7836', color: '#fff', boxShadow: 'none', textTransform: 'none', minWidth: 140, maxWidth: 260, height: isMobile ? '38px' : '42px', '&:hover': { background: '#EB7836', color: '#fff' } }}>CREATE USER</Button>
           </Box>
@@ -270,6 +282,18 @@ const SettingsPage = () => {
                     labelPlacement="start"
                     sx={{ mt: 1, justifyContent: 'space-between', ml: 0, '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
                   />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={user.admin || false}
+                        onChange={(e) => handleEditChange(idx, 'admin', e.target.checked)}
+                        disabled={user.uid === 'UID001'}
+                      />
+                    }
+                    label="Admin privileges"
+                    labelPlacement="start"
+                    sx={{ mt: 1, justifyContent: 'space-between', ml: 0, '& .MuiFormControlLabel-label': { fontSize: '0.88rem' } }}
+                  />
                   <Button
                     variant="contained"
                     color="primary"
@@ -294,6 +318,7 @@ const SettingsPage = () => {
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>E-Mail</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc' }}>Password</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc'}}>Explanations</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc'}}>Admin</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#222', background: '#fafbfc'}}>Action</TableCell>
                 </TableRow>
               </TableHead>
@@ -342,6 +367,13 @@ const SettingsPage = () => {
                       <Switch
                         checked={user.canViewExplanations || false}
                         onChange={(e) => handleEditChange(idx, 'canViewExplanations', e.target.checked)}
+                        disabled={user.uid === 'UID001'}
+                      />
+                    </TableCell>
+                    <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
+                      <Switch
+                        checked={user.admin || false}
+                        onChange={(e) => handleEditChange(idx, 'admin', e.target.checked)}
                         disabled={user.uid === 'UID001'}
                       />
                     </TableCell>
