@@ -110,16 +110,17 @@ const PredictionResult = ({ prediction }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
               <InfoIcon sx={{ 
                 color: '#444', 
+                lineHeight: 1.5,
                 fontSize: '1.3rem',
                 display: 'flex',
                 alignItems: 'center'
               }} />
               <Typography sx={{ 
-                color: '#444', 
-                fontSize: '1rem', 
-                lineHeight: 1.7, 
+                color: '#444',
+                fontSize: '1.3rem',
+                lineHeight: 1.5,
                 textAlign: 'center',
-                fontWeight: 500,
+                fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center'
               }}>

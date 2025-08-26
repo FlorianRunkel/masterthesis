@@ -9,7 +9,7 @@ const PredictionResultTime = ({ prediction }) => {
   return (
     <Box sx={{ width: '100%', display: 'flex', mt: 4, mb: 4, justifyContent: 'center', height: '100%'}}>
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px',boxShadow: '0 2px 8px rgba(0,0,0,0.05)', p: { xs: 2, sm: 3 }, width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        {prediction.llm_explanation && (
+      {prediction.llm_explanation && (
           <Box sx={{ 
             mt: 1, 
             mb: 3, 
@@ -22,16 +22,17 @@ const PredictionResultTime = ({ prediction }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
               <InfoIcon sx={{ 
                 color: '#444', 
+                lineHeight: 1.5,
                 fontSize: '1.3rem',
                 display: 'flex',
                 alignItems: 'center'
               }} />
               <Typography sx={{ 
-                color: '#444', 
-                fontSize: '1rem', 
-                lineHeight: 1.7, 
+                color: '#444',
+                fontSize: '1.3rem',
+                lineHeight: 1.5,
                 textAlign: 'center',
-                fontWeight: 500,
+                fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center'
               }}>
