@@ -108,13 +108,20 @@ const PredictionResult = ({ prediction }) => {
             boxShadow: '0 2px 8px rgba(255, 193, 7, 0.1)'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-              <InfoIcon sx={{ color: '#444', fontSize: '1.3rem' }} />
+              <InfoIcon sx={{ 
+                color: '#444', 
+                fontSize: '1.3rem',
+                display: 'flex',
+                alignItems: 'center'
+              }} />
               <Typography sx={{ 
                 color: '#444', 
                 fontSize: '1rem', 
                 lineHeight: 1.7, 
                 textAlign: 'center',
-                fontWeight: 500
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center'
               }}>
                 {prediction.llm_explanation}
               </Typography>
