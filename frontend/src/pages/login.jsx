@@ -22,13 +22,8 @@ const Login = ({ onLogin }) => {
       setError('Please enter email and password.');
       return;
     }
-    
-    console.log('Login attempt:', { email, password });
-    
     try {
       const response = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
-      console.log('Login response:', response);
-      
       if (response.status === 200 && response.data.user) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -36,13 +31,9 @@ const Login = ({ onLogin }) => {
           onLogin();
         }
       } else {
-        console.log('Login failed - wrong response:', response);
         setError('Wrong email or password.');
       }
     } catch (err) {
-      console.log('Login error:', err);
-      console.log('Error response:', err.response);
-      
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
@@ -54,12 +45,6 @@ const Login = ({ onLogin }) => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     await handleLoginWithCredentials(email, password);
-  };
-
-  const handleDemoLogin = async () => {
-    const demoEmail = "research@recruiting.ai";
-    const demoPassword = "research";
-    await handleLoginWithCredentials(demoEmail, demoPassword);
   };
 
   return (
@@ -170,21 +155,6 @@ const Login = ({ onLogin }) => {
           </Button>
 
         </form>
-        <Button
-            onClick={handleDemoLogin}
-            variant="text"
-            sx={{
-              mt: -1,
-              color: '#001242',
-              fontWeight: 700,
-              fontSize: '1.08rem',
-              textTransform: 'none',
-              letterSpacing: 0.5,
-              '&:hover': {bgcolor: 'transparent', cursor: 'pointer'},
-            }}
-          >
-            Research Login
-          </Button>
         <Typography textAlign="center" fontSize={15} mt={-1.5}>
           Don't have an account yet?<br />
           Please <a href="mailto:florian.runkel@stud.uni-regensburg.de" style={{ color: '#0a1929', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>reach out</a> to us!

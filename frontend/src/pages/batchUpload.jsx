@@ -21,15 +21,15 @@ const modelOptions = [
     description: 'Predicts the time of a possible job change. Suitable for time series and career trajectories. The model indicates the probability of a change in the next few days.'
   },
   {
+    value: 'tft',
+    title: 'Temporal Fusion Transformer (TFT)',
+    description: 'Precise prediction of the time of a job change. Particularly suitable for complex career trajectories. The model indicates the expected number of days until a change.'
+  },
+  {
     value: 'xgboost',
     title: 'Extreme Gradient Boosting (XGBoost)',
     description: 'Classifies whether a candidate is ready to change jobs. The percentage indicates the probability that the candidate will change.'
   },
-  {
-    value: 'tft',
-    title: 'Temporal Fusion Transformer (TFT)',
-    description: 'Precise prediction of the time of a job change. Particularly suitable for complex career trajectories. The model indicates the expected number of days until a change.'
-  }
 ];
 
 const BatchUpload = () => {
