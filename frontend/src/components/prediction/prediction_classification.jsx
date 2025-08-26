@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
-import WarningIcon from '@mui/icons-material/Warning';
+import InfoIcon from '@mui/icons-material/Info';
 
 const SHAP_BAR_COLORS = [
   '#8AD265',
@@ -97,11 +97,25 @@ const PredictionResult = ({ prediction }) => {
     <Box>
       <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
 
-        {prediction.llm_explanation && (
-          <Box sx={{ mt: 1, mb: 3, p: 1.5, bgcolor: '#FEC72B', borderRadius: 2, width: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <WarningIcon sx={{ color: '#444', fontSize: '1.2rem' }} />
-              <Typography sx={{ color: '#444', fontSize: '1rem', lineHeight: 1.7, textAlign: 'center', fontWeight: 600 }}>
+      {prediction.llm_explanation && (
+          <Box sx={{ 
+            mt: 1, 
+            mb: 3, 
+            p: 2.5, 
+            bgcolor: '#FFF8E1', 
+            borderRadius: 3,
+            border: '1px solid #FFE082',
+            boxShadow: '0 2px 8px rgba(255, 193, 7, 0.1)'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 1.5 }}>
+              <InfoIcon sx={{ color: '#444', fontSize: '1.3rem' }} />
+              <Typography sx={{ 
+                color: '#444', 
+                fontSize: '1rem', 
+                lineHeight: 1.7, 
+                textAlign: 'center',
+                fontWeight: 500
+              }}>
                 {prediction.llm_explanation}
               </Typography>
             </Box>

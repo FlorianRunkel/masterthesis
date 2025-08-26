@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Radio, Select, MenuItem, IconButton, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,15 +19,30 @@ const ratingCriteria = [
 const FeedbackPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [freeText, setFreeText] = useState('');
-  const [prognoseBewertung, setPrognoseBewertung] = useState([
-    { modell: '', prognose: '', echt: '', bemerkung: '' }
-  ]);
-  const [bewertungsskala, setBewertungsskala] = useState(Array(ratingCriteria.length).fill(3));
+  // Initialisiere State mit localStorage-Werten oder Standardwerten
+  const [freeText, setFreeText] = useState(() => {
+    const saved = localStorage.getItem('feedback_freeText');
+    return saved || '';
+  });
+  
+  const [prognoseBewertung, setPrognoseBewertung] = useState(() => {
+    const saved = localStorage.getItem('feedback_prognoseBewertung');
+    return saved ? JSON.parse(saved) : [{ modell: '', prognose: '', echt: '', bemerkung: '' }];
+  });
+  
+  const [bewertungsskala, setBewertungsskala] = useState(() => {
+    const saved = localStorage.getItem('feedback_bewertungsskala');
+    return saved ? JSON.parse(saved) : Array(ratingCriteria.length).fill(3);
+  });
+  
+  const [explanationFeedback, setExplanationFeedback] = useState(() => {
+    const saved = localStorage.getItem('feedback_explanationFeedback');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [explanationFeedback, setExplanationFeedback] = useState({});
 
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations;
@@ -60,6 +75,23 @@ const FeedbackPage = () => {
     setExplanationFeedback(prev => ({ ...prev, [key]: value }));
   };
 
+  // Speichere alle Änderungen automatisch im localStorage
+  useEffect(() => {
+    localStorage.setItem('feedback_freeText', freeText);
+  }, [freeText]);
+
+  useEffect(() => {
+    localStorage.setItem('feedback_prognoseBewertung', JSON.stringify(prognoseBewertung));
+  }, [prognoseBewertung]);
+
+  useEffect(() => {
+    localStorage.setItem('feedback_bewertungsskala', JSON.stringify(bewertungsskala));
+  }, [bewertungsskala]);
+
+  useEffect(() => {
+    localStorage.setItem('feedback_explanationFeedback', JSON.stringify(explanationFeedback));
+  }, [explanationFeedback]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -71,6 +103,14 @@ const FeedbackPage = () => {
         headers: { 'X-User-Uid': uid }
       });
       setSuccess(true);
+      
+      // Nach erfolgreichem Submit alle localStorage-Daten löschen
+      localStorage.removeItem('feedback_freeText');
+      localStorage.removeItem('feedback_prognoseBewertung');
+      localStorage.removeItem('feedback_bewertungsskala');
+      localStorage.removeItem('feedback_explanationFeedback');
+      
+      // Formular zurücksetzen
       setFreeText('');
       setPrognoseBewertung([{ modell: '', prognose: '', echt: '', bemerkung: '' }]);
       setBewertungsskala(Array(ratingCriteria.length).fill(3));
