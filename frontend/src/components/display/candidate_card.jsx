@@ -141,7 +141,7 @@ const CandidateCard = ({ candidate, onDelete }) => {
             </Box>
           ) : (
             <>
-              <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', fontWeight: 600 }}>Job Change Confidence</Typography>
+              <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', fontWeight: 600 , mt: 1}}>Job Change Confidence</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 1.5 }}>
                 <Typography sx={{ fontWeight: 700, minWidth: isMobile ? 40 : 50, color: getConfidenceColor(confidence, false), fontSize: isMobile ? '0.95rem' : '1.1rem' }}>
                   {(confidence * 100).toFixed(0)}%
