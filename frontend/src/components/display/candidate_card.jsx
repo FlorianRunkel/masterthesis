@@ -35,7 +35,7 @@ const CandidateCard = ({ candidate, onDelete }) => {
         height: '95%', 
         display: 'flex', 
         flexDirection: 'column', 
-        gap: 0, // Entferne den gap, da wir feste Höhen verwenden
+        gap: 0, 
         overflow: 'hidden',
         position: 'relative',
         maxWidth: '100%',
@@ -66,15 +66,13 @@ const CandidateCard = ({ candidate, onDelete }) => {
         >
             <DeleteIcon />
         </IconButton>
-
-      {/* Header-Bereich mit fester Höhe */}
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'center', 
         gap: isMobile ? 1 : 2, 
         mb: 0, 
         minWidth: 0,
-        height: isMobile ? 80 : 100, // Feste Höhe für den Header
+        height: isMobile ? 80 : 100, 
         flexShrink: 0
       }}>
         {candidate.imageUrl && candidate.imageUrl !== '' && (
@@ -85,18 +83,21 @@ const CandidateCard = ({ candidate, onDelete }) => {
           <Link href={candidate.linkedinProfile} target="_blank" rel="noopener noreferrer" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem', color: '#001B41', textDecoration: 'none', '&:hover': { color: '#EB7836' }, wordBreak: 'break-all', maxWidth: '100%', display: 'block' }}>LinkedIn Profile</Link>
         </Box>
       </Box>
-      {/* Info-Bereich mit festen Höhen für jede Zeile */}
       <Box sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        gap: 0,
         flex: 1,
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        mt: isMobile ? 1 : 2
       }}>
-        {/* Feste Höhen für jede Info-Zeile */}
-        <Box sx={{ height: isMobile ? 40 : 50, display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ 
+          height: isMobile ? 50 : 60, 
+          display: 'flex', 
+          alignItems: 'center',
+          mb: isMobile ? 1 : 1.5
+        }}>
           {candidate.currentPosition ? (
-            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}>
+            <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal', lineHeight: 1.4 }}>
               <b>Current Position:</b> {candidate.currentPosition}
             </Typography>
           ) : (
@@ -106,7 +107,13 @@ const CandidateCard = ({ candidate, onDelete }) => {
           )}
         </Box>
 
-        <Box sx={{ height: isMobile ? 40 : 50, display: 'flex', alignItems: 'center' }}>
+        {/* Location - feste Position */}
+        <Box sx={{ 
+          height: isMobile ? 50 : 60, 
+          display: 'flex', 
+          alignItems: 'center',
+          mb: isMobile ? 1 : 1.5
+        }}>
           {candidate.location ? (
             <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', wordBreak: 'break-word', maxWidth: '100%', whiteSpace: 'normal' }}>
               <b>Location:</b> {candidate.location}
@@ -118,7 +125,6 @@ const CandidateCard = ({ candidate, onDelete }) => {
           )}
         </Box>
 
-        {/* Prediction-Bereich mit fester Höhe */}
         <Box sx={{ 
           height: isMobile ? 80 : 100, 
           display: 'flex', 
