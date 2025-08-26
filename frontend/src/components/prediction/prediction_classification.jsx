@@ -159,7 +159,9 @@ const PredictionResult = ({ prediction }) => {
         </Box>
         {canViewExplanations && hasExplanations && (
         <>
-          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 700, color: '#001B41' }}>Prediction Explanation</Typography>
+          <Typography variant="h6" color="primary" gutterBottom sx={{ mt: isMobile ? 1 : 2, mb: isMobile ? 0.5 : 1, fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 700, color: '#001B41' }}>
+            Key Factors Influencing the Prediction
+          </Typography>
           {availableMethods.length > 1 && (
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start', gap: isMobile ? 1 : 2 }}>
               <Button
@@ -221,11 +223,6 @@ const PredictionResult = ({ prediction }) => {
             }
           </Typography>
 
-          <Box sx={{ pt: 0, pb: 0 }}>
-            <Typography sx={{ color: '#444', fontSize: isMobile ? '0.8rem' : '0.9rem', lineHeight: 1.9, textAlign: 'justify' }}>
-              The following bar shows which features most strongly influenced the result. The larger the colored portion, the more important this feature was for the prediction. The legend below explains what the colors represent.
-            </Typography>
-          </Box>
           <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 3 }}>
             <Box sx={{ display: 'flex', width: '100%', height: isMobile ? 24 : 32, borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: isMobile ? 1 : 2 }}>
               {currentBarData.map((item, idx) => (

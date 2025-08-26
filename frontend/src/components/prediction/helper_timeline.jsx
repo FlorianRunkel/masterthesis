@@ -334,7 +334,7 @@ const Timeline = ({ prediction, profile }) => {
             gutterBottom
             sx={{ mb: isMobile ? 1 : 2, fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 900, color: '#001242' }}
           >
-            Explanation of the prediction
+            Key Factors Influencing the Prediction
           </Typography>
           {hasExplanations && availableMethods.length > 1 && (
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start', gap: isMobile ? 1 : 2 }}>
