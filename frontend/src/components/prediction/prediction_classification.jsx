@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
 
 const SHAP_BAR_COLORS = [
   '#8AD265',
@@ -95,6 +96,18 @@ const PredictionResult = ({ prediction }) => {
   return (
     <Box>
       <Paper elevation={3} sx={{ borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', bgcolor: '#fff', p: isMobile ? 2 : 3 }}>
+
+        {prediction.llm_explanation && (
+          <Box sx={{ mt: 1, mb: 3, p: 1.5, bgcolor: '#FEC72B', borderRadius: 2, width: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <WarningIcon sx={{ color: '#444', fontSize: '1.2rem' }} />
+              <Typography sx={{ color: '#444', fontSize: '1rem', lineHeight: 1.7, textAlign: 'center', fontWeight: 600 }}>
+                {prediction.llm_explanation}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
         <Box sx={{ mb: isMobile ? 2 : 3 }}>
           <Typography variant="h1" color="primary" gutterBottom sx={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, color: '#001B41' }}>Career Change Prediction</Typography>
           <Typography sx={{ color: '#444', fontSize: '0.95rem', mb: isMobile ? 2 : 4 }}>
@@ -211,11 +224,6 @@ const PredictionResult = ({ prediction }) => {
             </Box>
           </Box>
         </>
-      )}
-      {prediction.llm_explanation && (
-        <Box sx={{ mb: isMobile ? 2 : 3, p: isMobile ? 2 : 3 }}>
-          <Typography sx={{ color: '#444', fontSize: isMobile ? '0.8rem' : '0.88rem', lineHeight: 1.9, textAlign: 'justify' }}>{prediction.llm_explanation}</Typography>
-        </Box>
       )}
       </Paper>
     </Box>

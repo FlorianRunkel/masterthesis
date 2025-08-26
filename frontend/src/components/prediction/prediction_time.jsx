@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import Timeline from './helper_timeline';
-import WarningIcon from '@mui/icons-material/Warning';
 
 const PredictionResultTime = ({ prediction }) => {
   if (!prediction) return null;
@@ -10,10 +10,27 @@ const PredictionResultTime = ({ prediction }) => {
     <Box sx={{ width: '100%', display: 'flex', mt: 4, mb: 4, justifyContent: 'center', height: '100%'}}>
       <Box sx={{ bgcolor: '#fff', borderRadius: '14px',boxShadow: '0 2px 8px rgba(0,0,0,0.05)', p: { xs: 2, sm: 3 }, width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {prediction.llm_explanation && (
-          <Box sx={{ mt: 1, mb: 1, p: 1.5, bgcolor: '#FFDB58', borderRadius: 2, width: '100%' }}>
-            <Typography sx={{ color: '#444', fontSize: '1rem', lineHeight: 1.7, textAlign: 'center' }}>
-              <WarningIcon sx={{ color: '#444', fontSize: '1.2rem' }} /> {prediction.llm_explanation}
-            </Typography>
+          <Box sx={{ 
+            mt: 1, 
+            mb: 3, 
+            p: 2.5, 
+            bgcolor: '#FFF8E1', 
+            borderRadius: 3,
+            border: '1px solid #FFE082',
+            boxShadow: '0 2px 8px rgba(255, 193, 7, 0.1)'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+              <InfoIcon sx={{ color: '#444', fontSize: '1.3rem' }} />
+              <Typography sx={{ 
+                color: '#444', 
+                fontSize: '1rem', 
+                lineHeight: 1.7, 
+                textAlign: 'center',
+                fontWeight: 500
+              }}>
+                {prediction.llm_explanation}
+              </Typography>
+            </Box>
           </Box>
         )}
         <Timeline prediction={prediction} />
