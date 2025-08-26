@@ -72,7 +72,7 @@ const Login = ({ onLogin }) => {
         <Typography variant="h4" fontWeight={800} textAlign="center" color="#001242" fontSize={40}>
           Welcome Back
         </Typography>
-        <Typography color="#444" textAlign="center" fontSize={15}>
+        <Typography color="#444" textAlign="center" fontSize={15} mt={-1}>
           Sign into your account to get started!
         </Typography>
         <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
