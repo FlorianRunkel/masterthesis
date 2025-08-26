@@ -134,7 +134,7 @@ const CandidateCard = ({ candidate, onDelete }) => {
         }}>
           {isTimeSeriesModel ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 0.5 : 1 }}>
-              <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', fontWeight: 600 }}>Anticipated Change Date</Typography>
+              <Typography sx={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem', fontWeight: 600, mt: 1}}>Anticipated Change Date</Typography>
               <Typography sx={{ color: getConfidenceColor(confidence, true), fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 700 }}>
                 {new Date(Date.now() + getDaysFromConfidence(confidence) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}
               </Typography>
