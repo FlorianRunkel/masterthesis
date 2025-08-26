@@ -120,7 +120,7 @@ const PredictionResult = ({ prediction }) => {
                 fontSize: '1.3rem',
                 lineHeight: 1.5,
                 textAlign: 'center',
-                fontWeight: 600,
+                fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center'
               }}>
