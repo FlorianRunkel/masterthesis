@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip, IconButton, useMediaQuery, useTheme, FormControl, Select, MenuItem, InputLabel, Menu } from '@mui/material';
+import { Box, Typography, Button, Checkbox, CircularProgress, Link, Chip, IconButton, useMediaQuery, useTheme, MenuItem, Menu } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -20,22 +20,19 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   const successCount = results.filter(r => !r.error && r.status !== 'error').length;
   const errorCount = results.filter(r => r.error || r.status === 'error').length;
 
-  // Filter results based on time filter
   const getFilteredResults = () => {
     if (timeFilter === 'all') return results;
-    
     return results.filter(result => {
-      if (result.error || result.status === 'error') return true; // Always show errors
-      
+      if (result.error || result.status === 'error') return true;
       const months = result.confidence / 30.44;
 
       switch (timeFilter) {
         case 'short':
-          return months < 12; // Under 12 months
+          return months < 12;
         case 'medium':
-          return months >= 12 && months < 24; // 12 months to 2 years
+          return months >= 12 && months < 24;
         case 'long':
-          return months >= 24; // Over 2 years
+          return months >= 24;
         default:
           return true;
       }
@@ -235,8 +232,6 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
           )}
         </Box>
       </Box>
-      
-      {/* Filter Menu */}
       <Menu
         anchorEl={filterAnchorEl}
         open={Boolean(filterAnchorEl)}
