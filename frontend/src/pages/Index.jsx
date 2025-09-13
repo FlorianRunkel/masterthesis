@@ -118,7 +118,7 @@ const Index = () => {
           color: '#002442',
           letterSpacing: '-1px',
         }}>
-          "A Machine Learning Approach to Anticipate the Timing of Carrer Progressions"
+          "Anticipating Job Changes: An Explainable Machine Learning Approach for Talent Acquisition"
         </Typography>
         <Typography sx={{
           fontSize: { xs: '1rem', md: '1.25rem' },
