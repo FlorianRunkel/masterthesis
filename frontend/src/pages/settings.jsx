@@ -265,7 +265,7 @@ const SettingsPage = () => {
                       onChange={e => handleEditChange(idx, 'password', e.target.value)}
                       size="small"
                       type="password"
-                      placeholder="Neues Passwort"
+                      placeholder="New Password"
                       sx={{ fontSize: '0.88rem', '& .MuiInputBase-input': { fontSize: '0.88rem', py: 1.2 }, bgcolor: '#fff', borderRadius: '8px' }}
                       fullWidth
                     />
