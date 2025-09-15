@@ -39,7 +39,7 @@ const experimentalGroupQuestions = [
     'The presence of explanations made me more willing to act on the system\'s recommendations.'
   ]},
   { category: 'Usability for Recruiting', questions: [
-    'The combination of predictions and explanations was straightforward and easy to follow.',
+    'The combination of predictions and explanations was straightforward and clear to understand.',
     'The explanations improved my ability to identify which candidates should be prioritized in Active Sourcing.'
   ]},
   { category: 'Integration of Human Expertise and AI Support', questions: [
