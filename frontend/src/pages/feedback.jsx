@@ -311,7 +311,7 @@ const FeedbackPage = () => {
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>
-            Evaluation Questionnaire - {canViewExplanations ? 'Group B (Predictions + Explanations)' : 'Group A (Predictions only)'}
+            Evaluation Questionnaire
           </Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 2 }}>
             Please evaluate each statement on a scale from 1 to 5, where 1 means "Strongly Disagree" and 5 means "Strongly Agree".
@@ -319,14 +319,14 @@ const FeedbackPage = () => {
           
           {currentQuestions.map((category, categoryIdx) => (
             <Box key={category.category} sx={{ mb: categoryIdx < currentQuestions.length - 1 ? 3 : 0 }}>
-              <Typography variant="h3" sx={{ fontSize: '1rem', fontWeight: 600, mb: 1.5, color: '#001242' }}>
+              <Typography variant="h3" sx={{ fontSize: '1rem', fontWeight: 600, mb: 1.5, color: '#111' }}>
                 {categoryIdx + 1}. {category.category}
               </Typography>
               
               {category.questions.map((question, questionIdx) => {
                 const globalQuestionIdx = currentQuestions.slice(0, categoryIdx).reduce((sum, cat) => sum + cat.questions.length, 0) + questionIdx;
                 return (
-                  <Box key={globalQuestionIdx} sx={{ mb: 2, p: 2, bgcolor: '#fafbfc', borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                  <Box key={globalQuestionIdx} sx={{ mb: 2, p: 2, bgcolor: '#fafbfc', borderRadius: 2, border: '1px solid #fafbfc' }}>
                     <Typography sx={{ fontSize: '0.9rem', mb: 1.5, color: '#111', fontWeight: 500 }}>
                       {question}
                     </Typography>
