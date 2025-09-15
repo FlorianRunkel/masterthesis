@@ -7,14 +7,50 @@ import axios from 'axios';
 
 const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment'];
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
-const ratingCriteria = [
-    'Relevance and realism of predictions',
-    'Transparency of model decisions',
-    'Usefulness for daily work in Active Sourcing',
-    'Trustworthiness of the AI recommendations',
-    'Likelihood of future usage in real scenarios',
-    'Overall impression and satisfaction'
-  ];
+// Control Group Questions (Predictions only)
+const controlGroupQuestions = [
+  { category: 'Relevance & Realism of Predictions', questions: [
+    'The system’s predictions about candidate job-switching readiness seemed realistic.',
+    'The predictions were relevant for prioritizing candidates in Active Sourcing.'
+  ]},
+  { category: 'Confidence in Predictions', questions: [
+    'I trusted the system’s predictions when deciding which candidates to approach.',
+    'The recommendations gave me enough confidence to base sourcing decisions on them.'
+  ]},
+  { category: 'Usability for Recruiting', questions: [
+    'The system’s predictions were easy to interpret without further explanation.',
+    'The predictions helped me to structure the candidate selection process more efficiently.'
+  ]},
+  { category: 'Perceived Value & Intention to Use', questions: [
+    'I can imagine using such a prediction system in my daily recruiting activities.',
+    'The system would help me to improve the effectiveness of my sourcing decisions.',
+  ]}
+];
+
+// Experimental Group Questions (Predictions + Explanations)
+const experimentalGroupQuestions = [
+  { category: 'Comprehensibility & Interpretability', questions: [
+    'The explanations made it clear why a candidate was predicted as more or less likely to switch jobs.',
+    'The explanations increased my understanding of how the system generated its predictions.',
+    'The explanations were concrete and applicable to my sourcing decisions.'
+  ]},
+  { category: 'Confidence in Predictions', questions: [
+    'The explanations strengthened my confidence in the reliability of the predictions.',
+    'The presence of explanations made me more willing to act on the system\'s recommendations.'
+  ]},
+  { category: 'Usability for Recruiting', questions: [
+    'The combination of predictions and explanations was straightforward and easy to follow.',
+    'The explanations improved my ability to identify which candidates should be prioritized in Active Sourcing.'
+  ]},
+  { category: 'Integration of Human Expertise and AI Support', questions: [
+    'The explanations supported me in combining the system\'s predictions with my own recruiting expertise.',
+    'The system complemented my judgment rather than replacing it.'
+  ]},
+  { category: 'Perceived Value & Intention to Use', questions: [
+    'I could imagine integrating such a system with explanations into my daily recruiting workflow.',
+    'The explanations provided added value compared to predictions alone.'
+  ]}
+];
 
 const FeedbackPage = () => {
   const theme = useTheme();
@@ -30,31 +66,21 @@ const FeedbackPage = () => {
     return saved ? JSON.parse(saved) : [{ modell: '', prognose: '', echt: '', bemerkung: '' }];
   });
   
-  const [bewertungsskala, setBewertungsskala] = useState(() => {
-    const saved = localStorage.getItem('feedback_bewertungsskala');
-    return saved ? JSON.parse(saved) : Array(ratingCriteria.length).fill(3);
-  });
-  
-  const [explanationFeedback, setExplanationFeedback] = useState(() => {
-    const saved = localStorage.getItem('feedback_explanationFeedback');
-    return saved ? JSON.parse(saved) : {};
-  });
-
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations;
-  const explanationQuestionsNo = [
-    { key: 'wantFeatureImportance', label: "Would it make the result easier to understand if the system showed you what mattered most in making the decision?" },
-    { key: 'wantMoreExplainability', label: "Would you trust the result more if the system explained how it came to this decision?" }
-  ];
-  const explanationQuestionsYes = [
-    { key: 'explanationHelpful', label: "Did the explanation make it clearer how the system came to this result?" },
-    { key: 'featureImportanceUseful', label: "Was it helpful to see what mattered most in the system’s decision?" },
-    { key: 'lessTrustWithoutExplanation', label: "If there had been no explanation at all, do you think you would have trusted the result in the same way?" }
-  ];
+  
+  // Get the appropriate questions based on user's explanation access
+  const currentQuestions = canViewExplanations ? experimentalGroupQuestions : controlGroupQuestions;
+  const totalQuestions = currentQuestions.reduce((sum, category) => sum + category.questions.length, 0);
+  
+  const [bewertungsskala, setBewertungsskala] = useState(() => {
+    const saved = localStorage.getItem('feedback_bewertungsskala');
+    return saved ? JSON.parse(saved) : Array(totalQuestions).fill(3);
+  });
 
   const handlePrognoseChange = (idx, field, value) => {
     const updated = prognoseBewertung.map((row, i) => i === idx ? { ...row, [field]: value } : row);
@@ -65,15 +91,12 @@ const FeedbackPage = () => {
     setPrognoseBewertung([...prognoseBewertung, { modell: '', prognose: '', echt: '', bemerkung: '' }]);
   };
 
-  const handleBewertungChange = (idx, value) => {
+  const handleBewertungChange = (questionIdx, value) => {
     const updated = [...bewertungsskala];
-    updated[idx] = value;
+    updated[questionIdx] = value;
     setBewertungsskala(updated);
   };
 
-  const handleExplanationFeedback = (key, value) => {
-    setExplanationFeedback(prev => ({ ...prev, [key]: value }));
-  };
 
   // Speichere alle Änderungen automatisch im localStorage
   useEffect(() => {
@@ -88,9 +111,6 @@ const FeedbackPage = () => {
     localStorage.setItem('feedback_bewertungsskala', JSON.stringify(bewertungsskala));
   }, [bewertungsskala]);
 
-  useEffect(() => {
-    localStorage.setItem('feedback_explanationFeedback', JSON.stringify(explanationFeedback));
-  }, [explanationFeedback]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +119,7 @@ const FeedbackPage = () => {
     setError('');
     try {
       const uid = user?.uid;
-      const res = await axios.post(`${API_BASE_URL}/api/feedback`, { freeText, prognoseBewertung, bewertungsskala, explanationFeedback }, {
+      await axios.post(`${API_BASE_URL}/api/feedback`, { freeText, prognoseBewertung, bewertungsskala }, {
         headers: { 'X-User-Uid': uid }
       });
       setSuccess(true);
@@ -108,13 +128,11 @@ const FeedbackPage = () => {
       localStorage.removeItem('feedback_freeText');
       localStorage.removeItem('feedback_prognoseBewertung');
       localStorage.removeItem('feedback_bewertungsskala');
-      localStorage.removeItem('feedback_explanationFeedback');
       
       // Formular zurücksetzen
       setFreeText('');
       setPrognoseBewertung([{ modell: '', prognose: '', echt: '', bemerkung: '' }]);
-      setBewertungsskala(Array(ratingCriteria.length).fill(3));
-      setExplanationFeedback({});
+      setBewertungsskala(Array(totalQuestions).fill(3));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -292,77 +310,53 @@ const FeedbackPage = () => {
           </Button>
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>Evaluation Criteria</Typography>
-          <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 1.5 }}>
-            Please evaluate each criterion on a scale from 1 to 5, where 1 means very poor or not helpful, and 5 means excellent and extremely useful.
+          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 1, color: '#001242' }}>
+            Evaluation Questionnaire - {canViewExplanations ? 'Group B (Predictions + Explanations)' : 'Group A (Predictions only)'}
           </Typography>
-          <TableContainer component={Paper} sx={{ mb: 1, boxShadow: 0 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#001242', fontSize: '0.88rem', bgcolor: '#fff' }}>Criterion</TableCell>
-                  {[1,2,3,4,5].map(val => <TableCell key={val} align="center" sx={{ fontWeight: 700, color: '#001242', fontSize: '1rem', bgcolor: '#fff' }}>{val}</TableCell>)}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ratingCriteria.map((criterion, idx) => (
-                  <TableRow key={criterion} sx={{ fontSize: '0.88rem', mb: 1, color: '#111'}}>
-                    <TableCell sx={{ fontSize: '0.88rem', mb: 1, color: '#111'}}>{criterion}</TableCell>
-                    {[1,2,3,4,5].map(val => (
-                      <TableCell key={val} align="center">
-                        <Radio
-                          checked={bewertungsskala[idx] === val}
-                          onChange={() => handleBewertungChange(idx, val)}
-                          value={val}
-                          name={`rating-${idx}`}
-                          color="primary"
-                          sx={{
-                            '&.Mui-checked': {
-                              color: '#001242',
-                            },
-                          }}
-                          size="small"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-        <Box sx={{ bgcolor: '#fff', borderRadius: 3, p: { xs: 2, sm: 3 }, mb: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)'   }}>
-          <Typography variant="h2" sx={{ fontSize: '1.15rem', fontWeight: 700, mb: 2, color: '#001242' }}>
-            Explainability Feedback
+          <Typography sx={{ fontSize: '0.88rem', color: '#666', mb: 2 }}>
+            Please evaluate each statement on a scale from 1 to 5, where 1 means "Strongly Disagree" and 5 means "Strongly Agree".
           </Typography>
-          {(canViewExplanations ? explanationQuestionsYes : explanationQuestionsNo).map((q, idx, arr) => (
-            <Box key={q.key} sx={{ mb: idx < arr.length - 1 ? 2 : 0 }}>
-              <Typography sx={{fontSize: '0.88rem', mb: 1, color: '#111',}}>{q.label}</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <input
-                    type="radio"
-                    id={`${q.key}-yes`}
-                    name={q.key}
-                    checked={explanationFeedback[q.key] === 'yes'}
-                    onChange={() => handleExplanationFeedback(q.key, 'yes')}
-                    style={{ accentColor: '#001242', width: 14, height: 14 }}
-                  />
-                  <label htmlFor={`${q.key}-yes`} style={{ marginRight: 16, fontWeight: 500, fontSize: '0.8rem', color: '#111', }}>YES</label>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <input
-                    type="radio"
-                    id={`${q.key}-no`}
-                    name={q.key}
-                    checked={explanationFeedback[q.key] === 'no'}
-                    onChange={() => handleExplanationFeedback(q.key, 'no')}
-                    style={{ accentColor: '#001242', width: 14, height: 14 }}
-                  />
-                  <label htmlFor={`${q.key}-no`} style={{ fontWeight: 500, fontSize: '0.88rem', color: '#111', }}>NO</label>
-                </Box>
-              </Box>
-              {idx < arr.length - 1 && <Box sx={{ borderBottom: '1px solid #e0e0e0', my: 2 }} />}
+          
+          {currentQuestions.map((category, categoryIdx) => (
+            <Box key={category.category} sx={{ mb: categoryIdx < currentQuestions.length - 1 ? 3 : 0 }}>
+              <Typography variant="h3" sx={{ fontSize: '1rem', fontWeight: 600, mb: 1.5, color: '#001242' }}>
+                {categoryIdx + 1}. {category.category}
+              </Typography>
+              
+              {category.questions.map((question, questionIdx) => {
+                const globalQuestionIdx = currentQuestions.slice(0, categoryIdx).reduce((sum, cat) => sum + cat.questions.length, 0) + questionIdx;
+                return (
+                  <Box key={globalQuestionIdx} sx={{ mb: 2, p: 2, bgcolor: '#fafbfc', borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                    <Typography sx={{ fontSize: '0.9rem', mb: 1.5, color: '#111', fontWeight: 500 }}>
+                      {question}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                      <Typography sx={{ fontSize: '0.8rem', color: '#666', mr: 1 }}>Strongly Disagree</Typography>
+                      {[1,2,3,4,5].map(val => (
+                        <Box key={val} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Radio
+                            checked={bewertungsskala[globalQuestionIdx] === val}
+                            onChange={() => handleBewertungChange(globalQuestionIdx, val)}
+                            value={val}
+                            name={`rating-${globalQuestionIdx}`}
+                            color="primary"
+                            sx={{
+                              '&.Mui-checked': {
+                                color: '#001242',
+                              },
+                            }}
+                            size="small"
+                          />
+                          <Typography sx={{ fontSize: '0.8rem', color: '#666', minWidth: '20px', textAlign: 'center' }}>
+                            {val}
+                          </Typography>
+                        </Box>
+                      ))}
+                      <Typography sx={{ fontSize: '0.8rem', color: '#666', ml: 1 }}>Strongly Agree</Typography>
+                    </Box>
+                  </Box>
+                );
+              })}
             </Box>
           ))}
         </Box>
