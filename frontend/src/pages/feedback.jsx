@@ -9,9 +9,9 @@ const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'C
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
 // Control Group Questions (Predictions only)
 const controlGroupQuestions = [
-  { category: 'Relevance & Realism of Predictions', questions: [
+  { category: 'Comprehensibility & Interpretability', questions: [
     'The system’s predictions about candidate job-switching readiness seemed realistic.',
-    'The predictions were relevant for prioritizing candidates in Active Sourcing.'
+    'The predictions were relevant for prioritizing candidates in Active Sourcing.',
   ]},
   { category: 'Confidence in Predictions', questions: [
     'I trusted the system’s predictions when deciding which candidates to approach.',
@@ -20,6 +20,10 @@ const controlGroupQuestions = [
   { category: 'Usability for Recruiting', questions: [
     'The system’s predictions were easy to interpret without further explanation.',
     'The predictions helped me to structure the candidate selection process more efficiently.'
+  ]},  
+  { category: 'Integration of Human Expertise and AI Support', questions: [
+    'The system’s predictions supported me in combining them with my own recruiting expertise.',
+    'The system complemented my judgment rather than replacing it.'
   ]},
   { category: 'Perceived Value & Intention to Use', questions: [
     'I can imagine using such a prediction system in my daily recruiting activities.',
@@ -32,7 +36,6 @@ const experimentalGroupQuestions = [
   { category: 'Comprehensibility & Interpretability', questions: [
     'The explanations made it clear why a candidate was predicted as more or less likely to switch jobs.',
     'The explanations increased my understanding of how the system generated its predictions.',
-    'The explanations were concrete and applicable to my sourcing decisions.'
   ]},
   { category: 'Confidence in Predictions', questions: [
     'The explanations strengthened my confidence in the reliability of the predictions.',
