@@ -4,9 +4,9 @@
 
 ---
 
--**Frontend**: https://masterthesis-igbq.onrender.com
--**API Proxy**: https://masterthesis-api-proxy.onrender.com
--**Backend**: AWS ECS (Elastic Container Service)
+- **Frontend**: https://masterthesis-igbq.onrender.com
+- **API Proxy**: https://masterthesis-api-proxy.onrender.com
+- **Backend**: AWS ECS (Elastic Container Service)
 
 ---
 ## Abstract
@@ -110,7 +110,7 @@ masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
 
 ---
 
-## API Overview (most important endpoints)
+## API Overview
 
 | Method | Path                | Description
 |---------|---------------------|-------------------------------------
