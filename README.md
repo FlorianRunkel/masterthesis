@@ -9,11 +9,21 @@
 -**Backend**: AWS ECS (Elastic Container Service)
 
 ---
+## Abstract
 
-## Overview
+<div align="justify">
 
-This thesis addresses the challenge of predicting candidate mobility in Active Recruiting, a task of growing relevance in Human Resource Management. While previous studies have primarily focused on binary classification of employee attrition, the temporal dimension of career changes and the explainability of predictions have remained largely unexplored. To address this gap, a web-based artefact was developed within the Design Science Research paradigm, combining machine learning models with explainable AI methods. The framework integrates XGBoost for the classification of candidates willingness to change jobs and sequential models such as Gated Recurrent Units and the Temporal Fusion Transformer to forecast the specific timing of potential job transitions. To ensure transparency, explainability techniques including SHAP and LIME were incorporated, enabling both global and local insights into model behavior. The artefact was evaluated through a twofold approach comprising a technical performance analysis and a user study following an established evaluation design. The results demonstrate that XGBoost achieves high predictive accuracy and recall, providing a reliable basis for classifying job-change readiness. Furthermore, sequential models were able to predict specific points in time at which a career change is likely, with the Temporal Fusion Transformer outperforming GRU in precision and practical applicability. The user study further revealed that the integration of explainability components increases transparency, enhances trust, and improves usability, thereby strengthening the acceptance and practical relevance of predictive systems in recruiting. Overall, the thesis shows that the combination of accurate prediction models with explainable methods constitutes a promising approach for data-driven decision support in HRM. The developed artefact contributes both theoretically, by deriving design principles for the integration of classification, temporal prediction, and explainability, and practically, by supporting recruiters in prioritizing candidates, planning outreach more strategically, and justifying decisions transparently.
+This thesis addresses the challenge of predicting candidate mobility in Active Recruiting, a task of growing relevance in Human Resource Management. While previous studies have primarily focused on binary classification of employee attrition, the temporal dimension of career changes and the explainability of predictions have remained largely unexplored. 
 
+To address this gap, a web-based artefact was developed within the Design Science Research paradigm, combining machine learning models with explainable AI methods. The framework integrates XGBoost for the classification of candidates' willingness to change jobs and sequential models such as Gated Recurrent Units and the Temporal Fusion Transformer to forecast the specific timing of potential job transitions. 
+
+To ensure transparency, explainability techniques including SHAP and LIME were incorporated, enabling both global and local insights into model behavior. The artefact was evaluated through a twofold approach comprising a technical performance analysis and a user study following an established evaluation design. 
+
+The results demonstrate that XGBoost achieves high predictive accuracy and recall, providing a reliable basis for classifying job-change readiness. Furthermore, sequential models were able to predict specific points in time at which a career change is likely, with the Temporal Fusion Transformer outperforming GRU in precision and practical applicability. The user study further revealed that the integration of explainability components increases transparency, enhances trust, and improves usability, thereby strengthening the acceptance and practical relevance of predictive systems in recruiting. 
+
+Overall, the thesis shows that the combination of accurate prediction models with explainable methods constitutes a promising approach for data-driven decision support in HRM. The developed artefact contributes both theoretically, by deriving design principles for the integration of classification, temporal prediction, and explainability, and practically, by supporting recruiters in prioritizing candidates, planning outreach more strategically, and justifying decisions transparently.
+
+</div>
 ---
 
 ## Project Structure (with explanations)
@@ -53,11 +63,6 @@ masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
 ├── package.json                 # Proxy dependencies
 └── ...
 ```
-
-**Important notes:**
-- **Backend**: All ML models, data processing, API logic - deployed on AWS ECS
-- **Frontend**: User interface, communicates with API Proxy
-- **API Proxy**: Handles CORS, routing, and forwards requests to AWS backend
 
 ---
 
@@ -134,7 +139,7 @@ masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
 **Performance:**
 - **First prediction**: 5-10 seconds (model loading)
 - **Subsequent predictions**: 1-3 seconds
-- **Batch processing**: Supports up to 100 profiles simultaneously
+- **Batch processing**: Supports up to 20 profiles simultaneously
 
 **Dependencies:**
 - **XGBoost**: 3.0.0 (latest stable version)
@@ -171,10 +176,10 @@ masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
 
 ## Author & Contact
 
-**Florian Runkel**  
-**Email**: runkel.florian@stud.uni-regensburg.de  
-**University**: University of Regensburg  
-**Project**: Master's Thesis - LinkedIn Career Prediction AI
+**Florian Runkel**
+**Email**: runkel.florian@stud.uni-regensburg.de
+**University**: University of Regensbur
+**Project**: Master's Thesis
 
 ---
 
