@@ -26,7 +26,7 @@ Overall, the thesis shows that the combination of accurate prediction models wit
 </div>
 ---
 
-## Project Structure (with explanations)
+## Project Structure
 
 ```
 .
