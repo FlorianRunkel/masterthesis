@@ -1,27 +1,18 @@
 # Master Thesis
 
-"A Machine Learning Approach to Anticipate the Timing of Carrer Progressions"
+"Anticipating Job Changes: An Explainable Machine Learning Approach for Talent Acquisition"
 
 ---
 
-- **Frontend**: https://masterthesis-igbq.onrender.com
-- **API Proxy**: https://masterthesis-api-proxy.onrender.com
-- **Backend**: AWS ECS (Elastic Container Service)
+-**Frontend**: https://masterthesis-igbq.onrender.com
+-**API Proxy**: https://masterthesis-api-proxy.onrender.com
+-**Backend**: AWS ECS (Elastic Container Service)
 
 ---
 
 ## Overview
 
-This application analyzes LinkedIn profiles and predicts with the help of AI models when a career step is likely to occur. It consists of a **Backend** (Python/Flask, AI models) deployed on AWS, a **Frontend** (React, Material-UI) deployed on Render, and an **API Proxy** (Node.js/Express) also deployed on Render to handle CORS and routing.
-
----
-
-## Deployment Status
-
-- **Frontend**: Live on Render (https://masterthesis-igbq.onrender.com)
-- **API Proxy**: Live on Render (https://masterthesis-api-proxy.onrender.com)
-- **Backend**: Live on AWS ECS (Elastic Container Service)
-- **ML Models**: All 3 models (TFT, GRU, XGBoost) are integrated in the backend
+This thesis addresses the challenge of predicting candidate mobility in Active Recruiting, a task of growing relevance in Human Resource Management. While previous studies have primarily focused on binary classification of employee attrition, the temporal dimension of career changes and the explainability of predictions have remained largely unexplored. To address this gap, a web-based artefact was developed within the Design Science Research paradigm, combining machine learning models with explainable AI methods. The framework integrates XGBoost for the classification of candidates willingness to change jobs and sequential models such as Gated Recurrent Units and the Temporal Fusion Transformer to forecast the specific timing of potential job transitions. To ensure transparency, explainability techniques including SHAP and LIME were incorporated, enabling both global and local insights into model behavior. The artefact was evaluated through a twofold approach comprising a technical performance analysis and a user study following an established evaluation design. The results demonstrate that XGBoost achieves high predictive accuracy and recall, providing a reliable basis for classifying job-change readiness. Furthermore, sequential models were able to predict specific points in time at which a career change is likely, with the Temporal Fusion Transformer outperforming GRU in precision and practical applicability. The user study further revealed that the integration of explainability components increases transparency, enhances trust, and improves usability, thereby strengthening the acceptance and practical relevance of predictive systems in recruiting. Overall, the thesis shows that the combination of accurate prediction models with explainable methods constitutes a promising approach for data-driven decision support in HRM. The developed artefact contributes both theoretically, by deriving design principles for the integration of classification, temporal prediction, and explainability, and practically, by supporting recruiters in prioritizing candidates, planning outreach more strategically, and justifying decisions transparently.
 
 ---
 
@@ -54,12 +45,12 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 │   ├── package.json         # Frontend dependencies
 │   └── tailwind.config.js   # Tailwind CSS configuration
 │
-├── masterthesis-api-proxy/  # API Proxy server (Node.js, Express)
-│   ├── server.js            # Proxy server configuration
-│   ├── package.json         # Proxy dependencies
-│   └── ...
-│
 ├── README.md                # This guide
+└── ...
+
+masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
+├── server.js                    # Proxy server configuration
+├── package.json                 # Proxy dependencies
 └── ...
 ```
 
@@ -71,11 +62,12 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 ---
 
 ### Frontend
-- **LinkedIn Profile Analysis**: Analyze individual profiles and calculate switching probability
-- **Batch Upload**: Upload multiple profiles via CSV and analyze them
-- **Candidate Management**: Search, filter, and save results
-- **Admin Area**: Create, edit, delete users, manage permissions
-- **Explanations**: SHAP-based feature importance for each prediction
+- **Manual Input**: Enter candidate data manually for detailed career predictions
+- **LinkedIn Profile Analysis**: Analyze individual LinkedIn profiles and calculate switching probability
+- **Batch Upload**: Upload multiple profiles via CSV and analyze them in bulk
+- **Candidate Management**: Search, filter, and save promising candidates for future contact
+- **Admin Area**: Create, edit, delete users and manage system permissions
+- **Explanations**: SHAP-based feature importance and explainable AI insights for each prediction
 
 ### Backend
 - **API Server**: REST API for all frontend functions (deployed on AWS ECS)
@@ -83,11 +75,6 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **Feature Engineering**: Automatic preparation and transformation of LinkedIn data
 - **Database**: Storage of candidates and analyses in MongoDB
 - **Explainability**: SHAP & Lime integration for comprehensible predictions
-
-### API Proxy
-- **CORS Handling**: Manages cross-origin requests from frontend
-- **Request Routing**: Forwards all requests to AWS backend
-- **Load Balancing**: Acts as intermediary between frontend and backend
 
 ---
 
@@ -97,15 +84,9 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 2. **API Call**: Frontend sends data to API Proxy (https://masterthesis-api-proxy.onrender.com)
 3. **API Proxy** (Render): Handles CORS and forwards request to AWS backend
 4. **Backend** (AWS ECS): Prepares data, applies ML model
-5. **Explanation**: SHAP calculates the most important influencing factors
+5. **Explanation**: SHAP/Lime calculates the most important influencing factors
 6. **Response**: Backend sends prediction & explanations back through proxy to frontend
 7. **Frontend**: Displays results, visualizations and explanations
-
-**Processed Data:**
-- LinkedIn profiles (manually or via CSV)
-- Feature vectors (extracted from profiles)
-- Prediction results & SHAP values
-- User management (admin area)
 
 ---
 
@@ -116,122 +97,28 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
   - PyTorch (TFT, GRU), XGBoost
   - SHAP & Lime (Explainable AI)
   - MongoDB (Database)
-  - **Deployment**: AWS ECS (Elastic Container Service)
 - **Frontend:**
   - React, Material-UI, Tailwind CSS
   - React Router
-  - **Deployment**: Render (Static Site)
 - **API Proxy:**
   - Node.js, Express, http-proxy
-  - **Deployment**: Render (Web Service)
-- **DevOps:**
-  - AWS ECR (Elastic Container Registry)
-  - AWS ECS (Elastic Container Service)
-  - Render
-  - GitHub (code versioning)
-
----
-
-## Setup & Deployment
-
-### Option 1: Local Development (for developers)
-
-1. **Clone repository**
-   ```bash
-   git clone [repository-url]
-   cd [repository-name]
-   ```
-
-2. **Install backend dependencies**
-   ```bash
-   cd backend
-   pip3 install -r requirements.txt
-   ```
-
-3. **Install frontend dependencies**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Install API proxy dependencies**
-   ```bash
-   cd ../masterthesis-api-proxy
-   npm install
-   ```
-
-5. **Adjust API URL for local development**
-   ```bash
-   # In frontend/src/api.js
-   export const API_BASE_URL = "http://localhost:10000";
-   ```
-
-6. **Start application**
-   ```bash
-   # Backend (Terminal 1)
-   cd backend
-   python app.py
-   
-   # API Proxy (Terminal 2)
-   cd masterthesis-api-proxy
-   node server.js
-   
-   # Frontend (Terminal 3)
-   cd frontend
-   npm start
-   ```
-
-### Option 2: Render Deployment (Production)
-
-**Frontend & API Proxy are already deployed and running 24/7:**
-
-- **Frontend**: https://masterthesis-igbq.onrender.com
-- **API Proxy**: https://masterthesis-api-proxy.onrender.com
-- **Backend**: AWS ECS (Elastic Container Service)
-
-### Option 3: AWS Deployment (Production)
-
-**Backend deployment to AWS ECS:**
-
-1. **Build Docker Image:**
-   ```bash
-   cd backend
-   docker build --platform linux/amd64 --no-cache -t masterthesis-backend .
-   ```
-
-2. **Tag Image for AWS ECR:**
-   ```bash
-   docker tag masterthesis-backend:latest 736874312333.dkr.ecr.eu-central-1.amazonaws.com/masterthesis-backend:latest
-   ```
-
-3. **Login to AWS ECR:**
-   ```bash
-   aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 736874312333.dkr.ecr.eu-central-1.amazonaws.com
-   ```
-
-4. **Push to AWS ECR:**
-   ```bash
-   docker push 736874312333.dkr.ecr.eu-central-1.amazonaws.com/masterthesis-backend:latest
-   ```
-
-**Note**: The AWS ECR repository URL (`736874312333.dkr.ecr.eu-central-1.amazonaws.com`) is specific to this deployment. Update the URL in your configuration if using a different AWS account.
 
 ---
 
 ## API Overview (most important endpoints)
 
-| Method | Path                | Description                        | Status |
-|---------|---------------------|-------------------------------------|---------|
-| POST    | /api/scrape-linkedin    | Analyze LinkedIn profile            | ✅ Live |
-| POST    | /api/predict            | Prediction for one profile          | ✅ Live |
-| POST    | /api/predict-batch      | Batch prediction for multiple profiles | ✅ Live |
-| POST    | /api/login              | User authentication                 | ✅ Live |
-| GET     | /api/candidates         | Get all saved candidates            | ✅ Live |
-| POST    | /api/candidates         | Save candidates                     | ✅ Live |
-| GET     | /api/users              | User list (Admin)                   | ✅ Live |
-| POST    | /api/create-user        | Create new user (Admin)             | ✅ Live |
-| PUT     | /api/users/:id          | Edit user (Admin)                   | ✅ Live |
-| DELETE  | /api/users/:id          | Delete user (Admin)                 | ✅ Live |
+| Method | Path                | Description
+|---------|---------------------|-------------------------------------
+| POST    | /api/scrape-linkedin    | Analyze LinkedIn profile
+| POST    | /api/predict            | Prediction for one profile
+| POST    | /api/predict-batch      | Batch prediction for multiple profiles
+| POST    | /api/login              | User authentication
+| GET     | /api/candidates         | Get all saved candidates
+| POST    | /api/candidates         | Save candidates
+| GET     | /api/users              | User list (Admin)
+| POST    | /api/create-user        | Create new user (Admin)
+| PUT     | /api/users/:id          | Edit user (Admin)
+| DELETE  | /api/users/:id          | Delete user (Admin)
 
 **Note**: All API endpoints now use the `/api` prefix for consistency.
 
@@ -253,17 +140,6 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **XGBoost**: 3.0.0 (latest stable version)
 - **PyTorch**: 2.1.0 (stable version for production)
 - **PyTorch Lightning**: 2.1.0 (compatible with PyTorch 2.1.0)
-
----
-
-## Example Workflow (Use Case)
-
-1. **Admin creates user** (in admin area)
-2. **User uploads LinkedIn profile** (manually or via CSV)
-3. **Selects model & starts analysis**
-4. **Receives prediction & explanations** (e.g., feature importance)
-5. **Saves interesting candidates**
-6. **Admin can manage users, assign permissions, etc.**
 
 ---
 
@@ -290,32 +166,6 @@ This application analyzes LinkedIn profiles and predicts with the help of AI mod
 - **Docker builds**: Use `--platform linux/amd64 --no-cache`
 - **ECR management**: Tag and push to correct repository
 - **ECS updates**: Automatic deployment from ECR
-
----
-
-## Troubleshooting
-
-### Common Issues
-1. **CORS errors**: Check CORS origins in API proxy server
-2. **Import errors**: All imports use relative paths
-3. **Model loading**: First prediction takes longer
-4. **Docker build errors**: Ensure `--platform linux/amd64` for AWS compatibility
-5. **XGBoost errors**: Ensure `requirements.txt` has `xgboost==3.0.0`
-
-### View Logs
-- **Render Dashboard**: Service → Logs (Frontend & API Proxy)
-- **AWS ECS**: CloudWatch logs for backend
-- **Frontend**: Browser Developer Tools
-
-### Docker Cleanup
-If you encounter "No space left on device" errors:
-```bash
-# Clean up Docker system
-docker system prune -a --volumes
-
-# Rebuild with clean cache
-docker build --platform linux/amd64 --no-cache -t masterthesis-backend .
-```
 
 ---
 
