@@ -4,9 +4,9 @@
 
 ---
 
-**Frontend**: https://masterthesis-igbq.onrender.com
-**API Proxy**: https://masterthesis-api-proxy.onrender.com
-**Backend**: AWS ECS (Elastic Container Service)
+- **Frontend**: https://masterthesis-igbq.onrender.com
+- **API Proxy**: https://masterthesis-api-proxy.onrender.com
+- **Backend**: AWS ECS (Elastic Container Service)
 
 ---
 
