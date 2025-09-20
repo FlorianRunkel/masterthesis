@@ -79,13 +79,19 @@ const ManualInput = () => {
 
   const firstExperience = experiences[0];
   const secondExperience = experiences[1];
-  
+
+  /*
+  Check if the experiences are valid.
+  */
   const hasValidExperiences = firstExperience && 
     firstExperience.company && 
     firstExperience.position && 
     firstExperience.startDate && 
     (firstExperience.endDate || firstExperience.endDate === 'Present');
 
+  /*
+  Check if the experiences are valid for TFT.
+  */
   const hasValidTFTExperiences = selectedModel === 'tft' ? 
     (hasValidExperiences && secondExperience && 
      secondExperience.company && 
@@ -134,6 +140,9 @@ const ManualInput = () => {
     }
   }, [error]);
 
+  /*
+  Handle add experience.
+  */
   const handleAddExperience = () => {
     setExperiences([...experiences, {
       company: '',
@@ -143,6 +152,9 @@ const ManualInput = () => {
     }]);
   };
 
+  /*
+  Handle remove experience.
+  */
   const handleRemoveExperience = (index) => {
     if (selectedModel === 'tft' && index === 1) {
       return;
@@ -154,6 +166,9 @@ const ManualInput = () => {
     }
   };
 
+  /*
+  Handle experience change.
+  */
   const handleExperienceChange = (index, field, value) => {
     const newExperiences = [...experiences];
     newExperiences[index] = {
@@ -163,6 +178,9 @@ const ManualInput = () => {
     setExperiences(newExperiences);
   };
 
+  /*
+  Handle add education.
+  */
   const handleAddEducation = () => {
     setEducation([...education, {
       school: '',
@@ -173,6 +191,9 @@ const ManualInput = () => {
     }]);
   };
 
+  /*
+  Handle education change.
+  */
   const handleEducationChange = (index, field, value) => {
     const newEducation = [...education];
     newEducation[index] = {

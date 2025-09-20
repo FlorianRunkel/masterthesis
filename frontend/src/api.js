@@ -1,14 +1,19 @@
-// Axios-Konfiguration für erhöhte Timeouts und Retry-Logik
 import axios from 'axios';
 
-// Nach dem Deploy: API Proxy - CORS muss im Proxy konfiguriert werden
+/*
+API Base URL
+*/
 export const API_BASE_URL = "https://masterthesis-api-proxy.onrender.com";
 
-// Globale Axios-Konfiguration mit sehr hohen Timeouts für ML-Modelle
+/*
+Global Axios configuration with very high timeouts for ML models
+*/
 axios.defaults.timeout = 600000; // 10 Minuten
 axios.defaults.timeoutErrorMessage = 'Request timed out. Please try again.';
 
-// Retry-Logik für 504-Fehler
+/*
+Retry logic for 504 errors
+*/
 const retryRequest = async (config, retries = 3, delay = 2000) => {
   try {
     return await axios(config);
@@ -22,7 +27,9 @@ const retryRequest = async (config, retries = 3, delay = 2000) => {
   }
 };
 
-// Interceptor für besseres Error-Handling
+/*
+Interceptor for better error handling
+*/
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -40,32 +47,37 @@ axios.interceptors.response.use(
   }
 );
 
-// Spezielle Funktionen für verschiedene API-Calls mit angepassten Timeouts
-export const apiCall = {
-  // Für schnelle Calls (Login, etc.)
+/*
+Special functions for different API calls with adjusted timeouts
+*/
+export const apiCall = {  
   quick: (config) => axios({ ...config, timeout: 30000 }),
-  
-  // Für normale Calls
   normal: (config) => axios({ ...config, timeout: 120000 }),
-  
-  // Für ML-Predictions (sehr hohe Timeouts)
   ml: (config) => retryRequest({ ...config, timeout: 600000 }),
-  
-  // Für Batch-Uploads (höchste Timeouts)
-  batch: (config) => retryRequest({ ...config, timeout: 900000 }), // 15 Minuten
+  batch: (config) => retryRequest({ ...config, timeout: 900000 }), // 15 Minutes
 };
 
-// Fallback CORS-Proxy (falls der API-Proxy CORS-Probleme hat)
+/*
+Fallback CORS-Proxy (if the API proxy has CORS problems)
+*/
 // export const API_BASE_URL = "https://cors-anywhere.herokuapp.com/https://masterthesis-api-proxy.onrender.com";
 
-// Alternative CORS-Proxy
+/*
+Alternative CORS-Proxy
+*/
 // export const API_BASE_URL = "https://api.allorigins.win/raw?url=https://masterthesis-api-proxy.onrender.com";
 
-// Lokale Entwicklung (auskommentiert)
+/*
+Local development (commented out)
+*/
 // export const API_BASE_URL = "http://localhost:8080";
 
-// API Proxy (auskommentiert wegen CORS-Problemen)
+/*
+API Proxy (commented out because of CORS problems)
+*/
 // export const API_BASE_URL = "https://masterthesis-api-proxy.onrender.com";
 
-// Cloudflare Tunnel (für lokales Testen)
+/*
+Cloudflare Tunnel (for local testing)
+*/
 // export const API_BASE_URL = "https://lot-realtors-tribune-shapes.trycloudflare.com"; 

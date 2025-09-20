@@ -19,6 +19,9 @@ const CandidatesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  /*
+  Fetch candidates.
+  */
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
@@ -45,6 +48,9 @@ const CandidatesPage = () => {
     fetchCandidates();
   }, []);
 
+  /*
+  Filter candidates.
+  */
   useEffect(() => {
     const filtered = candidates.filter(candidate => {
       const name = `${candidate.firstName || ''} ${candidate.lastName || ''}`.toLowerCase();
@@ -57,6 +63,9 @@ const CandidatesPage = () => {
     setFilteredCandidates(filtered);
   }, [searchTerm, selectedModel, candidates]);
 
+  /*
+  Handle delete candidate.
+  */
   const handleDeleteCandidate = async (candidateId) => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));

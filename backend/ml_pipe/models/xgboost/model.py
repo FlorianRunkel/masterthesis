@@ -5,6 +5,9 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.preprocessing import LabelEncoder
 from scipy.stats import uniform, randint
 
+'''
+XGBoost Model
+'''
 class XGBoostModel:
     def __init__(self, params=None):
         default_params = {

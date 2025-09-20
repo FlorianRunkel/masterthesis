@@ -10,7 +10,14 @@ const CandidateCard = ({ candidate, onDelete }) => {
   const isTimeSeriesModel = candidate.modelType === 'tft' || candidate.modelType === 'gru';
   const confidence = candidate.confidence ? candidate.confidence[0] : 0;
 
+  /*
+  Calculate the days from the confidence.
+  */
   const getDaysFromConfidence = (conf) => (!conf ? 0 : Math.round(conf));
+
+  /*
+  Calculate the confidence color.
+  */
   const getConfidenceColor = (value, isTimeSeries) => {
     if (isTimeSeries) {
       const days = getDaysFromConfidence(value);

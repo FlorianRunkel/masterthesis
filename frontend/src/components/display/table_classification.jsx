@@ -22,16 +22,18 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
   const successCount = results.filter(r => !r.error).length;
   const errorCount = results.filter(r => r.error).length;
 
-  // Filter results based on probability filter
+  /*
+  Filter the results based on the probability filter
+  */
   const getFilteredResults = () => {
     if (!results || !Array.isArray(results)) return [];
     if (probabilityFilter === 'all') return results;
-    
+
     return results.filter(result => {
-      if (result.error) return true; // Always show errors
-      
+      if (result.error) return true;
+
       const confidence = result.confidence ? result.confidence[0] * 100 : 0;
-      
+
       switch (probabilityFilter) {
         case 'low':
           return confidence < 40; // Low probability
@@ -47,6 +49,9 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
 
   const filteredResults = getFilteredResults();
 
+  /*
+  Select candidate.
+  */
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
     if (newSelected.has(index)) {
@@ -57,9 +62,12 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     setSelectedCandidates(newSelected);
   };
 
+  /*
+  Save selected candidates
+  */
   const handleSaveSelected = () => {
     if (!results || !Array.isArray(results)) return;
-    
+
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
       ...(originalProfiles && originalProfiles[index] ? originalProfiles[index] : {}),
       ...results[index],
@@ -68,19 +76,31 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     onSave(candidatesToSave);
   };
 
+  /*
+  Handle filter click.
+  */
   const handleFilterClick = (event) => {
     setFilterAnchorEl(event.currentTarget);
   };
 
+  /*
+  Handle filter close.
+  */
   const handleFilterClose = () => {
     setFilterAnchorEl(null);
   };
 
+  /*
+  Handle filter select.
+  */
   const handleFilterSelect = (filterValue) => {
     setProbabilityFilter(filterValue);
     setFilterAnchorEl(null);
   };
 
+  /*
+  Toggle details.
+  */
   const toggleDetails = (index) => {
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
@@ -91,12 +111,18 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     setExpandedRows(newExpandedRows);
   };
 
+  /*
+  Get the probability class.
+  */
   const getProbabilityClass = (confidence) => {
     if (confidence < 40) return 'probability-low';
     if (confidence < 70) return 'probability-medium';
     return 'probability-high';
   };
 
+  /*
+  Get the status icon.
+  */
   const getStatusIcon = (probabilityClass) => {
     switch (probabilityClass) {
       case 'probability-high':
@@ -106,6 +132,9 @@ const ResultsTableClassification = ({ results, onSave, isSaving, originalProfile
     }
   };
 
+  /*
+  Get the color by probability.
+  */
   const getColorByProbability = (probabilityClass) => {
     switch (probabilityClass) {
       case 'probability-low':

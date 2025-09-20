@@ -46,6 +46,9 @@ const SettingsPage = () => {
     }
   };
 
+  /*
+  Fetch users
+  */
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/users`);
@@ -78,6 +81,9 @@ const SettingsPage = () => {
     setDeleteSuccess(null);
   };
 
+  /*
+  Handle delete
+  */
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
@@ -91,6 +97,9 @@ const SettingsPage = () => {
     }
   };
 
+  /*
+  Handle delete cancel
+  */
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setUserToDelete(null);
@@ -98,10 +107,16 @@ const SettingsPage = () => {
     setDeleteSuccess(null);
   };
 
+  /*
+  Handle edit change
+  */
   const handleEditChange = (idx, field, value) => {
     setEditUsers(prev => prev.map((u, i) => i === idx ? { ...u, [field]: value } : u));
   };
 
+  /*
+  Handle update user
+  */
   const handleUpdateUser = async (user) => {
     setUpdateSuccess(null);
     setUpdateError(null);

@@ -7,7 +7,10 @@ import axios from 'axios';
 
 const prognoseHeaders = ['Model type', 'Model prediction', 'Your assessment', 'Comment'];
 const modelOptions = ['GRU', 'XGBoost', 'TFT'];
-// Control Group Questions (Predictions only)
+
+/*
+group A Questions (Predictions only)
+*/
 const controlGroupQuestions = [
   { category: 'Comprehensibility & Interpretability', questions: [
     'The system’s predictions about candidate job-switching readiness seemed realistic.',
@@ -23,7 +26,7 @@ const controlGroupQuestions = [
   ]},  
   { category: 'Integration of Human Expertise and AI Support', questions: [
     'The system’s predictions supported me in combining them with my own recruiting expertise.',
-    'The system complemented my judgment rather than replacing it.'
+    'The system turned out to be a valuable complement to my own judgment.'
   ]},
   { category: 'Perceived Value & Intention to Use', questions: [
     'I can imagine using such a prediction system in my daily recruiting activities.',
@@ -31,7 +34,9 @@ const controlGroupQuestions = [
   ]}
 ];
 
-// Experimental Group Questions (Predictions + Explanations)
+/*
+group B Questions (Predictions + Explanations)
+*/
 const experimentalGroupQuestions = [
   { category: 'Comprehensibility & Interpretability', questions: [
     'The explanations made it clear why a candidate was predicted as more or less likely to switch jobs.',
@@ -47,7 +52,7 @@ const experimentalGroupQuestions = [
   ]},
   { category: 'Integration of Human Expertise and AI Support', questions: [
     'The explanations supported me in combining the system\'s predictions with my own recruiting expertise.',
-    'The system complemented my judgment rather than replacing it.'
+    'The system turned out to be a valuable complement to my own judgment.'
   ]},
   { category: 'Perceived Value & Intention to Use', questions: [
     'I could imagine integrating such a system with explanations into my daily recruiting workflow.',
@@ -58,28 +63,26 @@ const experimentalGroupQuestions = [
 const FeedbackPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  // Initialisiere State mit localStorage-Werten oder Standardwerten
   const [freeText, setFreeText] = useState(() => {
     const saved = localStorage.getItem('feedback_freeText');
     return saved || '';
   });
-  
+
   const [prognoseBewertung, setPrognoseBewertung] = useState(() => {
     const saved = localStorage.getItem('feedback_prognoseBewertung');
     return saved ? JSON.parse(saved) : [{ modell: '', prognose: '', echt: '', bemerkung: '' }];
   });
-  
+
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
   const canViewExplanations = user?.canViewExplanations;
-  
-  // Get the appropriate questions based on user's explanation access
+
   const currentQuestions = canViewExplanations ? experimentalGroupQuestions : controlGroupQuestions;
   const totalQuestions = currentQuestions.reduce((sum, category) => sum + category.questions.length, 0);
-  
+
   const [bewertungsskala, setBewertungsskala] = useState(() => {
     const saved = localStorage.getItem('feedback_bewertungsskala');
     return saved ? JSON.parse(saved) : Array(totalQuestions).fill(3);
@@ -100,8 +103,9 @@ const FeedbackPage = () => {
     setBewertungsskala(updated);
   };
 
-
-  // Speichere alle Änderungen automatisch im localStorage
+  /*
+  Save feedback.
+  */
   useEffect(() => {
     localStorage.setItem('feedback_freeText', freeText);
   }, [freeText]);
@@ -114,7 +118,9 @@ const FeedbackPage = () => {
     localStorage.setItem('feedback_bewertungsskala', JSON.stringify(bewertungsskala));
   }, [bewertungsskala]);
 
-
+  /*
+  Handle submit.
+  */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -126,13 +132,11 @@ const FeedbackPage = () => {
         headers: { 'X-User-Uid': uid }
       });
       setSuccess(true);
-      
-      // Nach erfolgreichem Submit alle localStorage-Daten löschen
+
       localStorage.removeItem('feedback_freeText');
       localStorage.removeItem('feedback_prognoseBewertung');
       localStorage.removeItem('feedback_bewertungsskala');
-      
-      // Formular zurücksetzen
+
       setFreeText('');
       setPrognoseBewertung([{ modell: '', prognose: '', echt: '', bemerkung: '' }]);
       setBewertungsskala(Array(totalQuestions).fill(3));

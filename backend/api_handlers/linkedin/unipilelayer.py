@@ -31,7 +31,7 @@ class UnipileLayer:
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_sections=%2A&account_id={account_id}'
         elif api_type == 'recruiter':
             url = f'https://{self.subdomain}.unipile.com:{self.port}/api/v1/users/{public_identifier}?linkedin_api=recruiter&linkedin_sections=%2A&account_id={account_id}'
-        else:    
+        else:
             raise ValueError('Unknown API type')
         sleep(randint(1, 3))
         response = requests.get(url, headers=self.headers)
@@ -94,19 +94,19 @@ class UnipileLayer:
                 "startDate": exp.get("start", ""),
                 "endDate": exp.get("end", "") or "Present",
                 "duration": self.format_duration(exp.get("start", ""), exp.get("end", "")),
-                "type": "fullTime",  # optional fix
+                "type": "fullTime",
                 "positionDescription": exp.get("description", "")
             })
 
         # Skills
         skills = [skill.get("name") for skill in input_data.get("skills", [])]
 
-        # Sprachen
+        # Languages
         language_skills = {}
         for lang in input_data.get("languages", []):
             language_skills[lang.get("name", "")] = lang.get("proficiency", "")
 
-        # Komplettes Profil-Objekt
+        # Complete profile object
         profile_info = {
             "skills": skills,
             "firstName": first_name,
@@ -119,7 +119,7 @@ class UnipileLayer:
             "languageSkills": language_skills
         }
 
-        # Endgültiges Mapping für CSV oder Datenbank
+        # Final mapping for CSV or database
         final_profile = {
             "imageUrl": image_url,
             "firstName": first_name,

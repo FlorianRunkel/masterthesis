@@ -69,7 +69,6 @@ def predict_career():
         if model_type in ['gru', 'tft']:
             profile_data = preprocess_dates_time(profile_data)
 
-        # Übergebe den Boolean an die predict-Funktion
         prediction = module.predict(profile_data, include_explanations=include_explanations)
 
         if model_type == 'xgboost':
@@ -165,7 +164,6 @@ def predict_batch():
                 if model_type == 'tft':
                     profile_data = preprocess_dates_time(profile_data)
 
-                # Übergebe den Boolean an die predict-Funktion
                 prediction = module.predict(profile_data, include_explanations=include_explanations)
 
                 if "error" in prediction:

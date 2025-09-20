@@ -1,12 +1,11 @@
 import os
 import sys
 import logging
+
 from flask import Flask
 from flask_cors import CORS
-
-# Im Render-Verzeichnis sind wir bereits im backend/ Ordner
-
 from config import Config
+
 from api_handlers.candidates.handler import candidates_bp
 from api_handlers.linkedin.handler import linkedin_bp
 from api_handlers.prediction.handler import prediction_bp
@@ -24,12 +23,14 @@ def create_app():
 
     app.logger.setLevel(logging.INFO)
 
+    '''
+    CORS Origins
+    '''
     origins = [
         "https://masterthesis-igbq.onrender.com",
         "https://masterthesis-backend.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:0",
-        # AWS Backend URLs (werden später hinzugefügt)
         "https://*.amazonaws.com",
         "https://*.elasticbeanstalk.com",
         "https://*.ecs.amazonaws.com",
@@ -47,7 +48,6 @@ def create_app():
     app.register_blueprint(user_management_bp)
     app.register_blueprint(feedback_bp)
 
-    # Root endpoint for AWS Load Balancer health check
     @app.route('/')
     def root():
         return {'status': 'ok', 'service': 'masterthesis-backend'}, 200
@@ -56,9 +56,13 @@ def create_app():
 
     return app
 
-# Create app
+'''
+Initialize and start the Flask application
+'''
 app = create_app()
 
+'''
+Run the application when executed directly
+'''
 if __name__ == '__main__':
-    # Start app
     app.run(host='0.0.0.0', port=8080, debug=False)

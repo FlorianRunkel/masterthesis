@@ -69,6 +69,9 @@ const LinkedInInput = () => {
     }
   }, [profileData, predictionData]);
 
+  /*
+  Handle LinkedIn scraping
+  */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPredictionData(null);
@@ -79,7 +82,6 @@ const LinkedInInput = () => {
     setPredictionModelType(selectedModel);
 
     try {
-      // LinkedIn Scraping with increased timeout
       const profileResponse = await apiCall.ml({
         method: 'POST',
         url: `${API_BASE_URL}/api/scrape-linkedin`,
@@ -143,6 +145,9 @@ const LinkedInInput = () => {
     }
   };
 
+  /*
+  Handle save candidate.
+  */
   const handleSaveCandidate = async () => {
     if (!profileData || !predictionData) return;
 

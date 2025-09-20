@@ -90,6 +90,9 @@ const BatchUpload = () => {
     }
   }, [saveSuccess]);
 
+  /*
+  Handle file change.
+  */
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -121,6 +124,9 @@ const BatchUpload = () => {
     }
   };
 
+  /*
+  Handle upload.
+  */
   const handleUpload = async () => {
     setShowModelChangeHint(false);
     if (!file) {
@@ -168,6 +174,9 @@ const BatchUpload = () => {
     }
   };
 
+  /*
+  Handle save candidates.
+  */
   const handleSaveCandidates = async (candidates) => {
     setIsSaving(true);
     setSaveError(null);
@@ -233,6 +242,9 @@ const BatchUpload = () => {
     }
   };
 
+  /*
+  Handle model change
+  */
   const handleModelChange = (value) => {
     setModelType(value);
     setShowModelChangeHint(true);

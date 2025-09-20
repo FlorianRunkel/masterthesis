@@ -12,7 +12,6 @@ def create_user_api(first_name, last_name, email, password, canViewExplanations)
     try:
         if not all([first_name, last_name, email, password, canViewExplanations]):
             return {'statusCode': 400, 'error': 'All fields are required!'}
-        # Hinweis: In Produktion Passwort hashen!
         db = MongoDb()
         result = db.create_user(first_name, last_name, email, password, canViewExplanations)
         return result
@@ -34,7 +33,7 @@ def update_user_api(user_id, first_name, last_name, email, password, canViewExpl
             'firstName': first_name,
             'lastName': last_name,
             'email': email,
-            'password': password,  # Hinweis: Passwort sollte gehasht werden!
+            'password': password,
             'canViewExplanations': canViewExplanations
         }
         result = db.update(filter_dict, update_dict, 'users')

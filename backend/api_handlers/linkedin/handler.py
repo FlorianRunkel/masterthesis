@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify
 from api_handlers.linkedin.unipilelayer import UnipileLayer
-import logging  
+import logging
 import json
-# Blueprint für LinkedIn-Routen
 linkedin_bp = Blueprint('linkedin_bp', __name__)
 
 API_KEY = "9JJfa48E.0/iK1EJuHNQF5DQc1S8Mw99LnGvBvFZV/ZRxloy4+7A="
@@ -68,10 +67,10 @@ def scrape_linkedin():
             'skills': profile_info.get('skills', [])
         }
 
-        # Kombiniere beide Formate
+        # Combine both formats
         response_data = {
-            **model_input,  # ML-Format
-            **frontend_profile  # Frontend-Format (überschreibt Duplikate)
+            **model_input,
+            **frontend_profile
         }
 
         return jsonify(response_data)

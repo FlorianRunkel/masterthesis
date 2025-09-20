@@ -20,6 +20,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
   const successCount = results.filter(r => !r.error && r.status !== 'error').length;
   const errorCount = results.filter(r => r.error || r.status === 'error').length;
 
+  /*
+  Filter the results based on the time filter.
+  */
   const getFilteredResults = () => {
     if (timeFilter === 'all') return results;
     return results.filter(result => {
@@ -41,6 +44,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
 
   const filteredResults = getFilteredResults();
 
+  /*
+  Select candidate.
+  */
   const handleSelectCandidate = (index) => {
     const newSelected = new Set(selectedCandidates);
     if (newSelected.has(index)) {
@@ -51,6 +57,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     setSelectedCandidates(newSelected);
   };
 
+  /*
+  Save selected candidates.
+  */
   const handleSaveSelected = () => {
     const candidatesToSave = Array.from(selectedCandidates).map(index => ({
       ...originalProfiles[index],
@@ -60,19 +69,31 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     onSave(candidatesToSave);
   };
 
+  /*
+  Handle filter click.
+  */
   const handleFilterClick = (event) => {
     setFilterAnchorEl(event.currentTarget);
   };
 
+  /*
+  Handle filter close.
+  */
   const handleFilterClose = () => {
     setFilterAnchorEl(null);
   };
 
+  /*
+  Handle filter select.
+  */
   const handleFilterSelect = (filterValue) => {
     setTimeFilter(filterValue);
     setFilterAnchorEl(null);
   };
 
+  /*
+  Toggle details.
+  */
   const toggleDetails = (index) => {
     const newExpandedRows = new Set(expandedRows);
     if (newExpandedRows.has(index)) {
@@ -83,6 +104,9 @@ const ResultsTableTimeSeries = ({ results, onSave, isSaving, originalProfiles })
     setExpandedRows(newExpandedRows);
   };
 
+  /*
+  Format the job change period.
+  */
   const formatJobChangePeriod = (confidence) => {
     if (!confidence) return { text: 'N/A', color: '#666' };
     const months = confidence / 30.44;

@@ -16,6 +16,9 @@ const Login = ({ onLogin }) => {
     setOpenDemoDialog(true);
   }, []);
 
+  /*
+  Handle login
+  */
   const handleLoginWithCredentials = async (email, password) => {
     setError('');
     if (!email || !password) {

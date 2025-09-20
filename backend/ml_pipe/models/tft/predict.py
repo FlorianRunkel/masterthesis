@@ -10,6 +10,7 @@ import os
 import numpy as np
 from ml_pipe.explainable_ai.explainer import ModelExplainer
 from ml_pipe.models.career_rules import CareerRules
+from ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
 
 '''
 Load configuration files relative to script path
@@ -28,12 +29,6 @@ position_map = {
     ) for entry in position_entries
 }
 all_positions = list(position_map.keys())
-
-'''
-Load FeatureEngineering
-'''
-# Removed hardcoded path for Render compatibility
-from ml_pipe.data.featureEngineering.tft.feature_engineering_tft import FeatureEngineering
 
 '''
 Helper Functions

@@ -135,6 +135,9 @@ const Timeline = ({ prediction, profile }) => {
     setSelectedMethod(availableMethods[0]);
   }
 
+  /*
+  Format the range label
+  */
   function formatRangeLabel(days) {
     const months = days / 30.44;
     const years = Math.floor(months / 12);

@@ -409,15 +409,15 @@ def predict(profile_dict, model_path=None, preloaded_model=None, include_explana
         features["career_history"] = career_history_features
 
         feature_vector = [
-            features["company_changes"],
-            features["total_experience_days"],
-            features["location_changes"],
-            features["highest_degree"],
-            features["position_level"],
-            features["age_category"],
-            position_mapping.get(features["position"], 0),
-            position_mapping.get(features["position_branche"], 0),
-            features["position_duration"],
+            features["company_changes"],           # 0
+            features["total_experience_days"],     # 1
+            features["location_changes"],          # 2
+            position_mapping.get(features["position"], 0),        # 3
+            features["highest_degree"],            # 4
+            features["position_level"],            # 5
+            position_mapping.get(features["position_branche"], 0), # 6
+            features["position_duration"],         # 7
+            features["age_category"],              # 8
         ]
         feature_vector.extend(
             extract_career_history_features(features["career_history"], position_mapping, position_mapping)

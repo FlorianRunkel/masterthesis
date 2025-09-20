@@ -37,7 +37,6 @@ class FeatureEngineering:
             level, branche, durchschnittszeit_tage = self.position_map[match]
             return level, branche, durchschnittszeit_tage
 
-        # Fallback für unbekannte Positionen - basierend auf Schlüsselwörtern
         if any(keyword in pos_clean for keyword in ['thesis', 'master', 'bachelor', 'phd', 'research', 'student']):
             return 1, 'research', 180  # Student/Research Position
         elif any(keyword in pos_clean for keyword in ['intern', 'trainee', 'assistant']):
