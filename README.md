@@ -13,15 +13,14 @@
 
 <div align="justify">
 
-This thesis addresses the challenge of predicting candidate mobility in Active Recruiting, a task of growing relevance in Human Resource Management. While previous studies have primarily focused on binary classification of employee attrition, the temporal dimension of career changes and the explainability of predictions have remained largely unexplored. 
+This thesis examines the challenge of forecasting candidate mobility in Active Recruiting, an issue of growing importance in Human Resource Management. While prior research has largely focused on binary attrition prediction, the temporal dynamics of career changes and the explainability of models remain underexplored. To address this gap, a web-based artefact was developed within the Design Science Research paradigm, combining machine learning with explainable AI. 
 
-To address this gap, a web-based artefact was developed within the Design Science Research paradigm, combining machine learning models with explainable AI methods. The framework integrates XGBoost for the classification of candidates' willingness to change jobs and sequential models such as Gated Recurrent Units and the Temporal Fusion Transformer to forecast the specific timing of potential job transitions. 
+The framework applies XGBoost to classify candidates’ willingness to change jobs and sequential models, including Gated Recurrent Units and the Temporal Fusion Transformer, to forecast the timing of potential transitions. Explainability techniques such as SHAP and LIME were integrated to provide global and local transparency. Evaluation followed a twofold approach, comprising technical performance analysis and a user study. Results show that XGBoost achieves high predictive accuracy and recall, while the Temporal Fusion Transformer outperforms GRU in precision and practical relevance. The user study further demonstrates that explainability enhances transparency, usability, and trust, thereby strengthening the acceptance of predictive systems in recruiting. 
 
-To ensure transparency, explainability techniques including SHAP and LIME were incorporated, enabling both global and local insights into model behavior. The artefact was evaluated through a twofold approach comprising a technical performance analysis and a user study following an established evaluation design. 
+Overall, this thesis demonstrates that integrating accurate prediction models with explainable AI enables robust classification and temporal forecasting of candidate mobility while simultaneously enhancing interpretability and practical applicability. 
 
-The results demonstrate that XGBoost achieves high predictive accuracy and recall, providing a reliable basis for classifying job-change readiness. Furthermore, sequential models were able to predict specific points in time at which a career change is likely, with the Temporal Fusion Transformer outperforming GRU in precision and practical applicability. The user study further revealed that the integration of explainability components increases transparency, enhances trust, and improves usability, thereby strengthening the acceptance and practical relevance of predictive systems in recruiting. 
-
-Overall, the thesis shows that the combination of accurate prediction models with explainable methods constitutes a promising approach for data-driven decision support in HRM. The developed artefact contributes both theoretically, by deriving design principles for the integration of classification, temporal prediction, and explainability, and practically, by supporting recruiters in prioritizing candidates, planning outreach more strategically, and justifying decisions transparently.
+Keywords: Human Resource Management, Active Recruiting, Temporal Forecasting of Career Changes, Machine Learning (ML), explainable artificial itelligence (XAI)
+<img width="470" height="398" alt="image" src="https://github.com/user-attachments/assets/d54429f1-170d-42e0-8299-24361c2fc72f" />
 
 </div>
 ---
@@ -177,9 +176,12 @@ masterthesis-api-proxy/          # API Proxy server (Node.js, Express)
 ## Author & Contact
 
 **Florian Runkel**
+
 **Email**: runkel.florian@stud.uni-regensburg.de
-**University**: University of Regensbur
-**Project**: Master's Thesis
+
+**University**: University of Regensburg
+
+**Project**: Master Thesis
 
 ---
 
