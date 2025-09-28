@@ -20,7 +20,6 @@ The framework applies XGBoost to classify candidates’ willingness to change jo
 Overall, this thesis demonstrates that integrating accurate prediction models with explainable AI enables robust classification and temporal forecasting of candidate mobility while simultaneously enhancing interpretability and practical applicability. 
 
 Keywords: Human Resource Management, Active Recruiting, Temporal Forecasting of Career Changes, Machine Learning (ML), explainable artificial itelligence (XAI)
-<img width="470" height="398" alt="image" src="https://github.com/user-attachments/assets/d54429f1-170d-42e0-8299-24361c2fc72f" />
 
 </div>
 ---
